@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-journal
+server/assets/music/
+.DS_Store
+e2e/playwright-report/
+e2e/test-results/
