@@ -32,9 +32,9 @@ family-dashboard/
 
 ---
 
-## Phase 0 - Foundations
+## Phase 0 - Foundations ✅ Complete
 
-### Step 0.1 - Initialize the monorepo
+### Step 0.1 - Initialize the monorepo ✅
 
 ```
 Initialize a new Git repository called family-dashboard.
@@ -53,109 +53,43 @@ At the root, create:
 
 ---
 
-### Step 0.2 - Bootstrap the client
+### Step 0.2 - Bootstrap the client ✅
 
-```
-Inside client/, initialize a Vite project with the React TypeScript template.
+**Implementation notes (affects all subsequent client work):**
 
-Install the following dependencies:
-- @apollo/client
-- graphql
-- react-router-dom
-- dayjs
-- framer-motion
-- tailwindcss
-- @tailwindcss/vite (or postcss setup)
-- lucide-react
+- **Tailwind v4** — no `tailwind.config.ts`. Theme is defined in `client/src/index.css` using the `@theme {}` block with CSS custom properties (`--color-gold`, `--color-surface`, etc.) and `@import "tailwindcss"`. The `@tailwindcss/vite` plugin is added to `vite.config.ts` instead of a postcss setup. Tailwind utility classes like `bg-surface`, `text-gold`, `border-gold/20` work as expected.
 
-Configure tailwind.config.ts with the following custom theme additions:
-- colors.gold: "#C9A84C"
-- colors.gold-light: "#E8C97A"
-- colors.gold-dim: "#8A6F2E"
-- colors.surface: "#111111"
-- colors.surface-raised: "#1A1A1A"
-- colors.surface-card: "#222222"
-- colors.ink: "#F5F0E8"
-- colors.ink-muted: "#9A9488"
+- **Apollo Client v4** — import paths changed from v3. Future client code must use:
+  ```ts
+  import { ApolloClient, InMemoryCache } from '@apollo/client'
+  import { ApolloProvider } from '@apollo/client/react'
+  import { HttpLink } from '@apollo/client/link/http'
+  // useQuery, useMutation, gql remain in '@apollo/client'
+  ```
+  `ApolloClient` requires an explicit `link` property — the `uri` shorthand no longer works:
+  ```ts
+  new ApolloClient({ link: new HttpLink({ uri: '...' }), cache: new InMemoryCache() })
+  ```
 
-In vite.config.ts, set server.host to "0.0.0.0" and server.port to 5173 so the app
-is reachable on the local network from any device.
+- **DashboardPage** renders the final 3-column grid with six `PlaceholderCard` components (Weather, Upcoming Events, Word of the Day, Music, Message, Chores Summary). Grid is `md:grid-cols-3`, stacks to single column on mobile.
 
-Configure the Google Fonts import in index.html for:
-- "Syne" (weights 400, 700, 800) - display font
-- "DM Sans" (weights 300, 400, 500) - body font
-
-Set the default font in tailwind to DM Sans, and create a utility class `.font-display`
-mapped to Syne.
-
-Create App.tsx with React Router configured for the following routes:
-- "/" -> DashboardPage
-- "/chores" -> ChoresPage (placeholder — renders "Chores coming soon")
-- "/calendar" -> CalendarPage (placeholder — renders "Calendar coming soon")
-- "/message-admin" -> MessageAdminPage (placeholder — renders "Message Admin coming soon")
-
-**DashboardPage must render the final 3-column grid layout from day one**, even though no real widgets exist yet. Use named placeholder cards — dark cards with a centered label — for every widget slot. Placeholder card labels: "Weather", "Upcoming Events", "Word of the Day", "Music", "Message", "Chores Summary". This lets the overall layout be reviewed and adjusted before any real widgets are built. Apply the full Tailwind color theme and grid structure as specified in Phase 8 (3-column on tablet/desktop, stacked on mobile).
-
-Create a persistent top navigation bar component (NavBar.tsx) with:
-- App name "HOME" in Syne 800 weight, gold color, left-aligned
-- Nav links: Dashboard, Chores, Calendar
-- The nav should be fixed at top, dark background, subtle gold bottom border (1px, 20% opacity)
-- On mobile, collapse nav links into a hamburger menu
-
-Wrap App.tsx in ApolloProvider pointed at http://localhost:4000/graphql.
-```
+- **NavBar** is fixed at top with hamburger menu on mobile (full-width dropdown, 52px-tall items). Nav links use React Router `NavLink` with active gold styling.
 
 ---
 
-### Step 0.3 - Bootstrap the server
+### Step 0.3 - Bootstrap the server ✅
 
-```
-Inside server/, initialize a Node.js TypeScript project.
+**Implementation notes (affects all subsequent server work):**
 
-Install the following dependencies:
-- express
-- @apollo/server
-- @apollo/server/express4
-- graphql
-- @prisma/client
-- prisma (dev)
-- typescript
-- ts-node
-- nodemon (dev)
-- dotenv
-- node-cron
-- cors
+- **`@types/express` must be pinned to v4** — `@types/express@^4.17.25` is in devDependencies. Do not upgrade to v5 types; they break `expressMiddleware` from `@apollo/server/express4` because the type signatures diverge from Express 4 runtime.
 
-Create tsconfig.json with strict mode enabled, targeting ES2022, module commonjs.
+- All files created: `src/index.ts`, `src/schema/index.ts` (ping stub), `prisma/schema.prisma` (datasource only), `.env.example`, `tsconfig.json` (strict, ES2022, commonjs).
 
-Create src/index.ts as the entry point that:
-- Loads dotenv
-- Creates an Express app
-- Mounts Apollo Server at /graphql using expressMiddleware
-- Serves static files from assets/music at /music
-- Starts listening on port 4000, host 0.0.0.0
-
-Create src/schema/ directory with an index.ts that exports a combined typeDefs
-and resolvers. Start with a stub Query { ping: String } that returns "pong".
-
-Create src/prisma/schema.prisma with the following models (detailed in Phase 2).
-For now, just create the file with the datasource pointing to dev.db in the server root.
-
-Create a .env.example file with placeholders for:
-- GOOGLE_CLIENT_ID
-- GOOGLE_CLIENT_SECRET
-- GOOGLE_REFRESH_TOKEN
-- GOOGLE_CALENDAR_ID
-- OPEN_METEO_LAT=43.0389
-- OPEN_METEO_LNG=-87.9065
-- PORT=4000
-
-Add a dev script in package.json: "nodemon --exec ts-node src/index.ts"
-```
+- `server/assets/music/` directory exists and is gitignored.
 
 ---
 
-### Step 0.4 - Playwright setup
+### Step 0.4 - Playwright setup ✅
 
 ```
 Inside e2e/, initialize a Node.js TypeScript project.
@@ -179,7 +113,7 @@ Create e2e/tests/smoke.spec.ts with:
 
 ---
 
-### Step 0.5 - GitHub Actions CI
+### Step 0.5 - GitHub Actions CI ✅
 
 ```
 Create .github/workflows/ci.yml that:
@@ -196,24 +130,19 @@ Create .github/workflows/ci.yml that:
 
 ---
 
-### Demo Checkpoint — Phase 0
+### Demo Checkpoint — Phase 0 ✅ Verified
 
-Start both dev servers (`npm run dev` in `client/` and `server/`), then verify in the browser:
-
-- `http://localhost:5173` loads and shows the NavBar ("HOME" in gold, nav links).
-- Navigating to `/` shows the 3-column Dashboard skeleton with all named placeholder cards visible (Weather, Upcoming Events, Word of the Day, Music, Message, Chores Summary).
-- Navigating to `/chores`, `/calendar` shows placeholder text for each.
-- `http://localhost:4000/graphql` responds to `{ ping }` with `"pong"`.
-- The layout is responsive: resize the browser to mobile width and confirm the cards stack vertically.
+All items confirmed. 3 Playwright smoke tests pass (dashboard loads, navigation links present, server ping).
 
 ---
 
-## Phase 1 - Database Schema and GraphQL Foundation
+## Phase 1 - Database Schema and GraphQL Foundation ← Next
 
 ### Step 1.1 - Prisma schema
 
 ```
-In server/prisma/schema.prisma, define the following models:
+server/prisma/schema.prisma already exists with the datasource block configured.
+Add the following models to it:
 
 model Person {
   id        String   @id @default(cuid())
@@ -285,8 +214,9 @@ Run the seed.
 ### Step 1.2 - GraphQL schema and resolvers scaffold
 
 ```
-In server/src/schema/, create the following type definition files and wire them
-into the combined schema index:
+server/src/schema/index.ts already exists with a ping stub. Replace its contents
+entirely. Create a server/src/schema/types/ subdirectory with the following files
+and wire them into the schema index:
 
 types/person.graphql.ts - exports typeDefs:
   type Person {
@@ -389,6 +319,15 @@ Root Query and Mutation:
     wordOfDay: WordOfDay!
   }
 
+  # ChoreCompletion is needed as a GraphQL type since completeChore returns it.
+  # Add this to types/chore.graphql.ts alongside Chore:
+  type ChoreCompletion {
+    id: ID!
+    choreId: String!
+    dateKey: String!
+    completedAt: String!
+  }
+
   type Mutation {
     completeChore(choreId: ID!, dateKey: String!): ChoreCompletion!
     uncompleteChore(choreId: ID!, dateKey: String!): Boolean!
@@ -422,6 +361,9 @@ thin wrapper — enough to display the returned stub data in a styled card, but 
 the full widget logic that comes in later phases. This gives you something to react to
 visually before any feature is production-ready.
 
+Apollo Client v4 hook imports (use these in every shell component going forward):
+  import { useQuery, useMutation, gql } from '@apollo/client'
+
 Create the following thin shell components (these will be fleshed out in later phases):
 
 WeatherShell: renders current temp and condition label from the weather query.
@@ -450,6 +392,35 @@ With both dev servers running:
 - Message card shows Mom's soccer practice message.
 - Chores Summary shows 4 avatar initials (H, R, K, J).
 - GraphQL sandbox at `localhost:4000/graphql` can execute every query/mutation and return the stub data.
+
+---
+
+### Step 1.4 - UI/UX Review: Dashboard first impression
+
+This is the most important design review in the project. Every widget built in later phases inherits proportions and visual language from what's established here. Take time to get it right.
+
+**Tools:** Use the playwright plugin (`browser_take_screenshot`, `browser_resize`, `browser_snapshot`) to capture the current state. Use the `frontend-design` skill to evaluate and generate improvements.
+
+```
+1. Take screenshots at three viewports using browser_resize + browser_take_screenshot:
+   - 1280×800 (desktop)
+   - 768×1024 (iPad portrait)
+   - 390×844 (iPhone)
+
+2. Evaluate each screenshot against these criteria:
+   - Card proportions: do the six cards feel balanced in the grid? Are any too tall/short?
+   - Typography: is Syne rendering with visible weight contrast against DM Sans?
+   - Gold color: does it read as an accent, not a dominant color? Are borders visible but subtle?
+   - Whitespace: does the dashboard feel "deliberate" or cramped?
+   - Dark theme: is the surface/surface-raised distinction visible between page bg and cards?
+   - Data legibility: can you read the stub data at a glance, or is it too small/muted?
+
+3. Use the frontend-design skill to improve any shell component that fails the above criteria.
+   Focus on: card padding, font sizes and weights, the ink/ink-muted contrast for body text,
+   and whether the gold accent reads correctly at the border opacity used (15-20%).
+
+4. Re-screenshot after changes and confirm improvements before moving to Phase 2.
+```
 
 ---
 
@@ -602,6 +573,45 @@ Test: "chores admin - delete a chore"
 
 ---
 
+### Step 2.5 - UI/UX Review: Chores pages
+
+The chores page is the highest-frequency interaction in the app — kids will tap it daily. It needs to feel fast, clear, and satisfying to use.
+
+**Tools:** playwright plugin for screenshots and interaction inspection; `frontend-design` skill for visual improvements.
+
+```
+1. Navigate to /chores. Take screenshots at mobile (390×844) and tablet (768×1024).
+   The mobile view is the primary target — this is how kids will use it.
+
+2. Evaluate the person cards:
+   - Do the four cards feel distinct from each other (color accents working)?
+   - Is the person's name immediately readable without scanning?
+   - Can you tell at a glance who has completed their chores vs. who hasn't?
+   - Does the progress bar read as meaningful, or is it too thin/subtle?
+
+3. Evaluate the checkbox interaction:
+   - Use browser_snapshot to inspect the checkbox area. Is the 44×44px touch target
+     visually obvious, or does the tappable area feel uncertain?
+   - Does the strikethrough animation on completion feel satisfying?
+
+4. Evaluate the top summary row (avatar circles + completion percentages):
+   - Are the avatar initials large enough and readable?
+   - Is the completion percentage formatted clearly (e.g., "60%" not "0.6")?
+
+5. Navigate to /chores-admin. This page is for adults on desktop.
+   - Does the dense layout still feel organized, not chaotic?
+   - Are the Edit/Delete buttons clearly distinguished?
+
+6. Use the frontend-design skill to improve any element that feels visually weak.
+   Typical fixes at this stage: progress bar height, card header weight,
+   avatar size, and whether person accent colors need more saturation to pop
+   against the dark background.
+
+7. Re-screenshot and confirm before moving to Phase 3.
+```
+
+---
+
 ## Phase 3 - Calendar Feature
 
 ### Step 3.1 - Google Calendar OAuth setup
@@ -736,6 +746,45 @@ Test: "tapping a day with events opens detail panel"
 - Clicking a day with events opens the detail panel. Clicking outside closes it.
 - Switching to Week and Day views works. Navigation arrows change the visible period.
 - `/` Dashboard Calendar shell shows real (or stub fallback) upcoming events.
+
+---
+
+### Step 3.5 - UI/UX Review: Calendar
+
+The calendar is the most visually complex page. It must read as editorial — precise grid, confident typography, no noise.
+
+**Tools:** playwright plugin (`browser_take_screenshot`, `browser_resize`, `browser_navigate`, `browser_click`, `browser_snapshot`); `frontend-design` skill.
+
+```
+1. Navigate to /calendar. Take a screenshot of Month view at 1280×800.
+   Evaluate:
+   - Does the month grid feel structured and readable, or cluttered?
+   - Is today's date highlight (gold ring/fill) immediately obvious?
+   - Are event chips readable at a glance, or do they need more contrast/padding?
+   - Do previous/next month day cells feel properly muted vs. current month cells?
+
+2. Click a day with events. Screenshot the detail panel/bottom sheet.
+   - Does the event detail panel feel polished (not like a plain browser dialog)?
+   - Is the close button obvious and large enough?
+
+3. Use browser_click to switch to Week view. Screenshot at 1280×800 and 768×1024.
+   - Do event cards in the week view have enough vertical space to read the title?
+   - Is the current day column visually distinct?
+
+4. Switch to Day view. Screenshot.
+   - Does the hour-by-hour timeline feel proportional?
+   - Are all-day events clearly separated from timed events at the top?
+
+5. Resize to mobile (390×844) and screenshot Month view.
+   - Are day cells large enough to tap comfortably (min 40px)?
+   - Does the grid still read as a calendar, or does it collapse into illegibility?
+
+6. Use frontend-design to improve any view that doesn't meet the "editorial and precise"
+   bar. Focus on: day number font size, event chip padding, grid line subtlety,
+   and the segmented control (Month/Week/Day) styling.
+
+7. Re-screenshot all three views after changes. Confirm before moving to Phase 4.
+```
 
 ---
 
@@ -1106,9 +1155,64 @@ Use this in each widget for loading states.
 
 ---
 
+### Step 8.3 - UI/UX Review: Full dashboard composition
+
+This is the most comprehensive design review in the project. For the first time all widgets are live simultaneously. The goal is to ensure the dashboard reads as a cohesive, deliberate design — not a grid of unrelated cards. Fix anything that breaks the composition before Phase 9 adds touch polish on top.
+
+**Tools:** playwright plugin for screenshots at all viewports; `frontend-design` skill for targeted improvements; `browser_evaluate` to throttle the network and inspect skeleton states.
+
+```
+1. DESKTOP (1280×800) — Hard reload and screenshot immediately to capture skeleton state.
+   Then wait for data and screenshot the fully-loaded state.
+   Evaluate loaded state:
+   - Overall composition: do the three columns feel visually balanced?
+     The weather widget (numbers-first) and the calendar list are very different
+     information densities — does the grid still feel intentional, not accidental?
+   - Column heights: does any card feel disproportionately tall or short?
+     Adjust min-heights or flex ratios in DashboardPage if needed.
+   - Is there a clear visual hierarchy? (What does the eye land on first?)
+   - Does the gold accent color appear consistently across all cards?
+   - Is the inter-card spacing (gap) right — breathing room without wasted space?
+
+2. IPAD PORTRAIT (768×1024) — Screenshot. This is the "hero" viewport; the app will
+   likely live on an iPad in portrait mode all day.
+   - Does the full dashboard fit without vertical scroll?
+   - Are all six cards visible above the fold?
+   - Do card proportions work at this viewport, or do some cards feel too compressed?
+
+3. IPAD LANDSCAPE (1024×768) — Screenshot.
+   - Same checks as portrait but wider. Does 3-column layout still work?
+
+4. MOBILE (390×844) — Screenshot. Scroll through the full single-column stack.
+   - Does the mobile stack feel like a natural reading order
+     (most important info first)?
+   - Do cards have enough internal padding at mobile widths?
+
+5. SKELETON STATE — Use browser_evaluate to add `network: 'slow-3g'` throttling,
+   hard reload, and screenshot the skeleton state.
+   - Does the shimmer animation look polished?
+   - Are skeleton card heights appropriate (do they approximate the real content size)?
+
+6. CROSS-WIDGET CONSISTENCY — Use browser_snapshot to inspect the DOM and verify:
+   - All cards use the same border opacity (gold/15 or gold/20 — pick one, be consistent).
+   - All card headings use the same font/weight/case pattern.
+   - All "label" text (e.g. "WORD OF THE DAY", "MESSAGE", "TODAY'S SONG") uses the
+     same typographic treatment (uppercase, tracked, ink-muted).
+
+7. Use frontend-design to address any layout, proportion, or consistency issues found.
+   This is the time to make the dashboard genuinely beautiful — Phase 9 only handles
+   responsiveness mechanics, not visual refinement.
+
+8. Final screenshot at all four viewports. Sign off before moving to Phase 9.
+```
+
+---
+
 ## Phase 9 - Responsiveness and Touch Polish
 
 ### Step 9.1 - Touch and responsive audit
+
+**Tools:** Use the playwright plugin throughout this step — `browser_resize` to switch viewports, `browser_take_screenshot` to capture each state, `browser_snapshot` to inspect element bounding boxes, and `browser_click`/`browser_tap` to verify interactions feel responsive. Use `frontend-design` for any interaction patterns that need redesigning (e.g., if the bottom sheet animation needs rework).
 
 ```
 Audit every interactive element across all pages and verify:
@@ -1337,6 +1441,22 @@ Document each cron job with a comment explaining its schedule and purpose.
 | calendar.spec.ts | Month load, week view, day view, event detail |
 | responsive.spec.ts | Mobile no-scroll, iPad render, tap target sizes |
 | full-e2e.spec.ts | Weather, word, music, chore flow, message post, calendar nav |
+
+---
+
+## UI/UX Review Milestones
+
+| Step | Scope | Primary focus |
+|---|---|---|
+| 1.4 | Dashboard shells | First impression, card proportions, typography hierarchy, gold accent balance |
+| 2.5 | Chores pages | Touch target clarity, progress readability, person color differentiation |
+| 3.5 | Calendar | Grid legibility, event chip density, view-switch consistency, mobile tap areas |
+| 8.3 | Full dashboard | Compositional balance across all 6 widgets, cross-widget consistency, skeleton quality |
+| 9.1 | All pages | Responsive mechanics, touch target sizes, bottom sheet/modal interactions |
+
+**Tools used in all reviews:**
+- playwright plugin — `browser_take_screenshot`, `browser_resize`, `browser_snapshot`, `browser_click`, `browser_evaluate`
+- `frontend-design` skill — visual evaluation and component improvement
 
 ---
 
