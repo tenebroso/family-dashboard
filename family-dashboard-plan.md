@@ -61,10 +61,10 @@ At the root, create:
 
 - **Apollo Client v4** — import paths changed from v3. Future client code must use:
   ```ts
-  import { ApolloClient, InMemoryCache } from '@apollo/client'
-  import { ApolloProvider } from '@apollo/client/react'
+  import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
+  import { ApolloProvider, useQuery, useMutation } from '@apollo/client/react'
   import { HttpLink } from '@apollo/client/link/http'
-  // useQuery, useMutation, gql remain in '@apollo/client'
+  // NOTE: useQuery/useMutation are in '@apollo/client/react', not '@apollo/client'
   ```
   `ApolloClient` requires an explicit `link` property — the `uri` shorthand no longer works:
   ```ts
@@ -136,9 +136,9 @@ All items confirmed. 3 Playwright smoke tests pass (dashboard loads, navigation 
 
 ---
 
-## Phase 1 - Database Schema and GraphQL Foundation ← Next
+## Phase 1 - Database Schema and GraphQL Foundation ✅ Complete
 
-### Step 1.1 - Prisma schema
+### Step 1.1 - Prisma schema ✅
 
 ```
 server/prisma/schema.prisma already exists with the datasource block configured.
@@ -211,7 +211,7 @@ Run the seed.
 
 ---
 
-### Step 1.2 - GraphQL schema and resolvers scaffold
+### Step 1.2 - GraphQL schema and resolvers scaffold ✅
 
 ```
 server/src/schema/index.ts already exists with a ping stub. Replace its contents
@@ -352,7 +352,7 @@ Confirm the server starts and GraphQL sandbox is accessible at localhost:4000/gr
 
 ---
 
-### Step 1.3 - Wire stub data into Dashboard shell components
+### Step 1.3 - Wire stub data into Dashboard shell components ✅
 
 ```
 Replace each named placeholder card in DashboardPage with a real React component
@@ -380,22 +380,26 @@ Each shell card uses the standard dark card style (surface-raised bg, gold borde
 
 ---
 
-### Demo Checkpoint — Phase 1
+### Demo Checkpoint — Phase 1 ✅ Verified
 
-With both dev servers running:
+All items confirmed. Dashboard shows all six widget areas populated with stub data. Weather shows "68°F · Partly Cloudy · Milwaukee". Calendar lists 5 upcoming events with relative dates (Tomorrow, Tuesday, etc.). Word of the Day shows "ephemeral". Music card shows atmospheric gradient with ghost play button + "Golden Hour — JVKE". Message shows Mom's soccer practice message. Chores shows 4 colored avatar initials (H, R, K, J) evenly spaced.
 
-- `http://localhost:5173` Dashboard now shows all six widget areas populated with stub data — no placeholder labels anymore.
-- Weather card shows "68°F · Partly Cloudy".
-- Calendar card lists 5 upcoming event titles.
-- Word of the Day card shows "ephemeral".
-- Music card shows "Golden Hour — JVKE".
-- Message card shows Mom's soccer practice message.
-- Chores Summary shows 4 avatar initials (H, R, K, J).
-- GraphQL sandbox at `localhost:4000/graphql` can execute every query/mutation and return the stub data.
+**Implementation notes:**
+- `dayOfWeek` stored as JSON string in SQLite (not `Int[]` — SQLite doesn't support arrays). Parse with `JSON.parse()` in resolvers.
+- Apollo Client v4: `useQuery`/`useMutation` are in `@apollo/client/react`, NOT `@apollo/client`. See updated import paths in CLAUDE.md.
+- Calendar query variables must be memoized (`useMemo`) — creating `new Date()` inside the component body causes infinite re-fetches because variable references change on every render.
 
 ---
 
-### Step 1.4 - UI/UX Review: Dashboard first impression
+### Step 1.4 - UI/UX Review: Dashboard first impression ✅
+
+**Completed.** Screenshots taken at 1280×800, 768×1024, 390×844. Improvements applied:
+- WeatherShell: giant temperature (4.5rem), Milwaukee label, humidity row, 7-day forecast placeholder strip
+- CalendarShell: "Next 14 days" subtitle, relative event dates (Tomorrow/Tuesday/Apr 26), "View full calendar →" footer
+- MusicShell: atmospheric dark gradient fills the card, diagonal stripe texture, ghost play button circle
+- ChoresSummaryShell: `justify-between` keeps 4 avatars on one row at all viewports
+- All card labels now use `text-gold` consistently
+- DashboardPage wrapper divs have `min-h-0` to prevent flex overflow
 
 This is the most important design review in the project. Every widget built in later phases inherits proportions and visual language from what's established here. Take time to get it right.
 
@@ -424,7 +428,7 @@ This is the most important design review in the project. Every widget built in l
 
 ---
 
-## Phase 2 - Chores Feature
+## Phase 2 - Chores Feature ← Next
 
 ### Step 2.1 - Chores resolvers
 

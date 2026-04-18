@@ -6,3 +6,57 @@ datasource db {
   provider = "sqlite"
   url      = "file:../dev.db"
 }
+
+model Person {
+  id        String   @id @default(cuid())
+  name      String
+  color     String
+  chores    Chore[]
+  createdAt DateTime @default(now())
+}
+
+model Chore {
+  id          String            @id @default(cuid())
+  title       String
+  personId    String
+  person      Person            @relation(fields: [personId], references: [id])
+  dayOfWeek   String            @default("[]")
+  isActive    Boolean           @default(true)
+  completions ChoreCompletion[]
+  createdAt   DateTime          @default(now())
+}
+
+model ChoreCompletion {
+  id          String   @id @default(cuid())
+  choreId     String
+  chore       Chore    @relation(fields: [choreId], references: [id])
+  completedAt DateTime @default(now())
+  dateKey     String
+
+  @@unique([choreId, dateKey])
+}
+
+model Message {
+  id           String    @id @default(cuid())
+  author       String
+  body         String
+  displayUntil DateTime?
+  createdAt    DateTime  @default(now())
+  isActive     Boolean   @default(true)
+}
+
+model WordOfDay {
+  id           String @id @default(cuid())
+  word         String
+  definition   String
+  partOfSpeech String
+  dateKey      String @unique
+}
+
+model Track {
+  id       String  @id @default(cuid())
+  title    String
+  artist   String
+  filename String  @unique
+  dateKey  String?
+}

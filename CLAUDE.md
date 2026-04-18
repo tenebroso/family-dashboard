@@ -68,6 +68,14 @@ family-dashboard/
 - `scripts/` — `getGoogleToken.ts` (one-time OAuth), `importTracks.ts` (MP3 import)
 - `prisma/schema.prisma` — SQLite models: Person, Chore, ChoreCompletion, Message, WordOfDay, Track
 
+### Apollo Client v4 import paths (v4.1.7 — different from v3)
+```ts
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client'        // core
+import { ApolloProvider, useQuery, useMutation } from '@apollo/client/react' // hooks
+import { HttpLink } from '@apollo/client/link/http'
+```
+`useQuery` and `useMutation` are in `@apollo/client/react`, NOT `@apollo/client`.
+
 ### Client (`client/src/`)
 - `App.tsx` — React Router with ApolloProvider pointing at `http://localhost:4000/graphql`
 - Routes: `/` (Dashboard), `/chores` (touch-optimized), `/calendar`, `/message-admin`, `/chores-admin`
