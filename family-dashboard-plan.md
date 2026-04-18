@@ -428,9 +428,9 @@ This is the most important design review in the project. Every widget built in l
 
 ---
 
-## Phase 2 - Chores Feature ← Next
+## Phase 2 - Chores Feature ✅ Complete
 
-### Step 2.1 - Chores resolvers
+### Step 2.1 - Chores resolvers ✅
 
 ```
 Implement the following resolvers in server/src/resolvers/chores.ts:
@@ -472,7 +472,7 @@ Mutation.deleteChore(id):
 
 ---
 
-### Step 2.2 - Chores admin page (server-side, desktop)
+### Step 2.2 - Chores admin page (server-side, desktop) ✅
 
 ```
 Create client/src/pages/ChoresAdminPage.tsx.
@@ -495,7 +495,7 @@ Features:
 
 ---
 
-### Step 2.3 - Chores dashboard page (touch-optimized)
+### Step 2.3 - Chores dashboard page (touch-optimized) ✅
 
 ```
 Create client/src/pages/ChoresPage.tsx.
@@ -529,7 +529,7 @@ Animation:
 
 ---
 
-### Step 2.4 - Playwright tests for chores
+### Step 2.4 - Playwright tests for chores ✅
 
 ```
 Create e2e/tests/chores.spec.ts with the following tests:
@@ -542,7 +542,7 @@ Test: "completing a chore updates the UI"
   - Navigate to /chores
   - Find the first unchecked chore checkbox visible on screen
   - Click it
-  - Assert it becomes checked (aria-checked="true" or checked class)
+  - Assert it becomes checked (aria-label changes to "completed")
   - Assert the progress indicator increments
 
 Test: "unchecking a completed chore reverts it"
@@ -568,12 +568,15 @@ Test: "chores admin - delete a chore"
 
 ---
 
-### Demo Checkpoint — Phase 2
+### Demo Checkpoint — Phase 2 ✅ Verified
 
-- `/chores` shows all four people with their seeded chores for today. Tapping a checkbox marks it complete and the progress bar updates instantly (optimistic UI).
-- Tapping a completed checkbox unchecks it.
-- `/chores-admin` lists all chores per person. Add a chore, confirm it appears. Delete it, confirm it disappears.
-- `/` Dashboard Chores Summary shell now shows real completion percentages from the DB (not stub 0.0).
+All items confirmed. `/chores` shows all four people with today's seeded chores (correctly filtered by day of week — e.g. Saturday shows only Saturday-eligible chores). Checkbox tap marks complete instantly (optimistic UI via local Set state) and reverts on error. Progress bar animates. `/chores-admin` shows 2-column grid of person cards with all chores and day labels; Add Chore form works; Edit/Delete work with refetchQueries. Dashboard Chores Summary card now shows real DB completion percentages (0% at start of day) and navigates to `/chores` on tap.
+
+**Implementation notes:**
+- Resolver structure split: `server/src/schema/index.ts` now only exports `typeDefs`. All resolvers live in `server/src/resolvers/index.ts` (merges domain resolvers with stubs) and `server/src/resolvers/chores.ts` (real Prisma). **Future phases must add domain resolvers to `server/src/resolvers/` and import them in `resolvers/index.ts`, not in schema/index.ts.**
+- **Critical `dayOfWeek` parsing rule**: `Person.chores` returns raw Prisma records (with `dayOfWeek` as JSON string). The `Chore.dayOfWeek` field resolver calls `parseDayOfWeek()`. Do NOT pre-parse `dayOfWeek` to `number[]` in `Person.chores` — it causes a double-parse failure in the field resolver (`JSON.parse([1,3])` → `"1,3"` → invalid JSON → returns `[]`).
+- **Optimistic UI pattern**: Apollo's `optimisticResponse` is complex when field resolvers take arguments (e.g. `isCompletedOn(dateKey:)`). Instead, use a local `Set<string>` for completed chore IDs, toggle it immediately, fire the mutation, and revert the Set on error. Admin mutations use `refetchQueries: ['QueryName']` for simplicity.
+- `ChoreCompletion` upsert uses Prisma's `@@unique([choreId, dateKey])` constraint via `prisma.choreCompletion.upsert({ where: { choreId_dateKey: { choreId, dateKey } } })`.
 
 ---
 
@@ -616,9 +619,9 @@ The chores page is the highest-frequency interaction in the app — kids will ta
 
 ---
 
-## Phase 3 - Calendar Feature
+## Phase 3 - Calendar Feature ✅ Complete
 
-### Step 3.1 - Google Calendar OAuth setup
+### Step 3.1 - Google Calendar OAuth setup ✅
 
 ```
 Create server/src/services/googleCalendar.ts.
@@ -648,21 +651,26 @@ store it in .env.
 
 ---
 
-### Step 3.2 - Calendar resolver
+### Step 3.2 - Calendar resolver ✅
 
 ```
-Implement the Query.calendarEvents resolver in server/src/resolvers/calendar.ts.
+Create server/src/resolvers/calendar.ts.
+Import it in server/src/resolvers/index.ts and spread its Query into the Query resolver map,
+replacing the STUB_CALENDAR_EVENTS stub. (Follow the same pattern as chores.ts.)
 
+Implement the Query.calendarEvents resolver:
 - Accept start and end as ISO string arguments.
 - Call fetchCalendarEvents from the Google Calendar service.
 - Cache results in memory for 15 minutes using a simple Map keyed by "start::end".
   Clear the cache entry after 15 minutes using setTimeout.
 - Return the mapped CalendarEvent array.
+- If the Google API throws (missing credentials, network error), catch and return
+  the hardcoded STUB_CALENDAR_EVENTS from resolvers/index.ts so the UI never breaks.
 ```
 
 ---
 
-### Step 3.3 - Calendar UI
+### Step 3.3 - Calendar UI ✅
 
 ```
 Create client/src/pages/CalendarPage.tsx.
@@ -711,7 +719,7 @@ Style notes:
 
 ---
 
-### Step 3.4 - Playwright tests for calendar
+### Step 3.4 - Playwright tests for calendar ✅
 
 ```
 Create e2e/tests/calendar.spec.ts with the following tests:
@@ -742,18 +750,21 @@ Test: "tapping a day with events opens detail panel"
 
 ---
 
-### Demo Checkpoint — Phase 3
+### Demo Checkpoint — Phase 3 ✅ Verified
 
-> If Google credentials aren't configured yet, the `calendarEvents` resolver should fall back to the hardcoded stub data from Phase 1 rather than returning an error. Add a fallback in the resolver: catch any Google API error and return the stub events.
+All items confirmed. `/calendar` loads in Month view with today's date highlighted. Clicking a day with events opens the detail panel; clicking outside closes it. Switching to Week and Day views works. Navigation arrows change the visible period. Dashboard Calendar shell shows real upcoming events from Google Calendar.
 
-- `/calendar` loads in Month view. Today's date is visually highlighted.
-- Clicking a day with events opens the detail panel. Clicking outside closes it.
-- Switching to Week and Day views works. Navigation arrows change the visible period.
-- `/` Dashboard Calendar shell shows real (or stub fallback) upcoming events.
+**Implementation notes:**
+- **Google OAuth OOB flow is deprecated.** The original `getGoogleToken.ts` used `urn:ietf:wg:oauth:2.0:oob` as the redirect URI — Google killed this in 2022. The script was rewritten to spin up a local HTTP server at `http://localhost:3000/callback` and capture the code automatically. **Future phases: if Google auth is needed for any new service (e.g. Google Photos, Gmail), use the same local-server pattern — never OOB.**
+- **Refresh tokens expire for apps in "Testing" mode.** Google OAuth apps not promoted to "Production" in Cloud Console issue refresh tokens that expire after 7 days. If the calendar stops returning data (`unauthorized_client` error), re-run `npx ts-node src/scripts/getGoogleToken.ts` from `server/` and update `GOOGLE_REFRESH_TOKEN` in `.env`. Ensure `http://localhost:3000/callback` is listed as an authorized redirect URI in Google Cloud Console.
+- **`prompt: 'consent'` required for new refresh token.** When re-running the token script, the `prompt: 'consent'` flag forces Google to issue a fresh `refresh_token`. Without it, Google may return only an access token if the user has already authorized the app.
+- The calendar resolver has automatic stub fallback — if Google throws for any reason, `STUB_CALENDAR_EVENTS` are returned so the UI never breaks.
+- `dayjs/plugin/isoWeek` is required for `startOf('isoWeek')` in the Week view (Mon-start). Import and extend before use.
+- Month view query range: grid starts on the Sunday before the 1st of the month and covers 42 days (6 full weeks). Query uses `gridStart` to `gridStart + 41 days` — not just the calendar month boundaries — so events in the leading/trailing cells are fetched correctly.
 
 ---
 
-### Step 3.5 - UI/UX Review: Calendar
+### Step 3.5 - UI/UX Review: Calendar ✅
 
 The calendar is the most visually complex page. It must read as editorial — precise grid, confident typography, no noise.
 
@@ -792,7 +803,7 @@ The calendar is the most visually complex page. It must read as editorial — pr
 
 ---
 
-## Phase 4 - Weather Feature
+## Phase 4 - Weather Feature ← Next
 
 ### Step 4.1 - Weather resolver
 
@@ -826,7 +837,9 @@ codes to human-readable labels:
 
 Cache the weather response for 30 minutes.
 
-Implement the Query.weather resolver in server/src/resolvers/weather.ts using this service.
+Create server/src/resolvers/weather.ts with the Query.weather resolver using this service.
+Import it in server/src/resolvers/index.ts and replace the STUB_WEATHER entry.
+If the API throws, fall back to STUB_WEATHER so the UI never breaks.
 ```
 
 ---
@@ -894,7 +907,8 @@ Logic:
 Handle API failures gracefully: if the API is down, return a hardcoded fallback
 definition for the chosen word (store fallbacks inline with the word list).
 
-Implement Query.wordOfDay resolver in server/src/resolvers/wordOfDay.ts.
+Create server/src/resolvers/wordOfDay.ts with the Query.wordOfDay resolver.
+Import it in server/src/resolvers/index.ts and replace the STUB_WORD entry.
 ```
 
 ---
@@ -951,7 +965,9 @@ Run this script after placing MP3 files in the directory.
 ### Step 6.2 - Daily track resolver
 
 ```
-Implement Query.dailyTrack in server/src/resolvers/tracks.ts.
+Create server/src/resolvers/tracks.ts with the Query.dailyTrack resolver.
+Import it in server/src/resolvers/index.ts and replace the STUB_TRACK entry.
+If no tracks exist in the DB (importTracks not yet run), fall back to STUB_TRACK.
 
 Logic:
 - Get today's dateKey.
@@ -1010,16 +1026,24 @@ Behavior:
 ### Step 7.1 - Message resolver
 
 ```
-Implement Query.activeMessage in server/src/resolvers/messages.ts.
+Create server/src/resolvers/messages.ts.
+Import it in server/src/resolvers/index.ts: spread its Query into the Query map and
+its Mutation into the Mutation map, replacing the STUB_MESSAGE and createMessage stub entries.
 
-Logic:
+Also add Mutation.deactivateMessage(id: ID!): Boolean! to both the GraphQL schema
+(server/src/schema/index.ts Mutation type) and the messages resolver.
+
+Query.activeMessage logic:
 - Return the most recent Message where isActive = true AND
   (displayUntil is null OR displayUntil > now()).
 - If none exists, return null.
 
-Implement Mutation.createMessage(author, body, displayUntil):
+Mutation.createMessage(author, body, displayUntil):
 - Set all existing active messages to isActive = false first.
 - Insert and return the new Message.
+
+Mutation.deactivateMessage(id):
+- Set isActive = false on the Message with that id. Return true.
 ```
 
 ---

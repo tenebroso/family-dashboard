@@ -4,7 +4,8 @@ import cors from 'cors'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import path from 'path'
-import { typeDefs, resolvers } from './schema'
+import { typeDefs } from './schema'
+import { resolvers } from './resolvers'
 
 async function main() {
   const app = express()
