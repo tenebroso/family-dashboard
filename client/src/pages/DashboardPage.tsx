@@ -22,17 +22,19 @@ export default function DashboardPage() {
       {/* Full-width week calendar */}
       <CalendarWeekWidget />
 
-      {/* Row 2: Grocery · Chores · Reminders */}
+      {/* Row 2: Chores · Grocery · Reminders */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
-        <GroceryWidget />
         <ChoresSummaryShell />
+        <GroceryWidget />
         <RemindersWidget />
       </div>
 
-      {/* Row 3: Word of Day · Message */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+      {/* Row 3: Word of Day (1 col) · Message (2 cols) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
         <WordWidget />
-        <MessageWidget />
+        <div className="md:col-span-2">
+          <MessageWidget />
+        </div>
       </div>
     </div>
   )
