@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, GroceryItem } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -8,7 +8,7 @@ export const groceryResolvers = {
       const items = await prisma.groceryItem.findMany({
         orderBy: [{ checked: 'asc' }, { createdAt: 'asc' }],
       })
-      return items.map((item) => ({
+      return items.map((item: GroceryItem) => ({
         ...item,
         createdAt: item.createdAt.toISOString(),
       }))
