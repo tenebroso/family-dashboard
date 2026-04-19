@@ -17,9 +17,20 @@ const CALENDAR_QUERY = gql`
 `
 
 function formatEventDate(isoString: string): string {
-  const d = new Date(isoString)
+  // Date-only strings ("YYYY-MM-DD") are parsed as UTC midnight by the Date
+  // constructor, which shifts them to the previous calendar day in US timezones.
+  // Parse them as local time directly to avoid the off-by-one.
+  let d: Date
+  if (/^\d{4}-\d{2}-\d{2}$/.test(isoString)) {
+    const [y, m, day] = isoString.split('-').map(Number)
+    d = new Date(y, m - 1, day)
+  } else {
+    d = new Date(isoString)
+  }
   const today = new Date()
-  const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
+  const dMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const diff = Math.round((dMidnight.getTime() - todayMidnight.getTime()) / 86400000)
   if (diff === 0) return 'Today'
   if (diff === 1) return 'Tomorrow'
   if (diff < 7) return d.toLocaleDateString('en-US', { weekday: 'long' })

@@ -801,6 +801,18 @@ The calendar is the most visually complex page. It must read as editorial — pr
 7. Re-screenshot all three views after changes. Confirm before moving to Phase 4.
 ```
 
+### Known Issue Fixed - All-day event date parsing (CalendarShell)
+
+`new Date("YYYY-MM-DD")` parses date-only strings as **UTC midnight**, which shifts
+the calendar day back by one in US timezones (e.g. CDT = UTC−5). This caused every
+all-day event to display with the wrong relative label (Monday → "Tomorrow", Tuesday
+→ "Monday", etc.).
+
+**Fix:** in `client/src/components/CalendarShell.tsx`, detect date-only strings with
+`/^\d{4}-\d{2}-\d{2}$/.test(isoString)` and construct the Date with
+`new Date(year, month - 1, day)` (local time) instead of passing the ISO string
+directly to `new Date()`.
+
 ---
 
 ## Phase 4 - Weather Feature ✅ Complete
