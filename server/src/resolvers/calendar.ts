@@ -1,4 +1,5 @@
 import { fetchCalendarEvents } from '../services/googleCalendar'
+import { fetchAppleCalendarEvents } from '../services/appleCalendar'
 
 const now = new Date()
 const day = (offset: number) => {
@@ -26,13 +27,31 @@ export const calendarResolvers = {
       if (cached && cached.expires > Date.now()) return cached.data
 
       try {
-        const events = await fetchCalendarEvents(new Date(args.start), new Date(args.end))
+        const [googleResult, appleResult] = await Promise.allSettled([
+          fetchCalendarEvents(new Date(args.start), new Date(args.end)),
+          fetchAppleCalendarEvents(new Date(args.start), new Date(args.end)),
+        ])
+
+        if (googleResult.status === 'rejected')
+          console.error('[calendar] Google API error:', googleResult.reason)
+        if (appleResult.status === 'rejected')
+          console.error('[calendar] Apple CalDAV error:', appleResult.reason)
+
+        const events = [
+          ...(googleResult.status === 'fulfilled' ? googleResult.value : []),
+          ...(appleResult.status === 'fulfilled' ? appleResult.value : []),
+        ].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+
+        if (events.length === 0 && googleResult.status === 'rejected' && appleResult.status === 'rejected') {
+          throw new Error('Both calendar sources failed')
+        }
+
         const entry: CacheEntry = { data: events, expires: Date.now() + 15 * 60 * 1000 }
         cache.set(key, entry)
         setTimeout(() => cache.delete(key), 15 * 60 * 1000)
         return events
       } catch (err) {
-        console.error('[calendar] Google API error, falling back to stubs:', err)
+        console.error('[calendar] All sources failed, falling back to stubs:', err)
         const startMs = new Date(args.start).getTime()
         const endMs = new Date(args.end).getTime()
         return STUB_CALENDAR_EVENTS.filter(evt => {

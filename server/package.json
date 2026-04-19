@@ -17,7 +17,9 @@
     "express": "^4.21.2",
     "googleapis": "^171.4.0",
     "graphql": "^16.13.2",
-    "node-cron": "^3.0.3"
+    "ical.js": "^2.2.1",
+    "node-cron": "^3.0.3",
+    "tsdav": "^2.1.8"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

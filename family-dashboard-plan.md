@@ -1857,6 +1857,30 @@ Server changes:
 
 ---
 
+## Phase 11.6 - Apple Calendar Integration ✅ Complete
+
+Merged iCloud CalDAV events into the existing calendar widget alongside Google Calendar events.
+
+**Changes:**
+- `server/src/services/appleCalendar.ts` — new service using `tsdav` (CalDAV client) + `ical.js` (iCal parser) to fetch events from iCloud. Targets two calendars: "Jon's Calendar" (gold `#C9A84C`) and "Untitled" shared by Krysten (green `#7BC67E`). Authenticates via Apple ID + app-specific password.
+- `server/src/resolvers/calendar.ts` — fetches Google and Apple events in parallel via `Promise.allSettled`. Either source can fail independently without affecting the other; if both fail it falls back to stubs. Results are merged and sorted by start time.
+- `server/.env` — added `APPLE_ID` and `APPLE_APP_PASSWORD`.
+- Dependencies added: `tsdav`, `ical.js`.
+
+**Implementation notes:**
+- iCloud requires an app-specific password (generated at appleid.apple.com → Security). Regular Apple ID passwords are rejected.
+- `tsdav`'s `displayName` field is typed `string | Record<string, unknown>` — normalized via a `calendarName()` helper before use as an index key.
+- CalDAV server-side time-range filtering is applied via `tsdav`'s `timeRange` option, but iCloud may return master records for recurring event series even when only a future occurrence falls in range — cosmetically harmless but events with past `start` dates may appear in results.
+- All-day event detection uses `ical.js`'s `ICAL.Time.isDate` property, which correctly reads `DTSTART;VALUE=DATE` entries. Start/end for all-day events are returned as `YYYY-MM-DD` strings (consistent with the Google Calendar service).
+
+### Demo Checkpoint — Phase 11.6 ✅ Verified
+
+- GraphQL query `calendarEvents(start, end)` returns events from both Google Calendar and iCloud, merged and sorted by start time.
+- Jon's Calendar events appear gold; Krysten's Untitled calendar events appear green.
+- Killing either calendar source (e.g. bad credentials) leaves the other source's events intact in the response.
+
+---
+
 ## Phase 12 - Raspberry Pi Deployment ← Next
 
 ### Step 12.1 - Production build
