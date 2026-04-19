@@ -885,9 +885,9 @@ All items confirmed. `/` Dashboard Weather card replaced: shows real current tem
 
 ---
 
-## Phase 5 - Word of the Day ← Next
+## Phase 5 - Word of the Day ✅ Complete
 
-### Step 5.1 - Word of the Day resolver
+### Step 5.1 - Word of the Day resolver ✅
 
 ```
 Create server/src/services/wordOfDay.ts.
@@ -915,7 +915,7 @@ Import it in server/src/resolvers/index.ts and replace the STUB_WORD entry.
 
 ---
 
-### Step 5.2 - Word of the Day widget
+### Step 5.2 - Word of the Day widget ✅
 
 ```
 Create client/src/components/WordWidget.tsx.
@@ -933,14 +933,21 @@ Animation: on mount, the word fades and slides up with framer-motion (subtle, 30
 
 ---
 
-### Demo Checkpoint — Phase 5
+### Demo Checkpoint — Phase 5 ✅ Verified
 
-- `/` Dashboard Word of the Day card replaced: shows the real word, part of speech, and definition. The word fades/slides in on mount.
+- `/` Dashboard Word of the Day card replaced: shows the real word, part of speech, and definition fetched from the Free Dictionary API. The word fades/slides in on mount via framer-motion.
+- Word is cached in the `WordOfDay` DB table by `dateKey` — first request of the day hits the API, subsequent requests return the cached record instantly.
 - Reload on a new day (or manually clear the DB entry) and confirm a different word appears.
+
+**Implementation notes:**
+- **Word list stored inline with fallbacks**: Each entry in `WORD_LIST` carries its own `fallbackDefinition` and `fallbackPartOfSpeech`. If the Free Dictionary API is down, the service returns the inline fallback — no second API call, no null values.
+- **Deterministic daily selection**: `hash(dateKey) % WORD_LIST.length` uses a simple polynomial hash over the date string characters. Same date always picks the same word, even after a server restart.
+- **TypeScript `res.json()` typing**: `fetch().json()` returns `Promise<unknown>` in strict mode. Cast with `await res.json() as T` — not `const data: T = await res.json()` (the latter fails strict type-checking).
+- **`framer-motion` is already installed** in `client/package.json` from a prior phase. No reinstall needed.
 
 ---
 
-## Phase 6 - Music Player
+## Phase 6 - Music Player ← Next
 
 ### Step 6.1 - Track management
 

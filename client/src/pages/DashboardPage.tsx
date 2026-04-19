@@ -1,6 +1,6 @@
 import WeatherWidget from '../components/WeatherWidget'
 import CalendarShell from '../components/CalendarShell'
-import WordShell from '../components/WordShell'
+import WordWidget from '../components/WordWidget'
 import MusicShell from '../components/MusicShell'
 import MessageShell from '../components/MessageShell'
 import ChoresSummaryShell from '../components/ChoresSummaryShell'
@@ -23,7 +23,7 @@ export default function DashboardPage() {
           <div className="flex-1 min-h-0">
             <WeatherWidget />
           </div>
-          <WordShell />
+          <WordWidget />
         </div>
 
         {/* Column 3: Music + Chores Summary */}
