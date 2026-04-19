@@ -25,6 +25,10 @@ jobs:
         run: npx tsc --noEmit
         working-directory: client
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: server
+
       - name: Type-check server
         run: npx tsc --noEmit
         working-directory: server

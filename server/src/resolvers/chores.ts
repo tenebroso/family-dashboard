@@ -1,4 +1,4 @@
-import { PrismaClient, Chore } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -22,7 +22,7 @@ export const choreResolvers = {
         where: { personId: parent.id, isActive: true },
       })
       if (dayOfWeek === undefined || dayOfWeek === null) return chores
-      return chores.filter((c: Chore) => {
+      return chores.filter(c => {
         const days = parseDayOfWeek(c.dayOfWeek)
         return days.length === 0 || days.includes(dayOfWeek)
       })
@@ -32,13 +32,13 @@ export const choreResolvers = {
       const chores = await prisma.chore.findMany({
         where: { personId: parent.id, isActive: true },
       })
-      const scheduled = chores.filter((c: Chore) => {
+      const scheduled = chores.filter(c => {
         const days = parseDayOfWeek(c.dayOfWeek)
         return days.length === 0 || days.includes(dow)
       })
       if (scheduled.length === 0) return 0.0
       const completions = await prisma.choreCompletion.count({
-        where: { choreId: { in: scheduled.map((c: Chore) => c.id) }, dateKey },
+        where: { choreId: { in: scheduled.map(c => c.id) }, dateKey },
       })
       return completions / scheduled.length
     },
