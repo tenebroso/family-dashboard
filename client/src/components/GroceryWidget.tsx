@@ -1,7 +1,5 @@
 import { gql } from '@apollo/client'
-import { useQuery } from '@apollo/client/react'
-import { useAerial } from '../contexts/AerialContext'
-import Skeleton from './Skeleton'
+import { useQuery, useMutation } from '@apollo/client/react'
 
 const GROCERY_ITEMS_QUERY = gql`
   query GroceryItemsDashboard {
@@ -9,6 +7,15 @@ const GROCERY_ITEMS_QUERY = gql`
       id
       name
       quantity
+      checked
+    }
+  }
+`
+
+const TOGGLE_GROCERY = gql`
+  mutation ToggleGroceryItem($id: ID!) {
+    toggleGroceryItem(id: $id) {
+      id
       checked
     }
   }
@@ -22,64 +29,50 @@ type GroceryItem = {
 }
 
 export default function GroceryWidget() {
-  const aerial = useAerial()
-  const { data, loading } = useQuery<{ groceryItems: GroceryItem[] }>(GROCERY_ITEMS_QUERY)
+  const { data, loading } = useQuery<{ groceryItems: GroceryItem[] }>(GROCERY_ITEMS_QUERY, {
+    pollInterval: 30_000,
+  })
+  const [toggle] = useMutation(TOGGLE_GROCERY, {
+    refetchQueries: [{ query: GROCERY_ITEMS_QUERY }],
+  })
 
-  const cardClass = aerial
-    ? 'backdrop-blur-md bg-black/50 rounded-lg ring-1 ring-white/10 p-4'
-    : 'bg-surface-raised rounded-lg p-4'
-
-  if (loading) {
-    return (
-      <div className={cardClass}>
-        <p className="text-xs uppercase tracking-widest text-gold mb-3">Grocery List</p>
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-4 w-2/3" />
-        </div>
-      </div>
-    )
-  }
-
-  const unchecked = (data?.groceryItems ?? []).filter((i) => !i.checked)
-  const visible = unchecked.slice(0, 5)
-  const overflow = unchecked.length - visible.length
+  const items = data?.groceryItems ?? []
+  const unchecked = items.filter(i => !i.checked)
+  const checked = items.filter(i => i.checked)
 
   return (
-    <div className={cardClass}>
-      <p className="text-xs uppercase tracking-widest text-gold mb-3">Grocery List</p>
+    <div className="tile grocery-tile">
+      <div className="tile-eyebrow">Grocery list</div>
 
-      {unchecked.length === 0 ? (
-        <p className="text-sm text-ink-muted">List is empty.</p>
+      {loading ? (
+        <p className="grocery-empty">Loading…</p>
+      ) : unchecked.length === 0 && checked.length === 0 ? (
+        <p className="grocery-empty">List is empty — send a message to add items.</p>
       ) : (
-        <ul className="space-y-1.5">
-          {visible.map((item) => (
-            <li key={item.id} className="flex items-center gap-2 text-sm text-ink">
-              <span className="w-1 h-1 rounded-full bg-gold/60 flex-shrink-0" />
-              <span className="truncate">
+        <ul className="grocery-list">
+          {unchecked.map(item => (
+            <li key={item.id} className="grocery-item">
+              <button className="grocery-check" onClick={() => toggle({ variables: { id: item.id } })} />
+              <span className="grocery-label">
                 {item.name}
-                {item.quantity && (
-                  <span className="text-ink-muted ml-1.5">· {item.quantity}</span>
-                )}
+                {item.quantity && <span className="grocery-qty">{item.quantity}</span>}
+              </span>
+            </li>
+          ))}
+          {checked.map(item => (
+            <li key={item.id} className="grocery-item grocery-item--done">
+              <button
+                className="grocery-check grocery-check--done"
+                onClick={() => toggle({ variables: { id: item.id } })}
+              >✓</button>
+              <span className="grocery-label grocery-label--done">
+                {item.name}
+                {item.quantity && <span className="grocery-qty">{item.quantity}</span>}
               </span>
             </li>
           ))}
         </ul>
       )}
-
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-        {overflow > 0 ? (
-          <a href="/grocery-admin" className="text-xs text-ink-muted hover:text-ink transition-colors">
-            +{overflow} more
-          </a>
-        ) : (
-          <span />
-        )}
-        <a href="/grocery-admin" className="text-xs text-gold hover:text-gold-light transition-colors">
-          Add item →
-        </a>
-      </div>
     </div>
   )
 }

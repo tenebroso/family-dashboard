@@ -13,7 +13,11 @@ const oauth2Client = new google.auth.OAuth2(
 const authUrl = oauth2Client.generateAuthUrl({
   access_type: 'offline',
   prompt: 'consent', // forces Google to return a new refresh_token
-  scope: ['https://www.googleapis.com/auth/calendar.readonly'],
+  scope: [
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/documents',
+    'https://www.googleapis.com/auth/drive.file',
+  ],
 })
 
 console.log('\n=== Google OAuth Token Generator ===\n')

@@ -9,6 +9,8 @@ const MESSAGES_QUERY = gql`
       id
       personSlug
       body
+      parsedType
+      parsedDone
       createdAt
     }
   }
@@ -20,6 +22,8 @@ const SEND_MESSAGE = gql`
       id
       personSlug
       body
+      parsedType
+      parsedDone
       createdAt
     }
   }
@@ -29,6 +33,8 @@ interface Message {
   id: string
   personSlug: string
   body: string
+  parsedType: string | null
+  parsedDone: boolean
   createdAt: string
 }
 
@@ -98,6 +104,12 @@ export default function MessageWidget() {
                   <span className="bubble-time">{relativeTime(msg.createdAt)}</span>
                 </div>
                 <p className="bubble-body">{msg.body}</p>
+                {msg.parsedDone && msg.parsedType === 'grocery' && (
+                  <span className="parsed-chip parsed-chip--grocery">🛒 Added to grocery list</span>
+                )}
+                {msg.parsedDone && msg.parsedType === 'reminder' && (
+                  <span className="parsed-chip parsed-chip--reminder">📅 Added to calendar</span>
+                )}
               </div>
             </div>
           ))

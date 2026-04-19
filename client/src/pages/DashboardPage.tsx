@@ -5,6 +5,7 @@ import WeatherWidget from '../components/WeatherWidget'
 import MessageWidget from '../components/MessageWidget'
 import ChoresSummaryShell from '../components/ChoresSummaryShell'
 import CalendarWeekWidget from '../components/CalendarWeekWidget'
+import GroceryWidget from '../components/GroceryWidget'
 import { useActivePerson } from '../contexts/PersonContext'
 import type { PersonSlug } from '../contexts/PersonContext'
 
@@ -33,6 +34,7 @@ export default function DashboardPage() {
 
       <div className="dash-below">
         <ChoresSummaryShell />
+        <GroceryWidget />
       </div>
     </div>
   )

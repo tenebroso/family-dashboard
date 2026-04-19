@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { parseMessage } from '../services/messageParser'
+import { createCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
 
@@ -14,12 +16,52 @@ export const messagesResolvers = {
 
   Mutation: {
     sendMessage: async (_: unknown, args: { body: string; personSlug: string }) => {
-      return prisma.message.create({
-        data: {
-          body: args.body,
-          personSlug: args.personSlug,
-        },
+      const message = await prisma.message.create({
+        data: { body: args.body, personSlug: args.personSlug },
       })
+
+      // Parse async — don't block the mutation response
+      parseAndDispatch(message.id, args.body, args.personSlug)
+
+      return message
     },
   },
+}
+
+async function parseAndDispatch(messageId: string, body: string, senderSlug: string) {
+  try {
+    const parsed = await parseMessage(body, senderSlug)
+
+    await prisma.message.update({
+      where: { id: messageId },
+      data: { parsedType: parsed.type },
+    })
+
+    if (parsed.type === 'grocery' && parsed.item) {
+      await prisma.groceryItem.create({
+        data: {
+          name: parsed.item,
+          quantity: parsed.quantity ?? null,
+          addedBy: senderSlug,
+        },
+      })
+      await prisma.message.update({
+        where: { id: messageId },
+        data: { parsedDone: true },
+      })
+    }
+
+    if (parsed.type === 'reminder' && parsed.eventTitle && parsed.dateText) {
+      const targetPerson = parsed.personSlug ?? senderSlug
+      const eventId = await createCalendarEvent(targetPerson, parsed.eventTitle, parsed.dateText)
+      if (eventId) {
+        await prisma.message.update({
+          where: { id: messageId },
+          data: { parsedDone: true },
+        })
+      }
+    }
+  } catch (err) {
+    console.error('[dispatch] unhandled error:', err)
+  }
 }

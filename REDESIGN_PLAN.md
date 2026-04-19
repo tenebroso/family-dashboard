@@ -439,26 +439,11 @@ Send "Add oat milk to the grocery list" → appears in grocery tile and Google D
 - **CORS / server crash** — moved `cors()` to `/graphql` route per Apollo Server v4 docs; Apple CalDAV early-returns `[]` when credentials absent (prevents tsdav crash on large date ranges).
 - **Calendar stub fallback** — fixed condition that caused an empty array to be cached when Google Calendar fails but Apple returns `[]` (no credentials). Now correctly falls through to stub events when Google is down.
 
-### Up next — Phase 5
+- **Phase 5** — Claude Message Parsing complete. `messageParser.ts` (Claude Haiku tool-use, prompt caching), `calendarWriter.ts` (chrono-node + GCal insert), `sendMessage` resolver hooks async parse → dispatches grocery items to DB or calendar events to GCal. `MessageWidget` shows confirmation chips (`parsedDone`). `GroceryWidget` supports tap-to-toggle with polling. Grocery list backed by SQLite (already implemented in Phase 4 work).
 
-**Phase 5 — Claude Message Parsing + Google Docs Grocery List**
+### Up next — Phase 6
 
-Prerequisites (user action required):
-1. Add `ANTHROPIC_API_KEY` to `server/.env`.
-2. Re-run OAuth token script with expanded scopes (`calendar`, `documents`, `drive`) — see Phase 5 section above.
-3. After first run, `GOOGLE_GROCERY_DOC_ID` will be auto-populated in `.env`.
-
-Priority tasks:
-1. **`server/src/services/messageParser.ts`** — Claude Haiku tool-use classifier. Classifies messages as `"grocery" | "reminder" | "message"`, infers person from text, returns structured JSON. Use prompt caching on the static system prompt.
-2. **Hook into `sendMessage` resolver** — call `parseMessage` after saving to DB, update `parsedType`, dispatch to grocery or calendar service.
-3. **`server/src/services/groceryDoc.ts`** — `ensureDoc()`, `appendGroceryItem()`, `getGroceryItems()`, `toggleGroceryItem()` using Google Docs API.
-4. **`server/src/services/calendarWriter.ts`** — parse natural-language date with `chrono-node`, insert event via Google Calendar API to the correct per-person calendar.
-5. **`client/src/components/GroceryWidget.tsx`** — checklist tile polling every 60s, tap to toggle checked.
-6. **Thread confirmation chip** — after `parsedDone: true`, show "📅 Added to calendar" or "🛒 Added to grocery list" chip on the message bubble in `MessageWidget`.
-7. Add `groceryItems` query and `toggleGroceryItem` mutation to GraphQL schema + resolvers.
-
-### Blocked
-- Nothing — all prerequisites for Phase 5 are in place once env vars are added.
+No Phase 6 defined in this plan yet.
 
 ---
 
