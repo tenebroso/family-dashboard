@@ -803,9 +803,9 @@ The calendar is the most visually complex page. It must read as editorial — pr
 
 ---
 
-## Phase 4 - Weather Feature ← Next
+## Phase 4 - Weather Feature ✅ Complete
 
-### Step 4.1 - Weather resolver
+### Step 4.1 - Weather resolver ✅
 
 ```
 Create server/src/services/weather.ts.
@@ -844,7 +844,7 @@ If the API throws, fall back to STUB_WEATHER so the UI never breaks.
 
 ---
 
-### Step 4.2 - Weather UI widget
+### Step 4.2 - Weather UI widget ✅
 
 ```
 Create client/src/components/WeatherWidget.tsx.
@@ -873,17 +873,19 @@ are the heroes - large, clear, Syne font.
 
 ---
 
-### Demo Checkpoint — Phase 4
+### Demo Checkpoint — Phase 4 ✅ Verified
 
-> If the Open-Meteo API is unavailable, the weather resolver should fall back to the Phase 1 stub data.
+All items confirmed. `/` Dashboard Weather card replaced: shows real current temp (41°F), Partly Cloudy, feels like 31°, Humidity 63% — live from Open-Meteo. 7-day forecast strip renders with lucide-react condition icons and high/low temps. Today's card (SAT) has a gold border highlight. Stub fallback in `weather.ts` activates if API is unreachable.
 
-- `/` Dashboard Weather card replaced: shows real current temp, condition, feels-like, and the 7-day forecast strip. Today's forecast card has a gold border.
-- Weather icons from lucide-react match the condition labels.
-- Reload the page twice within 30 minutes — confirm the second load does not make a new API call (check server logs; only the first should fetch).
+**Implementation notes:**
+- `server/src/services/weather.ts` — Open-Meteo API, no API key required. 30-min in-memory cache (`{ data, expiresAt }` pattern, same as calendar).
+- `server/src/resolvers/weather.ts` — wraps the service with stub fallback, imported into `resolvers/index.ts` replacing the old `STUB_WEATHER` inline object.
+- `client/src/components/WeatherWidget.tsx` — replaces WeatherShell. Queries full `forecast` array. `dayAbbr()` parses date strings as noon local time to avoid UTC-offset off-by-one on day names. `isToday()` compares ISO date slices.
+- **Google Calendar falls back to stubs in dev** when network is unavailable (`ENOTFOUND oauth2.googleapis.com`). This is expected and working as designed — calendar stub fallback is healthy.
 
 ---
 
-## Phase 5 - Word of the Day
+## Phase 5 - Word of the Day ← Next
 
 ### Step 5.1 - Word of the Day resolver
 

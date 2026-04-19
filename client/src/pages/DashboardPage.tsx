@@ -1,4 +1,4 @@
-import WeatherShell from '../components/WeatherShell'
+import WeatherWidget from '../components/WeatherWidget'
 import CalendarShell from '../components/CalendarShell'
 import WordShell from '../components/WordShell'
 import MusicShell from '../components/MusicShell'
@@ -21,7 +21,7 @@ export default function DashboardPage() {
         {/* Column 2: Weather + Word of the Day */}
         <div className="flex flex-col gap-4 md:gap-5 min-h-0">
           <div className="flex-1 min-h-0">
-            <WeatherShell />
+            <WeatherWidget />
           </div>
           <WordShell />
         </div>
