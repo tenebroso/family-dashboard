@@ -6,6 +6,7 @@ export const weatherTypeDefs = `#graphql
     conditionCode: Int!
     conditionLabel: String!
     precipitation: Float!
+    precipitationProbability: Int!
   }
 
   type CurrentWeather {

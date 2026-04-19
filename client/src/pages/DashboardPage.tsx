@@ -1,5 +1,4 @@
-import WeatherWidget from '../components/WeatherWidget'
-import CalendarShell from '../components/CalendarShell'
+import CalendarWeekWidget from '../components/CalendarWeekWidget'
 import WordWidget from '../components/WordWidget'
 import MessageWidget from '../components/MessageWidget'
 import ChoresSummaryShell from '../components/ChoresSummaryShell'
@@ -12,7 +11,7 @@ export default function DashboardPage() {
 
   return (
     <div
-      className="min-h-screen p-3 pt-4 md:p-4"
+      className="min-h-screen p-3 pt-4 md:p-4 space-y-3"
       style={aerial ? {
         backgroundImage: "url('/api/aerial')",
         backgroundSize: 'cover',
@@ -20,25 +19,20 @@ export default function DashboardPage() {
         backgroundAttachment: 'fixed',
       } : undefined}
     >
-      <MessageWidget />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 items-start">
+      {/* Full-width week calendar */}
+      <CalendarWeekWidget />
 
-        {/* Column 1: Calendar + Grocery */}
-        <div className="flex flex-col gap-3">
-          <CalendarShell />
-          <GroceryWidget />
-        </div>
+      {/* Row 2: Grocery · Chores · Reminders */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+        <GroceryWidget />
+        <ChoresSummaryShell />
+        <RemindersWidget />
+      </div>
 
-        {/* Column 2: Weather */}
-        <WeatherWidget />
-
-        {/* Column 3: Chores + Reminders + Word of Day */}
-        <div className="flex flex-col gap-3">
-          <ChoresSummaryShell />
-          <RemindersWidget />
-          <WordWidget />
-        </div>
-
+      {/* Row 3: Word of Day · Message */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+        <WordWidget />
+        <MessageWidget />
       </div>
     </div>
   )

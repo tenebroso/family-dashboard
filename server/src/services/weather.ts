@@ -31,6 +31,7 @@ interface WeatherData {
     conditionCode: number
     conditionLabel: string
     precipitation: number
+    precipitationProbability: number
   }>
 }
 
@@ -45,7 +46,7 @@ export async function fetchWeather(): Promise<WeatherData> {
   url.searchParams.set('latitude', LAT)
   url.searchParams.set('longitude', LNG)
   url.searchParams.set('current', 'temperature_2m,apparent_temperature,weathercode,relativehumidity_2m')
-  url.searchParams.set('daily', 'temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum')
+  url.searchParams.set('daily', 'temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,precipitation_probability_max')
   url.searchParams.set('temperature_unit', 'fahrenheit')
   url.searchParams.set('wind_speed_unit', 'mph')
   url.searchParams.set('forecast_days', '7')
@@ -73,6 +74,7 @@ export async function fetchWeather(): Promise<WeatherData> {
       conditionCode: d.weathercode[i],
       conditionLabel: interpretWeatherCode(d.weathercode[i]),
       precipitation: Math.round(d.precipitation_sum[i] * 100) / 100,
+      precipitationProbability: d.precipitation_probability_max[i] ?? 0,
     })),
   }
 

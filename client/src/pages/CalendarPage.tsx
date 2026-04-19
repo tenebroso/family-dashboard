@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import { ChevronLeft, ChevronRight, X, Clock } from 'lucide-react'
+import { WeatherDayModal, WeatherIcon } from '../components/WeatherDayModal'
+import type { WeatherDay } from '../components/WeatherDayModal'
 
 dayjs.extend(isoWeek)
 
@@ -18,6 +20,17 @@ const CALENDAR_EVENTS_QUERY = gql`
       allDay
       description
       color
+    }
+    weather {
+      forecast {
+        date
+        tempHigh
+        tempLow
+        conditionCode
+        conditionLabel
+        precipitation
+        precipitationProbability
+      }
     }
   }
 `
@@ -180,10 +193,14 @@ function WeekView({
   currentDate,
   events,
   onEventClick,
+  weatherByDate,
+  onWeatherClick,
 }: {
   currentDate: dayjs.Dayjs
   events: CalendarEvent[]
   onEventClick: (event: CalendarEvent) => void
+  weatherByDate?: Map<string, WeatherDay>
+  onWeatherClick?: (day: WeatherDay) => void
 }) {
   const today = dayjs()
   const weekStart = currentDate.startOf('isoWeek')
@@ -197,23 +214,37 @@ function WeekView({
           const dateKey = day.format('YYYY-MM-DD')
           const dayEvents = eventsByDate.get(dateKey) ?? []
           const isToday = day.isSame(today, 'day')
+          const weather = weatherByDate?.get(dateKey)
 
           return (
             <div key={dateKey} className={`bg-surface-card ${isToday ? 'bg-surface-raised' : ''}`}>
-              <div className={`text-center py-3 border-b ${isToday ? 'border-gold/30' : 'border-gold/10'}`}>
-                <div className="text-xs text-ink-muted uppercase tracking-wider font-display">
+              {/* Day header — single row: name · number · temp */}
+              <div className={`flex items-center gap-1 px-2 py-2.5 border-b ${isToday ? 'border-gold/30' : 'border-gold/10'}`}>
+                <span className="text-xs text-ink-muted uppercase tracking-wide font-display leading-none shrink-0">
                   {day.format('ddd')}
-                </div>
-                <div
-                  className={`text-base font-display font-bold mx-auto mt-0.5 w-8 h-8 flex items-center justify-center rounded-full ${
+                </span>
+                <span
+                  className={`text-sm font-display font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0 ${
                     isToday ? 'bg-gold text-surface' : 'text-ink'
                   }`}
                 >
                   {day.date()}
-                </div>
+                </span>
+                {weather ? (
+                  <button
+                    onClick={() => onWeatherClick?.(weather)}
+                    className="ml-auto flex items-center gap-0.5 hover:opacity-70 transition-opacity shrink-0"
+                    title={`${weather.conditionLabel} · ${weather.precipitationProbability}% rain`}
+                  >
+                    <WeatherIcon condition={weather.conditionLabel} size={12} className="text-ink-muted" />
+                    <span className="text-xs font-semibold text-ink-muted tabular-nums leading-none">
+                      {weather.tempHigh}°
+                    </span>
+                  </button>
+                ) : null}
               </div>
 
-              <div className="p-1.5 space-y-1 min-h-[320px]">
+              <div className="p-1.5 space-y-1 min-h-[300px]">
                 {dayEvents.map(evt => (
                   <button
                     key={evt.id}
@@ -440,12 +471,20 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(dayjs())
   const [selectedDayData, setSelectedDayData] = useState<{ date: dayjs.Dayjs; events: CalendarEvent[] } | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedWeatherDay, setSelectedWeatherDay] = useState<WeatherDay | null>(null)
 
   const { start, end } = useMemo(() => getDateRange(view, currentDate), [view, currentDate])
 
   const { data, loading } = useQuery(CALENDAR_EVENTS_QUERY, { variables: { start, end } })
   const events: CalendarEvent[] = data?.calendarEvents ?? []
   const eventsByDate = useMemo(() => groupByDate(events), [events])
+
+  const weatherByDate = useMemo(() => {
+    const map = new Map<string, WeatherDay>()
+    const forecast: WeatherDay[] = data?.weather?.forecast ?? []
+    forecast.forEach(d => map.set(d.date, d))
+    return map
+  }, [data])
 
   const navigate = (dir: 1 | -1) => {
     setCurrentDate(d => {
@@ -544,6 +583,8 @@ export default function CalendarPage() {
             currentDate={currentDate}
             events={events}
             onEventClick={handleEventClick}
+            weatherByDate={weatherByDate}
+            onWeatherClick={setSelectedWeatherDay}
           />
         )}
         {view === 'day' && (
@@ -556,7 +597,7 @@ export default function CalendarPage() {
       </div>
 
       <AnimatePresence>
-        {selectedDayData && !selectedEvent && (
+        {selectedDayData && !selectedEvent && !selectedWeatherDay && (
           <DayEventsPanel
             key="day-panel"
             date={selectedDayData.date}
@@ -565,11 +606,18 @@ export default function CalendarPage() {
             onEventClick={handleEventClick}
           />
         )}
-        {selectedEvent && (
+        {selectedEvent && !selectedWeatherDay && (
           <EventDetailModal
             key="event-modal"
             event={selectedEvent}
             onClose={closeDetail}
+          />
+        )}
+        {selectedWeatherDay && (
+          <WeatherDayModal
+            key="weather-modal"
+            day={selectedWeatherDay}
+            onClose={() => setSelectedWeatherDay(null)}
           />
         )}
       </AnimatePresence>

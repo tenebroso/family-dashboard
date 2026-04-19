@@ -1730,6 +1730,133 @@ All items confirmed. `/reminders` person selector shows all 5 people with accent
 
 ---
 
+## Phase 11.5 - Dashboard Redesign & Calendar Weather Integration ✅ Complete
+
+### Overview
+
+Two related improvements shipped together:
+
+1. **Dashboard layout redesign** — the calendar is now the hero widget (full-width week view at the top), with other widgets ordered by family utility: calendar → grocery → chores → reminders → word of day → message. The standalone `WeatherWidget` card was removed from the dashboard; weather is surfaced directly inside the calendar grid instead.
+
+2. **Weather in the calendar week view** — each day column header now shows a condition icon and temperature high. Clicking it opens a `WeatherDayModal` with full details (condition, high/low, rain probability and amount). This applies to both the dashboard widget and the full `/calendar` page week view.
+
+---
+
+### Step 11.5.1 - New dashboard layout ✅
+
+```
+Rewrote client/src/pages/DashboardPage.tsx:
+
+- Row 1 (full-width): CalendarWeekWidget — the new standalone week-view component.
+- Row 2 (3-col): GroceryWidget · ChoresSummaryShell · RemindersWidget
+- Row 3 (2-col): WordWidget · MessageWidget
+
+WeatherWidget removed from the dashboard entirely (weather lives in the calendar).
+```
+
+---
+
+### Step 11.5.2 - CalendarWeekWidget (standalone dashboard component) ✅
+
+```
+Created client/src/components/CalendarWeekWidget.tsx.
+
+Self-contained week-view calendar card for the dashboard:
+- Single GraphQL query fetches both calendarEvents and weather.forecast together.
+- Prev/Next week navigation with period label (e.g. "April 14 – 20, 2026").
+- "Full calendar →" button navigates to /calendar.
+- Each day column: compact single-row header (day abbr · date number · weather icon + temp°),
+  then event chips below.
+- Clicking an event chip opens an EventDetailModal (same spring animation as the calendar page).
+- Clicking the temperature opens a WeatherDayModal.
+- min-h-[140px] on event area (shorter than the full /calendar page).
+```
+
+---
+
+### Step 11.5.3 - Weather integrated into CalendarPage week view ✅
+
+```
+Updated client/src/pages/CalendarPage.tsx:
+
+- CALENDAR_EVENTS_QUERY now also fetches weather.forecast fields
+  (date, tempHigh, tempLow, conditionCode, conditionLabel, precipitation, precipitationProbability).
+- WeekView component gained two new optional props:
+    weatherByDate?: Map<string, WeatherDay>
+    onWeatherClick?: (day: WeatherDay) => void
+- WeatherDayModal state managed at CalendarPage level; passed via onWeatherClick.
+- WeatherDayModal rendered in the existing AnimatePresence block alongside EventDetailModal
+  and DayEventsPanel — only one modal is visible at a time.
+```
+
+---
+
+### Step 11.5.4 - WeatherDayModal shared component ✅
+
+```
+Created client/src/components/WeatherDayModal.tsx.
+
+Exports:
+  - WeatherDay interface (date, tempHigh, tempLow, conditionCode, conditionLabel,
+    precipitation, precipitationProbability)
+  - WeatherIcon component (lucide-react icons keyed by conditionLabel string)
+  - WeatherDayModal component
+
+Modal content:
+  - Day of week label (gold, uppercase) + full date heading
+  - Large condition icon (36px) + condition label ("Partly Cloudy", "Rain", etc.)
+  - Thermometer icon + high° / low° with "High / Low" caption
+  - Droplets icon + precipitation probability % + amount in mm (if > 0)
+  - Shared by both CalendarWeekWidget and CalendarPage.
+```
+
+---
+
+### Step 11.5.5 - Compact day header layout ✅
+
+```
+Both CalendarWeekWidget and CalendarPage WeekView updated:
+
+Before: three stacked elements — day name row, day number circle, temp block below.
+After:  single flex row — [day abbr] [date circle] [icon + temp°] on one line.
+
+Details:
+- flex items-center gap-1 px-1.5 py-2
+- Day abbr: text-[10px] uppercase tracking-wide (widget) / text-xs (calendar page)
+- Date circle: w-5 h-5 text-xs (widget) / w-6 h-6 text-sm (calendar page)
+  Gold fill + surface text when isToday; plain text-ink otherwise.
+- Weather icon + temp: ml-auto pushes it to the right edge; hidden if no forecast data.
+- Removes the placeholder <div className="mt-1 h-8" /> that was reserving vertical space.
+```
+
+---
+
+### Step 11.5.6 - precipitationProbability added to weather schema ✅
+
+```
+Server changes:
+- services/weather.ts: added precipitation_probability_max to Open-Meteo daily params.
+  Mapped to precipitationProbability: number in WeatherData.forecast items.
+- schema/types/weather.graphql.ts: added precipitationProbability: Int! to WeatherDay.
+- resolvers/weather.ts: stub data updated with precipitationProbability: 10.
+```
+
+---
+
+### Demo Checkpoint — Phase 11.5 ✅ Verified
+
+- `/` Dashboard: full-width week calendar is the first thing visible. Day headers show condition icon + temperature high inline. Clicking a temperature opens the WeatherDayModal (condition, high/low, rain chance). Below the calendar: Grocery · Chores · Reminders in a 3-col row. Then Word of Day · Message.
+- `/calendar` Week view: same compact single-row headers. Clicking a temperature opens the same WeatherDayModal. All other calendar interactions unchanged.
+- WeatherWidget no longer appears anywhere on the dashboard.
+- Both client and server type-check clean (`npx tsc --noEmit`).
+
+**Implementation notes:**
+- `CalendarWeekWidget` fetches weather in the same query as events — no extra round trip. Weather forecast is only 7 days from today, so navigating to a future or past week gracefully shows no temperature (the weather button simply doesn't render).
+- `WeatherDayModal` uses `dayjs(day.date + 'T12:00:00')` to parse the date in local time (avoids UTC-midnight off-by-one in US timezones — same fix applied in CalendarShell).
+- The `WeatherIcon` export from `WeatherDayModal.tsx` is the single source of truth for condition → lucide icon mapping; `WeatherWidget.tsx` still has its own copy (that component remains available for non-dashboard use).
+
+---
+
 ## Phase 12 - Raspberry Pi Deployment ← Next
 
 ### Step 12.1 - Production build

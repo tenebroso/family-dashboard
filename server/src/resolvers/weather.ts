@@ -12,6 +12,7 @@ const STUB_WEATHER = {
       conditionCode: 0,
       conditionLabel: 'Clear',
       precipitation: 0,
+      precipitationProbability: 10,
     }
   }),
 }
