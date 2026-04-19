@@ -1881,29 +1881,36 @@ Merged iCloud CalDAV events into the existing calendar widget alongside Google C
 
 ---
 
+## Phase 11.7 - Dashboard polish & CI hardening ✅ Complete
+
+Small housekeeping pass after Phase 11.6.
+
+**Changes:**
+- `client/src/contexts/AerialContext.tsx` — `useAerial()` always returns `false`; the provider still fetches `/api/aerial` so the server-side aerial download pipeline stays active, but no background image or glassmorphism is applied to the UI. Easy to re-enable with a one-line revert.
+- `client/src/pages/DashboardPage.tsx` — Row 2 reordered to Chores · Grocery · Reminders (left to right). Row 3 changed from a 2-col equal split to a 3-col grid: Word of Day (1 col) + Message (2 cols wide).
+- `.github/workflows/ci.yml` — Added `prisma generate` before server type-check (generated types aren't committed). Added `prisma migrate deploy` + `npm run build` before server startup; replaced `ts-node` with `node dist/index.js` for fast cold-starts in CI. Extended `wait-on` timeout to 60s.
+
+---
+
 ## Phase 12 - Raspberry Pi Deployment ← Next
 
-### Step 12.1 - Production build
+### Step 12.1 - Production build ✅ Partially done
 
+**Already complete:**
+- Root `package.json` has `"build": "npm run build --workspace=client && npm run build --workspace=server"` and `"start": "NODE_ENV=production node server/dist/index.js"`.
+- Client and server both have working `build` scripts.
+
+**Still needed:**
 ```
-In client/package.json, add a build script: "vite build"
-Output goes to client/dist/.
+In server/src/index.ts, add static file serving for production:
 
-In server/src/index.ts, add logic to serve client/dist/ as static files when
-NODE_ENV=production. The Express app should serve index.html for all non-API routes
-(SPA fallback).
+When NODE_ENV=production:
+  app.use(express.static(path.join(__dirname, '../../client/dist')))
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'))
+  })
 
-In server/package.json, add:
-- "build": "tsc -p tsconfig.json"
-- "start": "node dist/index.js"
-
-Create a root-level build script in the root package.json:
-"build": "npm run build --workspace=client && npm run build --workspace=server"
-
-Create a root-level start script:
-"start": "NODE_ENV=production node server/dist/index.js"
-
-After building, the entire app is served from a single Node process on port 4000.
+Mount this AFTER all API routes so /graphql and /api/* are not caught by the SPA fallback.
 ```
 
 ---
@@ -1933,12 +1940,13 @@ Document in README.md the following Pi setup steps:
 3. Clone the repo to ~/family-dashboard
 4. Copy .env to server/.env
 5. Run: npm ci (from root)
-6. Run: npm run build (from root)
+6. Run: npx prisma generate (from server/)
 7. Run: npx prisma migrate deploy (from server/)
-8. Run: npm run seed (from server/) if first install
-9. Run: npm run importTracks (from server/) after placing MP3s in assets/music/
-10. Start: pm2 start ecosystem.config.js
-11. Persist: pm2 save && pm2 startup (run the output command as sudo)
+8. Run: npm run build (from root)
+9. Run: npm run seed (from server/) if first install
+10. Run: npm run importTracks (from server/) after placing MP3s in assets/music/
+11. Start: pm2 start ecosystem.config.js
+12. Persist: pm2 save && pm2 startup (run the output command as sudo)
 
 Access the app from any device on the home network at: http://<pi-ip>:4000
 Optionally set a static IP on the Pi and create a local DNS entry so it's accessible
@@ -1997,30 +2005,25 @@ Test: "calendar navigation"
 
 ---
 
-## Phase 13 - Cron Jobs and Maintenance
+## Phase 13 - Cron Jobs and Maintenance ✅ Partially done
 
-### Step 13.1 - Server-side scheduled tasks
+### Step 13.1 - Server-side scheduled tasks ✅ Partially done
 
+`server/src/cron.ts` exists and is called from `index.ts`. Current implementation:
+- Daily 5:00am Central: refreshes aerial photo, word of the day, and daily track in parallel.
+
+**Still needed:**
 ```
-Create server/src/cron.ts.
+Expand server/src/cron.ts with two additional jobs:
 
-Using node-cron, schedule the following jobs and call this file from src/index.ts:
+1. Weather cache clear - runs every 30 minutes:
+   - Import the in-memory cache Map from services/weather.ts and call .clear() on it.
+   - This ensures stale weather data doesn't persist longer than 30 minutes.
 
-1. Daily word refresh - runs at 00:01 every day:
-   - Calls the wordOfDay service to pre-fetch and cache tomorrow's word.
-   - This avoids the first user of the day experiencing a slow load.
-
-2. Daily track assignment - runs at 00:01 every day:
-   - Calls the dailyTrack resolver logic to pre-assign tomorrow's track.
-
-3. Weather cache clear - runs every 30 minutes:
-   - Clears the in-memory weather cache so the next request fetches fresh data.
-
-4. Weekly chore reminder log - runs every Sunday at 20:00:
-   - Logs a summary to the console of each person's chore completion rate for the week.
-   - This is for visibility only in v1. In a future version this could send a notification.
-
-Document each cron job with a comment explaining its schedule and purpose.
+2. Weekly chore summary log - runs every Sunday at 20:00 Central:
+   - Query prisma for all people and their chores.
+   - For the past 7 days, compute each person's completion rate.
+   - Log a readable summary to console (pm2 logs will capture it).
 ```
 
 ---
