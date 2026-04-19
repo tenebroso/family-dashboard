@@ -947,90 +947,74 @@ Animation: on mount, the word fades and slides up with framer-motion (subtle, 30
 
 ---
 
-## Phase 6 - Music Player ← Next
+## Phase 6 - Music Player ✅ Complete
 
-### Step 6.1 - Track management
-
-```
-Create server/assets/music/ directory.
-
-Place 30 MP3 files here. The filenames should be URL-safe (no spaces, use hyphens).
-
-Create server/src/scripts/importTracks.ts that:
-- Reads all .mp3 files from server/assets/music/
-- For each file, inserts a Track record into the database if one does not already exist
-  with that filename. Title and artist should be parsed from the filename using the
-  convention "artist - title.mp3". If the filename does not match this convention,
-  use the filename (without extension) as the title and "Unknown" as the artist.
-- Prints a summary of how many tracks were imported.
-
-Add script in package.json: "ts-node src/scripts/importTracks.ts"
-
-Run this script after placing MP3 files in the directory.
-```
-
----
-
-### Step 6.2 - Daily track resolver
+### Step 6.1 - Track management ✅
 
 ```
-Create server/src/resolvers/tracks.ts with the Query.dailyTrack resolver.
-Import it in server/src/resolvers/index.ts and replace the STUB_TRACK entry.
-If no tracks exist in the DB (importTracks not yet run), fall back to STUB_TRACK.
+server/assets/music/ directory exists and is gitignored (do not commit MP3s).
 
-Logic:
-- Get today's dateKey.
-- Check if any Track already has dateKey = today. If so, return it with
-  url: "/music/{filename}".
-- If not, get all tracks that have never been picked (dateKey is null).
-  If all tracks have been picked, reset all dateKeys to null and start over.
-- Pick one at random from the unpicked pool.
-- Set that track's dateKey to today.
-- Return it.
+35 MP3 files placed in server/assets/music/ with the naming convention:
+  {track_number}-{artist}-{title}-marr.mp3
+  e.g. 01-lenny_kravitz-are_you_gonna_go_my_way-marr.mp3
 
-This ensures each song plays for one full day before cycling, and the full library
-is exhausted before repeating.
+server/src/scripts/importTracks.ts:
+- Strips track number prefix and -marr suffix from filename
+- Splits on first hyphen to extract artist and title
+- Converts underscores to spaces, applies title case
+- Upserts Track records (skips existing filenames)
+- 35 tracks imported.
+
+Script in server/package.json: "ts-node src/scripts/importTracks.ts"
 ```
 
 ---
 
-### Step 6.3 - Music player widget
+### Step 6.2 - Daily track resolver ✅
 
 ```
-Create client/src/components/MusicWidget.tsx.
+server/src/resolvers/tracks.ts — Query.dailyTrack:
+- Checks for a Track with dateKey = today; returns it if found.
+- If none, picks randomly from tracks where dateKey is null (never played).
+- If all tracks have been played, resets all dateKeys to null and starts over.
+- Returns track with url: "/music/{filename}".
+- Falls back to STUB_TRACK if DB is empty or throws.
 
-Layout:
-- A rectangular card with a generated visual background: use the track title to
-  deterministically pick one of 5 gradient combinations (dark, rich colors with
-  gold accents).
-- Track title in Syne 700, artist name below in DM Sans muted.
-- A single centered play/pause button (large, circular, gold fill).
-- A subtle progress bar along the bottom of the card that advances as the song plays.
-
-Behavior:
-- Uses an HTML5 <audio> element (ref-controlled, not rendered to DOM).
-- On pressing play, fetches the dailyTrack query if not already loaded, then plays.
-- Play/pause toggle.
-- Shows "Today's Song" label above the track title.
-- Do not autoplay on page load.
-- The song does not change if the user navigates away and returns during the same day.
-  Apollo cache handles this.
+Imported into server/src/resolvers/index.ts, replacing the inline dailyTrack stub.
 ```
 
 ---
 
-### Demo Checkpoint — Phase 6
+### Step 6.3 - Music player widget ✅
 
-> For this checkpoint, at least one MP3 must be in `server/assets/music/` and `importTracks` must have been run.
+```
+client/src/components/MusicWidget.tsx replaces MusicShell on DashboardPage.
 
-- `/` Dashboard Music card replaced: shows track title, artist, and gradient background. The play button is visible.
-- Pressing play starts audio. The button changes to pause.
-- Pressing pause stops audio.
-- Reloading the page within the same day shows the same track (Apollo cache / DB persistence).
+- Atmospheric gradient background (5 options, chosen deterministically by track title hash).
+- Gold play/pause button (64×64px, circular).
+- Thin progress bar along the bottom that advances as the song plays.
+- "TODAY'S SONG" label, track title in Syne 700, artist in DM Sans muted.
+- HTML5 <audio> ref-controlled. No autoplay.
+- useEffect re-runs when track loads (dep: [track]) to attach timeupdate/ended listeners.
+```
 
 ---
 
-## Phase 7 - Custom Message
+### Demo Checkpoint — Phase 6 ✅ Verified
+
+- `/` Dashboard Music card: shows "The Way — Fastball" (today's pick) with gradient background.
+- Pressing play starts audio; button toggles to pause bars.
+- Progress bar advances in real time.
+- Reloading the page same day returns the same track (DB persistence).
+
+**Implementation notes:**
+- **MP3 filenames follow `NN-artist-title-marr.mp3`** — the importTracks parser strips the number prefix and `-marr` suffix, then splits on the first hyphen. Artists with hyphens in their name (e.g. Bachman-Turner Overdrive) will have a slightly abbreviated artist label, but the title is correct and the file plays correctly.
+- **`useEffect` dependency on `track`** — the audio element is conditionally rendered (only when `track` exists). The timeupdate/ended listeners must be attached in a `useEffect([track])`, not `[]`, otherwise the effect fires before the audio element is mounted and the progress bar never updates.
+- **`server/assets/music/` is gitignored** — MP3s must be placed manually on each deployment. Run `npm run importTracks` from `server/` after placing files.
+
+---
+
+## Phase 7 - Custom Message ← Next
 
 ### Step 7.1 - Message resolver
 

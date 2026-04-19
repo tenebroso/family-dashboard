@@ -2,6 +2,7 @@ import { choreResolvers } from './chores'
 import { calendarResolvers } from './calendar'
 import { weatherResolvers } from './weather'
 import { wordOfDayResolvers } from './wordOfDay'
+import { tracksResolvers } from './tracks'
 
 const now = new Date()
 
@@ -11,6 +12,7 @@ export const resolvers = {
     ...calendarResolvers.Query,
     ...weatherResolvers.Query,
     ...wordOfDayResolvers.Query,
+    ...tracksResolvers.Query,
     activeMessage: () => ({
       id: 'm1',
       author: 'Mom',
@@ -18,7 +20,6 @@ export const resolvers = {
       displayUntil: null,
       createdAt: now.toISOString(),
     }),
-    dailyTrack: () => ({ id: 't1', title: 'Golden Hour', artist: 'JVKE', url: '/music/golden-hour.mp3' }),
   },
 
   Person: choreResolvers.Person,
