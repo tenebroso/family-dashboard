@@ -1,9 +1,10 @@
 export const messageTypeDefs = `#graphql
   type Message {
     id: ID!
-    author: String!
+    personSlug: String!
     body: String!
-    displayUntil: String
+    parsedType: String
+    parsedDone: Boolean!
     createdAt: String!
   }
 `

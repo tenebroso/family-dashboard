@@ -7,6 +7,11 @@ const CALENDAR_COLORS: Record<string, string> = {
   'Untitled': '#7BC67E',
 }
 
+const CALENDAR_PERSON_SLUGS: Record<string, string> = {
+  "Jon's Calendar": 'jon',
+  'Untitled': 'jon',
+}
+
 const TARGET_CALENDARS = new Set(["Jon's Calendar", 'Untitled'])
 
 function calendarName(displayName: string | Record<string, unknown> | undefined): string | null {
@@ -16,11 +21,13 @@ function calendarName(displayName: string | Record<string, unknown> | undefined)
 }
 
 export async function fetchAppleCalendarEvents(start: Date, end: Date): Promise<CalendarEvent[]> {
+  if (!process.env.APPLE_ID || !process.env.APPLE_APP_PASSWORD) return []
+
   const client = await createDAVClient({
     serverUrl: 'https://caldav.icloud.com',
     credentials: {
-      username: process.env.APPLE_ID!,
-      password: process.env.APPLE_APP_PASSWORD!,
+      username: process.env.APPLE_ID,
+      password: process.env.APPLE_APP_PASSWORD,
     },
     authMethod: 'Basic',
     defaultAccountType: 'caldav',
@@ -35,7 +42,9 @@ export async function fetchAppleCalendarEvents(start: Date, end: Date): Promise<
   const allEvents: CalendarEvent[] = []
 
   for (const calendar of targetCals) {
-    const color = CALENDAR_COLORS[calendarName(calendar.displayName) ?? ''] ?? '#C9A84C'
+    const name = calendarName(calendar.displayName) ?? ''
+    const color = CALENDAR_COLORS[name] ?? '#C9A84C'
+    const personSlug = CALENDAR_PERSON_SLUGS[name] ?? 'jon'
 
     const objects = await client.fetchCalendarObjects({
       calendar,
@@ -68,6 +77,7 @@ export async function fetchAppleCalendarEvents(start: Date, end: Date): Promise<
             allDay: isAllDay,
             description: event.description || null,
             color,
+            personSlug,
           })
         }
       } catch (e) {

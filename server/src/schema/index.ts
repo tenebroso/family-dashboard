@@ -14,7 +14,7 @@ const rootTypeDefs = `#graphql
     person(id: ID!): Person
     calendarEvents(start: String!, end: String!): [CalendarEvent!]!
     weather: WeatherData!
-    activeMessage: Message
+    messages(limit: Int): [Message!]!
     dailyTrack: Track!
     wordOfDay: WordOfDay!
     groceryItems: [GroceryItem!]!
@@ -27,8 +27,7 @@ const rootTypeDefs = `#graphql
     createChore(input: CreateChoreInput!): Chore!
     updateChore(input: UpdateChoreInput!): Chore!
     deleteChore(id: ID!): Boolean!
-    createMessage(author: String!, body: String!, displayUntil: String): Message!
-    deactivateMessage(id: ID!): Boolean!
+    sendMessage(body: String!, personSlug: String!): Message!
     addGroceryItem(name: String!, quantity: String, category: String, addedBy: String!): GroceryItem!
     toggleGroceryItem(id: ID!): GroceryItem!
     deleteGroceryItem(id: ID!): Boolean!

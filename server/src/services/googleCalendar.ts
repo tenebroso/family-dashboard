@@ -22,7 +22,19 @@ export interface CalendarEvent {
   allDay: boolean
   description: string | null
   color: string
+  personSlug: string | null
 }
+
+const CALENDARS = [
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_JON,     personSlug: 'jon'     },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_KRYSTEN, personSlug: 'krysten' },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_HARRY,   personSlug: 'harry'   },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_RUBY,    personSlug: 'ruby'    },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_MYLO,    personSlug: 'mylo'    },
+].filter((c): c is { calendarId: string; personSlug: string } => Boolean(c.calendarId))
+
+type CacheEntry = { data: CalendarEvent[]; expires: number }
+const cache = new Map<string, CacheEntry>()
 
 function createCalendarClient() {
   const oauth2Client = new google.auth.OAuth2(
@@ -33,9 +45,15 @@ function createCalendarClient() {
   return google.calendar({ version: 'v3', auth: oauth2Client })
 }
 
-export async function fetchCalendarEvents(start: Date, end: Date): Promise<CalendarEvent[]> {
-  const calendarId = process.env.GOOGLE_CALENDAR_ID
-  if (!calendarId) throw new Error('GOOGLE_CALENDAR_ID not set')
+async function fetchCalendarForPerson(
+  calendarId: string,
+  personSlug: string,
+  start: Date,
+  end: Date,
+): Promise<CalendarEvent[]> {
+  const cacheKey = `${calendarId}::${start.toISOString()}::${end.toISOString()}`
+  const cached = cache.get(cacheKey)
+  if (cached && cached.expires > Date.now()) return cached.data
 
   const calendar = createCalendarClient()
   const response = await calendar.events.list({
@@ -48,12 +66,11 @@ export async function fetchCalendarEvents(start: Date, end: Date): Promise<Calen
   })
 
   const items = response.data.items ?? []
-  return items.map(event => {
+  const events = items.map(event => {
     const isAllDay = !event.start?.dateTime
     const startStr = isAllDay ? event.start!.date! : event.start!.dateTime!
     const endStr = isAllDay ? event.end!.date! : event.end!.dateTime!
     const color = event.colorId ? (GOOGLE_COLOR_MAP[event.colorId] ?? '#C9A84C') : '#C9A84C'
-
     return {
       id: event.id ?? `evt-${Date.now()}`,
       title: event.summary ?? '(No title)',
@@ -62,6 +79,26 @@ export async function fetchCalendarEvents(start: Date, end: Date): Promise<Calen
       allDay: isAllDay,
       description: event.description ?? null,
       color,
+      personSlug,
     }
   })
+
+  cache.set(cacheKey, { data: events, expires: Date.now() + 15 * 60 * 1000 })
+  setTimeout(() => cache.delete(cacheKey), 15 * 60 * 1000)
+  return events
+}
+
+export async function fetchCalendarEvents(start: Date, end: Date): Promise<CalendarEvent[]> {
+  if (CALENDARS.length === 0) return []
+
+  const results = await Promise.allSettled(
+    CALENDARS.map(c => fetchCalendarForPerson(c.calendarId, c.personSlug, start, end)),
+  )
+
+  const events: CalendarEvent[] = []
+  for (const result of results) {
+    if (result.status === 'fulfilled') events.push(...result.value)
+    else console.error('[google calendar] Failed to fetch calendar:', result.reason)
+  }
+  return events.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 }

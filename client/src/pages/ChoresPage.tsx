@@ -42,6 +42,18 @@ const UNCOMPLETE_CHORE = gql`
 type Chore = { id: string; title: string; isCompletedOn: boolean }
 type Person = { id: string; name: string; color: string; completionRate: number; chores: Chore[] }
 
+const PERSON_COLORS: Record<string, string> = {
+  jon:     'var(--p-jon)',
+  krysten: 'var(--p-krysten)',
+  harry:   'var(--p-harry)',
+  ruby:    'var(--p-ruby)',
+  mylo:    'var(--p-mylo)',
+}
+
+function personColor(name: string): string {
+  return PERSON_COLORS[name.toLowerCase()] ?? 'var(--accent)'
+}
+
 function PersonCard({ person, completed, onToggle }: {
   person: Person
   completed: Set<string>
@@ -55,11 +67,11 @@ function PersonCard({ person, completed, onToggle }: {
     <div className="bg-surface-raised rounded-xl overflow-hidden border border-gold/20 shadow-[0_0_12px_rgba(201,168,76,0.05)]">
       <div
         className="px-5 py-4 flex items-center gap-3"
-        style={{ borderLeft: `4px solid ${person.color}` }}
+        style={{ borderLeft: `4px solid ${personColor(person.name)}` }}
       >
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold font-display shrink-0"
-          style={{ backgroundColor: person.color, color: '#111111' }}
+          style={{ backgroundColor: personColor(person.name), color: '#111111' }}
         >
           {person.name[0]}
         </div>
@@ -83,8 +95,8 @@ function PersonCard({ person, completed, onToggle }: {
                     <motion.div
                       className="w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0"
                       style={{
-                        borderColor: isDone ? person.color : 'rgba(154,148,136,0.4)',
-                        backgroundColor: isDone ? person.color : 'transparent',
+                        borderColor: isDone ? personColor(person.name) : 'rgba(154,148,136,0.4)',
+                        backgroundColor: isDone ? personColor(person.name) : 'transparent',
                       }}
                       animate={{ scale: isDone ? [1, 1.2, 1] : 1 }}
                       transition={{ duration: 0.2 }}
@@ -120,14 +132,14 @@ function PersonCard({ person, completed, onToggle }: {
       <div className="px-5 pb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] text-ink-muted uppercase tracking-wide">Progress</span>
-          <span className="text-[11px] font-medium" style={{ color: person.color }}>
+          <span className="text-[11px] font-medium" style={{ color: personColor(person.name) }}>
             {doneCount} / {total} done
           </span>
         </div>
         <div className="h-1.5 rounded-full bg-surface-card overflow-hidden">
           <motion.div
             className="h-full rounded-full"
-            style={{ backgroundColor: person.color }}
+            style={{ backgroundColor: personColor(person.name) }}
             initial={{ width: 0 }}
             animate={{ width: `${pct}%` }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -197,12 +209,12 @@ export default function ChoresPage() {
               <div key={p.id} className="flex flex-col items-center gap-1.5">
                 <div
                   className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold font-display"
-                  style={{ backgroundColor: p.color, color: '#111111' }}
+                  style={{ backgroundColor: personColor(p.name), color: '#111111' }}
                 >
                   {p.name[0]}
                 </div>
                 <span className="text-[11px] text-ink-muted">{p.name}</span>
-                <span className="text-[11px] font-medium" style={{ color: p.color }}>{pct}%</span>
+                <span className="text-[11px] font-medium" style={{ color: personColor(p.name) }}>{pct}%</span>
               </div>
             )
           })}

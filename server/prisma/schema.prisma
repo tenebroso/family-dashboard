@@ -38,12 +38,12 @@ model ChoreCompletion {
 }
 
 model Message {
-  id           String    @id @default(cuid())
-  author       String
-  body         String
-  displayUntil DateTime?
-  createdAt    DateTime  @default(now())
-  isActive     Boolean   @default(true)
+  id         String   @id @default(cuid())
+  personSlug String
+  body       String
+  parsedType String?
+  parsedDone Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }
 
 model WordOfDay {

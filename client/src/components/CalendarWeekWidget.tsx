@@ -6,9 +6,9 @@ import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import { ChevronLeft, ChevronRight, Clock, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useAerial } from '../contexts/AerialContext'
 import { WeatherDayModal, WeatherIcon } from './WeatherDayModal'
 import type { WeatherDay } from './WeatherDayModal'
+import { useActivePerson } from '../contexts/PersonContext'
 
 dayjs.extend(isoWeek)
 
@@ -22,6 +22,7 @@ const WEEK_QUERY = gql`
       allDay
       description
       color
+      personSlug
     }
     weather {
       forecast {
@@ -45,6 +46,7 @@ interface CalendarEvent {
   allDay: boolean
   description: string | null
   color: string
+  personSlug: string | null
 }
 
 function formatTime(isoStr: string): string {
@@ -64,28 +66,30 @@ function groupByDate(events: CalendarEvent[]): Map<string, CalendarEvent[]> {
 function EventDetailModal({ event, onClose }: { event: CalendarEvent; onClose: () => void }) {
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-        className="fixed bottom-0 left-0 right-0 z-50 md:inset-auto md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px] bg-surface-card rounded-t-2xl md:rounded-2xl border border-gold/20 p-6"
+        className="fixed bottom-0 left-0 right-0 z-50 md:inset-auto md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px] rounded-t-2xl md:rounded-2xl p-6"
+        style={{ background: 'var(--surface)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-lg)' }}
       >
         <div className="flex items-start gap-3 mb-5">
           <div className="w-1 h-12 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: event.color }} />
           <div className="flex-1 min-w-0">
-            <h2 className="font-display font-bold text-xl text-ink leading-tight">{event.title}</h2>
+            <h2 className="font-display font-bold text-xl leading-tight" style={{ color: 'var(--ink)' }}>{event.title}</h2>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface text-ink-muted shrink-0 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full transition-colors shrink-0"
+            style={{ background: 'var(--surface-sunk)', color: 'var(--ink-3)' }}
           >
             <X size={16} />
           </button>
         </div>
         <div className="space-y-3 pl-4">
-          <div className="flex items-center gap-2 text-sm text-ink-muted">
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ink-3)' }}>
             <Clock size={14} className="shrink-0" />
             {event.allDay ? (
               <span>All day · {dayjs(event.start).format('MMMM D, YYYY')}</span>
@@ -96,7 +100,7 @@ function EventDetailModal({ event, onClose }: { event: CalendarEvent; onClose: (
             )}
           </div>
           {event.description && (
-            <p className="text-sm text-ink-muted leading-relaxed">{event.description}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-3)' }}>{event.description}</p>
           )}
         </div>
       </motion.div>
@@ -105,15 +109,13 @@ function EventDetailModal({ event, onClose }: { event: CalendarEvent; onClose: (
 }
 
 export default function CalendarWeekWidget() {
-  const [currentDate, setCurrentDate] = useState(dayjs())
+  const [currentDate, setCurrentDate] = useState(() =>
+    dayjs().day() === 0 ? dayjs().add(1, 'week') : dayjs()
+  )
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [selectedWeatherDay, setSelectedWeatherDay] = useState<WeatherDay | null>(null)
   const navigate = useNavigate()
-  const aerial = useAerial()
-
-  const cardClass = aerial
-    ? 'backdrop-blur-md bg-black/50 rounded-xl ring-1 ring-white/10'
-    : 'bg-surface-raised rounded-xl'
+  const { activePerson } = useActivePerson()
 
   const weekStart = currentDate.startOf('isoWeek')
   const weekEnd = weekStart.add(6, 'day').endOf('day')
@@ -139,49 +141,55 @@ export default function CalendarWeekWidget() {
   const today = dayjs()
   const periodLabel = useMemo(() => {
     const we = weekStart.add(6, 'day')
-    if (weekStart.month() === we.month()) return `${weekStart.format('MMMM D')} – ${we.format('D, YYYY')}`
-    return `${weekStart.format('MMM D')} – ${we.format('MMM D, YYYY')}`
+    if (weekStart.month() === we.month()) return `${weekStart.format('MMM D')} – ${we.format('D')}`
+    return `${weekStart.format('MMM D')} – ${we.format('MMM D')}`
   }, [weekStart])
 
   return (
-    <div className={cardClass}>
+    <div className="tile calendar-tile">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-2">
+      <div
+        className="flex items-center justify-between px-4 py-2.5 flex-shrink-0"
+        style={{ borderBottom: '1px solid var(--hairline)' }}
+      >
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setCurrentDate(d => d.subtract(7, 'day'))}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-ink-muted transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors"
+            style={{ color: 'var(--ink-3)' }}
             aria-label="Previous week"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={15} />
           </button>
-          <span className="font-display font-bold text-sm text-ink min-w-[160px] text-center tabular-nums">
+          <span className="font-display font-bold text-sm min-w-[140px] text-center tabular-nums" style={{ color: 'var(--ink)' }}>
             {periodLabel}
           </span>
           <button
             onClick={() => setCurrentDate(d => d.add(7, 'day'))}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-ink-muted transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors"
+            style={{ color: 'var(--ink-3)' }}
             aria-label="Next week"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={15} />
           </button>
         </div>
 
         <div className="flex items-center gap-3">
           {loading && (
-            <div className="w-4 h-4 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
+            <div className="w-3.5 h-3.5 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--hairline)', borderTopColor: 'var(--accent)' }} />
           )}
           <button
-            onClick={() => navigate('/calendar')}
-            className="text-xs text-gold/60 hover:text-gold transition-colors font-display tracking-wide"
+            onClick={() => navigate(activePerson ? `/${activePerson}/calendar` : '/calendar')}
+            className="text-xs font-medium transition-colors"
+            style={{ color: 'var(--accent-ink)' }}
           >
-            Full calendar →
+            Full view →
           </button>
         </div>
       </div>
 
       {/* Week grid */}
-      <div className="grid grid-cols-7 divide-x divide-gold/10">
+      <div className="grid grid-cols-7" style={{ borderBottom: '1px solid var(--hairline-soft)', minHeight: 200 }}>
         {days.map(day => {
           const dateKey = day.format('YYYY-MM-DD')
           const dayEvents = eventsByDate.get(dateKey) ?? []
@@ -189,28 +197,35 @@ export default function CalendarWeekWidget() {
           const isToday = day.isSame(today, 'day')
 
           return (
-            <div key={dateKey} className={isToday ? 'bg-white/5' : ''}>
-              {/* Day header — single row: name · number · temp */}
-              <div className={`flex items-center gap-1 px-1.5 py-2 border-b ${isToday ? 'border-gold/30' : 'border-gold/10'}`}>
-                <span className="text-[10px] text-ink-muted uppercase tracking-wide font-display leading-none shrink-0">
+            <div
+              key={dateKey}
+              className="flex flex-col"
+              style={{
+                borderRight: '1px solid var(--hairline-soft)',
+                background: isToday ? 'var(--accent-wash)' : undefined,
+              }}
+            >
+              {/* Day header */}
+              <div
+                className="flex items-center gap-1.5 px-2 py-2 flex-shrink-0"
+                style={{ borderBottom: `1px solid ${isToday ? 'var(--accent-wash-2)' : 'var(--hairline-soft)'}` }}
+              >
+                <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: 'var(--ink-3)' }}>
                   <span className="hidden sm:inline">{day.format('ddd')}</span>
                   <span className="sm:hidden">{day.format('dd')[0]}</span>
                 </span>
-                <span
-                  className={`text-xs font-display font-bold w-5 h-5 flex items-center justify-center rounded-full shrink-0 ${
-                    isToday ? 'bg-gold text-surface' : 'text-ink'
-                  }`}
-                >
-                  {day.date()}
-                </span>
+                {isToday ? (
+                  <span className="week-day-num-today">{day.date()}</span>
+                ) : (
+                  <span className="week-day-num">{day.date()}</span>
+                )}
                 {weather ? (
                   <button
                     onClick={() => setSelectedWeatherDay(weather)}
-                    className="ml-auto flex items-center gap-0.5 hover:opacity-70 transition-opacity shrink-0"
-                    title={`${weather.conditionLabel} · ${weather.precipitationProbability}% rain`}
+                    className="ml-auto flex items-center gap-0.5 hover:opacity-70 transition-opacity"
                   >
-                    <WeatherIcon condition={weather.conditionLabel} size={11} className="text-ink-muted" />
-                    <span className="text-[10px] font-semibold text-ink-muted tabular-nums leading-none">
+                    <WeatherIcon condition={weather.conditionLabel} size={10} className="text-ink-muted" />
+                    <span className="text-[9px] font-semibold tabular-nums" style={{ color: 'var(--ink-3)' }}>
                       {weather.tempHigh}°
                     </span>
                   </button>
@@ -218,15 +233,18 @@ export default function CalendarWeekWidget() {
               </div>
 
               {/* Events */}
-              <div className="p-1 space-y-1 min-h-[120px] md:min-h-[140px]">
-                {dayEvents.map(evt => (
+              <div className="p-1 space-y-1 overflow-hidden">
+                {dayEvents.map(evt => {
+                  const dimmed = activePerson !== null && evt.personSlug !== null && evt.personSlug !== activePerson
+                  return (
                   <button
                     key={evt.id}
                     onClick={() => setSelectedEvent(evt)}
-                    className="w-full text-left rounded-md p-1.5 text-xs transition-opacity hover:opacity-80"
+                    className="w-full text-left rounded-md p-1 text-xs transition-opacity hover:opacity-80"
                     style={{
-                      backgroundColor: evt.color + '22',
+                      backgroundColor: evt.color + '18',
                       borderLeft: `2px solid ${evt.color}`,
+                      opacity: dimmed ? 0.3 : 1,
                     }}
                   >
                     <div className="font-semibold truncate leading-tight" style={{ color: evt.color }}>
@@ -234,10 +252,13 @@ export default function CalendarWeekWidget() {
                       <span className="sm:hidden">{evt.title[0]}</span>
                     </div>
                     {!evt.allDay && (
-                      <div className="text-ink-muted mt-0.5 hidden sm:block">{formatTime(evt.start)}</div>
+                      <div className="hidden sm:block mt-0.5" style={{ color: 'var(--ink-3)', fontSize: '10px' }}>
+                        {formatTime(evt.start)}
+                      </div>
                     )}
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )

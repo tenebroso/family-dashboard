@@ -9,11 +9,11 @@ const day = (offset: number) => {
 }
 
 export const STUB_CALENDAR_EVENTS = [
-  { id: 'e1', title: 'Soccer practice', start: day(1), end: day(1), allDay: false, description: null, color: '#4A90D9' },
-  { id: 'e2', title: 'Dentist - Ruby', start: day(3), end: day(3), allDay: false, description: null, color: '#E8607A' },
-  { id: 'e3', title: 'Family dinner', start: day(5), end: day(5), allDay: true, description: "At Grandma's", color: '#C9A84C' },
-  { id: 'e4', title: 'Grocery run', start: day(8), end: day(8), allDay: false, description: null, color: '#7BC67E' },
-  { id: 'e5', title: "Harry's birthday", start: day(12), end: day(12), allDay: true, description: null, color: '#4A90D9' },
+  { id: 'e1', title: 'Soccer practice', start: day(1), end: day(1), allDay: false, description: null, color: '#4A90D9', personSlug: 'harry' },
+  { id: 'e2', title: 'Dentist - Ruby', start: day(3), end: day(3), allDay: false, description: null, color: '#E8607A', personSlug: 'ruby' },
+  { id: 'e3', title: 'Family dinner', start: day(5), end: day(5), allDay: true, description: "At Grandma's", color: '#C9A84C', personSlug: null },
+  { id: 'e4', title: 'Grocery run', start: day(8), end: day(8), allDay: false, description: null, color: '#7BC67E', personSlug: 'krysten' },
+  { id: 'e5', title: "Harry's birthday", start: day(12), end: day(12), allDay: true, description: null, color: '#4A90D9', personSlug: 'harry' },
 ]
 
 type CacheEntry = { data: unknown; expires: number }
@@ -42,8 +42,8 @@ export const calendarResolvers = {
           ...(appleResult.status === 'fulfilled' ? appleResult.value : []),
         ].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 
-        if (events.length === 0 && googleResult.status === 'rejected' && appleResult.status === 'rejected') {
-          throw new Error('Both calendar sources failed')
+        if (events.length === 0 && googleResult.status === 'rejected') {
+          throw new Error('Google calendar failed and no events available')
         }
 
         const entry: CacheEntry = { data: events, expires: Date.now() + 15 * 60 * 1000 }

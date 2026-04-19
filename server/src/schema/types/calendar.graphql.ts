@@ -7,5 +7,6 @@ export const calendarTypeDefs = `#graphql
     allDay: Boolean!
     description: String
     color: String
+    personSlug: String
   }
 `

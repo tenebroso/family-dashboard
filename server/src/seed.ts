@@ -39,7 +39,17 @@ async function main() {
     await prisma.chore.create({ data: chore })
   }
 
-  console.log('Seeded 5 people and 15 chores.')
+  await prisma.message.deleteMany()
+  await prisma.message.createMany({
+    data: [
+      { personSlug: 'krysten', body: 'Dinner is at 6:30 tonight 🍝' },
+      { personSlug: 'harry',   body: 'Can we get more cereal?' },
+      { personSlug: 'jon',     body: 'I\'ll grab some on the way home' },
+      { personSlug: 'ruby',    body: 'Don\'t forget Harry has soccer at 4!' },
+    ],
+  })
+
+  console.log('Seeded 5 people, 15 chores, and 4 messages.')
 }
 
 main()

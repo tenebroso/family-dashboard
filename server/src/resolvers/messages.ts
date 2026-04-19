@@ -4,42 +4,22 @@ const prisma = new PrismaClient()
 
 export const messagesResolvers = {
   Query: {
-    activeMessage: async () => {
-      const now = new Date()
-      return prisma.message.findFirst({
-        where: {
-          isActive: true,
-          OR: [
-            { displayUntil: null },
-            { displayUntil: { gt: now } },
-          ],
-        },
-        orderBy: { createdAt: 'desc' },
+    messages: async (_: unknown, args: { limit?: number }) => {
+      return prisma.message.findMany({
+        orderBy: { createdAt: 'asc' },
+        take: args.limit ?? 50,
       })
     },
   },
 
   Mutation: {
-    createMessage: async (_: unknown, args: { author: string; body: string; displayUntil?: string }) => {
-      await prisma.message.updateMany({
-        where: { isActive: true },
-        data: { isActive: false },
-      })
+    sendMessage: async (_: unknown, args: { body: string; personSlug: string }) => {
       return prisma.message.create({
         data: {
-          author: args.author,
           body: args.body,
-          displayUntil: args.displayUntil ? new Date(args.displayUntil) : null,
+          personSlug: args.personSlug,
         },
       })
-    },
-
-    deactivateMessage: async (_: unknown, args: { id: string }) => {
-      await prisma.message.update({
-        where: { id: args.id },
-        data: { isActive: false },
-      })
-      return true
     },
   },
 }
