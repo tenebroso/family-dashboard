@@ -20,5 +20,6 @@ export function AerialProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAerial() {
-  return useContext(AerialContext)
+  useContext(AerialContext) // keep provider subscription alive
+  return false
 }
