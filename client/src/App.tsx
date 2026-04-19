@@ -2,8 +2,8 @@ import { ApolloClient, InMemoryCache } from '@apollo/client'
 import { ApolloProvider } from '@apollo/client/react'
 import { HttpLink } from '@apollo/client/link/http'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import NavBar from './components/NavBar'
 import MusicBar from './components/MusicBar'
+import { AerialProvider } from './contexts/AerialContext'
 import DashboardPage from './pages/DashboardPage'
 import ChoresPage from './pages/ChoresPage'
 import CalendarPage from './pages/CalendarPage'
@@ -19,17 +19,19 @@ export default function App() {
   return (
     <ApolloProvider client={client}>
       <BrowserRouter>
-        <NavBar />
-        <main className="pt-14 pb-14">
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/chores" element={<ChoresPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/message-admin" element={<MessageAdminPage />} />
-            <Route path="/chores-admin" element={<ChoresAdminPage />} />
-          </Routes>
-        </main>
-        <MusicBar />
+        <AerialProvider>
+          <main className="pb-14">
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/chores" element={<ChoresPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/message-admin" element={<MessageAdminPage />} />
+              <Route path="/chores-admin" element={<ChoresAdminPage />} />
+            </Routes>
+          </main>
+          <MusicBar />
+        </AerialProvider>
+
       </BrowserRouter>
     </ApolloProvider>
   )

@@ -4,6 +4,7 @@ dist/
 *.db
 *.db-journal
 server/assets/music/
+server/cache/
 .DS_Store
 e2e/playwright-report/
 e2e/test-results/

@@ -1219,7 +1219,7 @@ All items confirmed. `/message-admin` form posts a message via `createMessage` m
 
 ---
 
-## Phase 8 - Dashboard Page ← Next
+## Phase 8 - Dashboard Page ✅ Complete
 
 ### Dashboard UX Principles (from Pencil & Paper guide)
 
@@ -1316,7 +1316,7 @@ and a row of narrower blocks for the forecast strip.
 
 ---
 
-### Demo Checkpoint — Phase 8
+### Demo Checkpoint — Phase 8 ✅ Verified
 
 - `/` on 1280×800: 3-column layout, cards at natural height (no forced stretching). Cards in the same row may be different heights — that's correct.
 - MessageWidget full-width above the grid when a message is active; absent (no empty space) when no message.
@@ -1324,9 +1324,15 @@ and a row of narrower blocks for the forecast strip.
 - Skeleton shimmer visible during a hard reload before data arrives.
 - Every card correctly handles its empty state (no message = card gone, not blank space).
 
+**Implementation notes:**
+- `client/src/components/Skeleton.tsx` — reusable shimmer block. `@keyframes shimmer` + `.animate-shimmer` added to `index.css`. All widgets replaced `animate-pulse` divs with `<Skeleton>`.
+- Grid uses `items-start` — cards render at natural content height, no forced stretching.
+- Col 3 order is `ChoresSummaryShell` (top) then `WordWidget` (bottom) — this gives the correct mobile stack order (Chores before Word).
+- Chore progress bar track color is `bg-white/8` so the empty-state track is visible.
+
 ---
 
-### Step 8.3 - UI/UX Review: Full dashboard composition
+### Step 8.3 - UI/UX Review: Full dashboard composition ✅ Complete
 
 This is the most comprehensive design review in the project. For the first time all widgets are live simultaneously. The goal is to ensure the dashboard reads as a cohesive, deliberate design — not a grid of unrelated cards. Fix anything that breaks the composition before Phase 9 adds touch polish on top.
 
@@ -1379,7 +1385,7 @@ This is the most comprehensive design review in the project. For the first time 
 
 ---
 
-## Phase 8.5 - Apple Aerial Background + Glassmorphism Cards
+## Phase 8.5 - Daily Background + Glassmorphism Cards ✅ Complete
 
 ### Overview
 
@@ -1477,23 +1483,31 @@ NavBar and MusicBar:
 
 ---
 
-### Demo Checkpoint — Phase 8.5
+### Demo Checkpoint — Phase 8.5 ✅ Verified
 
-- Hard reload the dashboard. Within a few seconds (first run: ~10s for ffmpeg frame extraction) the aerial background appears — a landscape photo from Apple's library.
-- All five widget cards show the frosted glass appearance (blurred background visible behind translucent card).
-- All text is legible at a glance: weather numbers, calendar events, chore names.
-- The location/title of the aerial image does NOT need to be shown (it's decoration, not information).
-- Reload the next day (or change the system date) — a different aerial image appears.
-- With no aerial background (API unreachable, ffmpeg not installed), the dashboard falls back cleanly to the solid dark surface — glass cards degrade to standard bg-surface-raised.
+- Hard reload the dashboard. The Bing daily background photo fills the screen immediately (cached JPEG on subsequent loads).
+- All five widget cards show frosted glass appearance (`backdrop-blur-md bg-black/50 ring-1 ring-white/10`).
+- All text is legible: weather numbers, calendar events, chore names, word definition.
+- Reload the next day — a different Bing daily image appears automatically.
+- With no background available (network down), the dashboard falls back cleanly to solid dark surface — glass cards degrade gracefully to `bg-surface-raised`.
+- NavBar removed entirely; dashboard fills edge-to-edge. Navigation happens through card actions (CalendarShell → /calendar, ChoresSummaryShell → /chores). All secondary pages have a subtle "← Home" link.
 
-**Known constraints:**
-- First run of the day takes ~10s (streaming 6 MB + ffmpeg decode). After that, the cached JPEG serves instantly.
-- If the Apple CDN is unreachable (network down, Apple changes the manifest), fall back silently.
-- ffmpeg must be installed: `sudo apt install ffmpeg` on the Pi. In local dev, install via Homebrew: `brew install ffmpeg`.
+**Implementation notes:**
+- **Pivoted from Apple Aerial to Bing Daily Image**: Apple's aerial video CDN URLs (`sylvan.apple.com/Aerials/2x/Videos/`) now return 404. Replaced with Bing's `HPImageArchive.aspx` API — free, no key, beautiful curated photography, changes daily, returns a direct JPEG (no ffmpeg needed).
+- `server/src/services/aerial.ts` — fetches Bing API, downloads JPEG to `server/cache/aerial-{dateKey}.jpg`. Uses Node's built-in `https` module with redirect following. Falls back silently on any error.
+- `server/src/cron.ts` — 00:05 daily job pre-fetches the next day's image.
+- `GET /api/aerial` — serves the cached JPEG or 204 if not ready.
+- `server/cache/` added to `.gitignore`.
+- `client/src/contexts/AerialContext.tsx` — HEAD-checks `/api/aerial` on mount, broadcasts `aerialActive: boolean` app-wide via React context, sets `--aerial-active` CSS custom property on `document.documentElement`.
+- `client/src/hooks/useCardClass.ts` — returns glass or dark card className based on aerial state.
+- `client/vite.config.ts` — proxy added: `/api` and `/music` → `http://localhost:4000` (required for dev-mode routing).
+- `NavBar.tsx` deleted. `App.tsx` no longer renders it. `pt-14` removed from `<main>`.
+- `CalendarShell` converted from `<div>` to `<button>` — entire card navigates to `/calendar`.
+- `← Home` link added to `/chores`, `/calendar`, `/chores-admin`, `/message-admin`.
 
 ---
 
-## Phase 9 - Responsiveness and Touch Polish
+## Phase 9 - Responsiveness and Touch Polish ← Next
 
 ### Step 9.1 - Touch and responsive audit
 

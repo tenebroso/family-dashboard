@@ -2,6 +2,8 @@ import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { Sun, CloudSun, Cloud, CloudRain, CloudSnow, CloudLightning } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import Skeleton from './Skeleton'
+import { useCardClass } from '../hooks/useCardClass'
 
 const WEATHER_QUERY = gql`
   query WeatherWidget {
@@ -55,9 +57,10 @@ export default function WeatherWidget() {
   const { data, loading } = useQuery(WEATHER_QUERY)
   const current = data?.weather?.current
   const forecast = data?.weather?.forecast ?? []
+  const cardClass = useCardClass('flex flex-col overflow-hidden')
 
   return (
-    <div className="bg-surface-raised rounded-lg flex flex-col overflow-hidden">
+    <div className={cardClass}>
       <div className="px-4 pt-4 pb-0 flex items-baseline justify-between">
         <p className="text-xs uppercase tracking-widest text-gold font-medium">Weather</p>
         <p className="text-xs text-ink-muted">Milwaukee</p>
@@ -66,9 +69,9 @@ export default function WeatherWidget() {
       <div className="flex flex-col px-4 py-4">
         {loading || !current ? (
           <div className="space-y-2">
-            <div className="animate-pulse h-16 w-40 bg-surface-card rounded" />
-            <div className="animate-pulse h-4 w-28 bg-surface-card rounded" />
-            <div className="animate-pulse h-4 w-36 bg-surface-card rounded mt-1" />
+            <Skeleton className="h-16 w-40" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-36 mt-1" />
           </div>
         ) : (
           <>
@@ -93,8 +96,8 @@ export default function WeatherWidget() {
             <div className="flex justify-between gap-1">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                  <div className="animate-pulse w-full h-12 bg-surface-card/60 rounded-sm" />
-                  <div className="animate-pulse w-4 h-2 bg-surface-card/60 rounded" />
+                  <Skeleton className="w-full h-12" />
+                  <Skeleton className="w-4 h-2" />
                 </div>
               ))}
             </div>

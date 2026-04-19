@@ -178,9 +178,12 @@ export default function ChoresPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="font-display font-bold text-2xl text-ink">Chores</h1>
-        <p className="text-ink-muted text-sm mt-0.5">{todayLabel}</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="font-display font-bold text-2xl text-ink">Chores</h1>
+          <p className="text-ink-muted text-sm mt-0.5">{todayLabel}</p>
+        </div>
+        <a href="/" className="text-xs text-ink-muted hover:text-ink transition-colors mt-1">← Home</a>
       </div>
 
       {/* Summary row */}

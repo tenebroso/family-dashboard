@@ -273,12 +273,15 @@ export default function ChoresAdminPage() {
           <h1 className="font-display font-bold text-2xl text-ink">Chores Admin</h1>
           <p className="text-ink-muted text-sm mt-0.5">Manage chore assignments</p>
         </div>
-        <button
-          onClick={() => setShowAdd(s => !s)}
-          className="px-4 py-2 bg-gold text-surface text-sm font-medium rounded-md hover:bg-gold-light transition-colors"
-        >
-          {showAdd ? 'Close' : 'Add Chore'}
-        </button>
+        <div className="flex items-center gap-4">
+          <a href="/" className="text-xs text-ink-muted hover:text-ink transition-colors">← Home</a>
+          <button
+            onClick={() => setShowAdd(s => !s)}
+            className="px-4 py-2 bg-gold text-surface text-sm font-medium rounded-md hover:bg-gold-light transition-colors"
+          >
+            {showAdd ? 'Close' : 'Add Chore'}
+          </button>
+        </div>
       </div>
 
       {showAdd && (

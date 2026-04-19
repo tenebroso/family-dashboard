@@ -6,6 +6,8 @@ import { expressMiddleware } from '@apollo/server/express4'
 import path from 'path'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
+import { ensureTodaysAerial, getTodaysAerialPath } from './services/aerial'
+import { startCronJobs } from './cron'
 
 async function main() {
   const app = express()
@@ -16,6 +18,15 @@ async function main() {
 
   app.use('/music', express.static(path.join(__dirname, '..', 'assets', 'music')))
 
+  app.get('/api/aerial', (req, res) => {
+    const p = getTodaysAerialPath()
+    if (p) {
+      res.sendFile(p)
+    } else {
+      res.status(204).end()
+    }
+  })
+
   const apollo = new ApolloServer({ typeDefs, resolvers })
   await apollo.start()
   app.use('/graphql', expressMiddleware(apollo))
@@ -23,6 +34,10 @@ async function main() {
   app.listen(port, '0.0.0.0', () => {
     console.log(`Server ready at http://0.0.0.0:${port}/graphql`)
   })
+
+  // Fire-and-forget: fetch today's aerial in the background
+  ensureTodaysAerial().catch(console.error)
+  startCronJobs()
 }
 
 main().catch(console.error)

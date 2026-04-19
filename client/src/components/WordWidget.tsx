@@ -1,6 +1,8 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { motion } from 'framer-motion'
+import Skeleton from './Skeleton'
+import { useCardClass } from '../hooks/useCardClass'
 
 const WORD_QUERY = gql`
   query WordWidget {
@@ -15,15 +17,16 @@ const WORD_QUERY = gql`
 export default function WordWidget() {
   const { data, loading } = useQuery(WORD_QUERY)
   const wod = data?.wordOfDay
+  const cardClass = useCardClass('p-4')
 
   return (
-    <div className="bg-surface-raised rounded-lg p-4">
+    <div className={cardClass}>
       <p className="text-[10px] uppercase tracking-widest text-gold font-medium mb-2">Word of the Day</p>
       {loading ? (
         <div className="space-y-2">
-          <div className="animate-pulse h-8 w-40 bg-surface-card rounded" />
-          <div className="animate-pulse h-3 w-16 bg-surface-card rounded" />
-          <div className="animate-pulse h-4 w-full bg-surface-card rounded mt-1" />
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-4 w-full mt-1" />
         </div>
       ) : (
         <motion.div

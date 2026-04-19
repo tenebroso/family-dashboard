@@ -1,6 +1,9 @@
 import { useMemo } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
+import { useNavigate } from 'react-router-dom'
+import Skeleton from './Skeleton'
+import { useAerial } from '../contexts/AerialContext'
 
 const CALENDAR_QUERY = gql`
   query CalendarShell($start: String!, $end: String!) {
@@ -13,7 +16,7 @@ const CALENDAR_QUERY = gql`
   }
 `
 
-function formatEventDate(isoString: string, allDay: boolean): string {
+function formatEventDate(isoString: string): string {
   const d = new Date(isoString)
   const today = new Date()
   const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
@@ -24,6 +27,12 @@ function formatEventDate(isoString: string, allDay: boolean): string {
 }
 
 export default function CalendarShell() {
+  const navigate = useNavigate()
+  const aerial = useAerial()
+  const cardClass = aerial
+    ? 'backdrop-blur-md bg-black/50 rounded-lg ring-1 ring-white/10'
+    : 'bg-surface-raised rounded-lg'
+
   const { start, end } = useMemo(() => {
     const now = new Date()
     const end = new Date(now)
@@ -31,29 +40,28 @@ export default function CalendarShell() {
     return { start: now.toISOString(), end: end.toISOString() }
   }, [])
 
-  const { data, loading } = useQuery(CALENDAR_QUERY, {
-    variables: { start, end },
-  })
+  const { data, loading } = useQuery(CALENDAR_QUERY, { variables: { start, end } })
 
   const events: Array<{ id: string; title: string; start: string; allDay: boolean }> =
     data?.calendarEvents?.slice(0, 5) ?? []
 
   return (
-    <div className="bg-surface-raised rounded-lg flex flex-col">
-      {/* Header */}
+    <button
+      onClick={() => navigate('/calendar')}
+      className={`w-full text-left flex flex-col cursor-pointer transition-opacity hover:opacity-90 ${cardClass}`}
+    >
       <div className="px-4 pt-4 pb-3 flex items-baseline justify-between border-b border-white/5">
         <p className="text-xs uppercase tracking-widest text-gold font-medium">Upcoming</p>
         <p className="text-xs text-ink-muted">Next 14 days</p>
       </div>
 
-      {/* Events */}
       <div className="flex-1 px-4 py-3">
         {loading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="animate-pulse w-2 h-2 rounded-full bg-surface-card flex-shrink-0" />
-                <div className="animate-pulse h-4 bg-surface-card rounded flex-1" style={{ width: `${65 + i * 5}%` }} />
+                <Skeleton className="w-2 h-2 rounded-full flex-shrink-0" />
+                <Skeleton className="h-4 flex-1" style={{ width: `${65 + i * 5}%` }} />
               </div>
             ))}
           </div>
@@ -64,7 +72,7 @@ export default function CalendarShell() {
                 <span className="mt-1 w-2 h-2 rounded-full bg-gold flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm text-ink leading-snug truncate">{e.title}</p>
-                  <p className="text-xs text-ink-muted mt-0.5">{formatEventDate(e.start, e.allDay)}</p>
+                  <p className="text-xs text-ink-muted mt-0.5">{formatEventDate(e.start)}</p>
                 </div>
               </li>
             ))}
@@ -72,18 +80,13 @@ export default function CalendarShell() {
         )}
       </div>
 
-      {/* Footer */}
       <div className="px-4 pb-4 pt-0">
         <div className="border-t border-white/5 pt-3">
-          <a
-            href="/calendar"
-            className="text-xs text-gold/50 hover:text-gold transition-colors flex items-center gap-1 tracking-wide"
-          >
-            View full calendar
-            <span className="text-[10px]">→</span>
-          </a>
+          <p className="text-xs text-gold/50 flex items-center gap-1 tracking-wide">
+            View full calendar <span className="text-[10px]">→</span>
+          </p>
         </div>
       </div>
-    </div>
+    </button>
   )
 }

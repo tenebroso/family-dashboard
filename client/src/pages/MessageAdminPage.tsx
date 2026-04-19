@@ -72,6 +72,9 @@ export default function MessageAdminPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6 pt-8">
+      <div className="flex justify-end mb-4">
+        <a href="/" className="text-xs text-ink-muted hover:text-ink transition-colors">← Home</a>
+      </div>
       <h1 className="font-display text-2xl font-bold text-ink mb-1">Post a Message</h1>
       <p className="text-sm text-ink-muted mb-8">This message will appear on the dashboard for everyone to see.</p>
 

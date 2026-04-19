@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
+import { useAerial } from '../contexts/AerialContext'
 
 const TRACK_QUERY = gql`
   query DailyTrack {
@@ -47,10 +48,15 @@ export default function MusicBar() {
     }
   }
 
+  const aerial = useAerial()
+
   if (!loading && !track) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 h-13" style={{ height: '52px', background: '#0A0A0A', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+    <div
+      className={`fixed bottom-0 left-0 right-0 z-50 ${aerial ? 'backdrop-blur-sm bg-black/80' : ''}`}
+      style={{ height: '52px', background: aerial ? undefined : '#0A0A0A', borderTop: '1px solid rgba(255,255,255,0.06)' }}
+    >
       {track && (
         <audio
           ref={audioRef}

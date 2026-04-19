@@ -479,6 +479,9 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-surface px-4 pb-10 pt-6">
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-end mb-2">
+          <a href="/" className="text-xs text-ink-muted hover:text-ink transition-colors">← Home</a>
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
           <div className="flex items-center gap-2">
