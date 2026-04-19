@@ -1519,80 +1519,220 @@ NavBar and MusicBar:
 
 ---
 
-## Phase 9 - Responsiveness and Touch Polish ← Next
+## Phase 10 - Grocery List ✅ Complete
 
-### Step 9.1 - Touch and responsive audit
-
-**Tools:** Use the playwright plugin throughout this step — `browser_resize` to switch viewports, `browser_take_screenshot` to capture each state, `browser_snapshot` to inspect element bounding boxes, and `browser_click`/`browser_tap` to verify interactions feel responsive. Use `frontend-design` for any interaction patterns that need redesigning (e.g., if the bottom sheet animation needs rework).
+### Step 10.1 - Grocery list data model ✅
 
 ```
-Audit every interactive element across all pages and verify:
+Add to server/prisma/schema.prisma:
 
-1. All tap targets are at minimum 44x44px. Use a utility class touch-target that adds
-   min-width and min-height of 44px, and sufficient padding.
+model GroceryItem {
+  id          String   @id @default(cuid())
+  name        String
+  quantity    String?  // e.g. "2 lbs", "1 bag"
+  category    String?  // e.g. "Produce", "Dairy", "Pantry"
+  addedBy     String   // person name (free text)
+  checked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
 
-2. The NavBar hamburger menu on mobile:
-   - Opens a full-width dropdown (not sidebar) below the nav bar.
-   - Each nav item is at least 52px tall.
-   - Tap anywhere outside closes it.
-
-3. Calendar day cells on mobile are large enough to tap comfortably (min 40px height).
-
-4. Chore checkboxes: the entire row (not just the checkbox icon) should be tappable.
-
-5. The music player play button: minimum 56x56px.
-
-6. All modals and bottom sheets:
-   - Have a visible close button (44x44px minimum).
-   - Close on backdrop tap.
-   - On mobile they slide up from bottom (transform: translateY animation).
-   - On desktop they are centered modals with backdrop blur.
-
-7. Verify the dashboard page on a 390x844 (iPhone 14) viewport using Playwright
-   mobile project and assert no horizontal scroll occurs.
-
-8. Verify on a 768x1024 (iPad) viewport.
-
-9. Verify on a 1280x800 (desktop) viewport.
+Run: npx prisma migrate dev --name add-grocery
+Run: npx prisma generate
 ```
 
 ---
 
-### Step 9.2 - Playwright responsive tests
+### Step 10.2 - Grocery GraphQL schema and resolver ✅
 
 ```
-Add to e2e/tests/responsive.spec.ts:
+Add to GraphQL schema:
 
-Test: "dashboard - no horizontal scroll on mobile"
-  - Use Mobile Chrome project (390x844)
-  - Navigate to "/"
-  - Assert document.body.scrollWidth <= window.innerWidth
+type GroceryItem {
+  id: ID!
+  name: String!
+  quantity: String
+  category: String
+  addedBy: String!
+  checked: Boolean!
+  createdAt: String!
+}
 
-Test: "dashboard renders on iPad viewport"
-  - Set viewport to 768x1024
-  - Navigate to "/"
-  - Assert all four widget sections are visible
+Query:
+  groceryItems: [GroceryItem!]!
 
-Test: "chores - tap target size"
-  - Navigate to /chores on Mobile Chrome
-  - Find each chore row, assert bounding box height >= 44
+Mutation:
+  addGroceryItem(name: String!, quantity: String, category: String, addedBy: String!): GroceryItem!
+  toggleGroceryItem(id: ID!): GroceryItem!
+  deleteGroceryItem(id: ID!): Boolean!
+  clearCheckedGroceryItems: Int!  # returns count deleted
+
+Create server/src/resolvers/grocery.ts with real Prisma implementations.
+Import into resolvers/index.ts.
 ```
 
 ---
 
-### Demo Checkpoint — Phase 9
+### Step 10.3 - Grocery admin page ✅
 
-- Open browser DevTools to iPhone 14 (390×844) and navigate to `/chores`. Tap each chore row — the full row responds (not just the icon). No horizontal scroll.
-- Open to iPad (768×1024) and confirm the same. All tap targets are at least 44px tall.
-- Open the NavBar hamburger on mobile — the dropdown covers the full width with tall items. Tapping outside closes it.
-- Open a Calendar event detail on mobile — it slides up from the bottom. Tapping outside closes it.
-- Run the Playwright responsive tests: `npx playwright test tests/responsive.spec.ts`.
+```
+Create client/src/pages/GroceryAdminPage.tsx.
+Route: /grocery-admin (accessed by direct URL).
+
+Features:
+  - Input form at top: item name (required), quantity (optional), category (optional),
+    added by (person name, free text).
+  - Submit adds to list instantly.
+  - Below: full grocery list grouped by category (unchecked items first).
+  - Each item: checkbox (toggles checked state), item name + quantity, added-by label,
+    delete button (X).
+  - Checked items shown with strikethrough and lower opacity.
+  - "Clear checked" button removes all checked items.
+  - Export button: downloads the unchecked items as a plain text file
+    formatted for easy reading on a phone offline (one item per line, grouped by category).
+    Use: const blob = new Blob([text], { type: 'text/plain' })
+         const url = URL.createObjectURL(blob)
+         <a download="grocery-list.txt" href={url}>
+  - Style: same dark theme, no tile borders, dense layout.
+```
 
 ---
 
-## Phase 10 - Raspberry Pi Deployment
+### Step 10.4 - Grocery widget on Dashboard ✅
 
-### Step 10.1 - Production build
+```
+Create client/src/components/GroceryWidget.tsx for the Dashboard.
+
+Shows the unchecked grocery items as a compact list.
+Label: "GROCERY LIST" in uppercase gold.
+If 0 items: show "List is empty" in ink-muted.
+If >5 items: show first 5 + "· +N more" footer link to /grocery-admin.
+"Add item →" link in footer navigates to /grocery-admin.
+
+Add to Dashboard Col 1 (below CalendarShell) or as a new dashboard section.
+Update DashboardPage.tsx to include GroceryWidget.
+```
+
+---
+
+### Demo Checkpoint — Phase 10 ✅ Verified
+
+All items confirmed. `/grocery-admin` adds items, groups by category, checks/unchecks with strikethrough, exports as plain text file, clears checked items. Dashboard `GroceryWidget` shows unchecked items with "+N more" when list exceeds 5; "List is empty" when all cleared. "Add item →" footer navigates to `/grocery-admin`.
+
+---
+
+## Phase 11 - Personal Reminders ✅ Complete
+
+### Step 11.1 - Reminders data model ✅
+
+```
+Add to server/prisma/schema.prisma:
+
+model Reminder {
+  id        String   @id @default(cuid())
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id])
+  text      String
+  dueDate   String?  // "YYYY-MM-DD" optional
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+Update Person model to include:
+  reminders Reminder[]
+
+Run: npx prisma migrate dev --name add-reminders
+Run: npx prisma generate
+```
+
+---
+
+### Step 11.2 - Reminders GraphQL schema and resolver ✅
+
+```
+Add to GraphQL schema:
+
+type Reminder {
+  id: ID!
+  personId: String!
+  text: String!
+  dueDate: String
+  done: Boolean!
+  createdAt: String!
+}
+
+Extend Person type:
+  reminders: [Reminder!]!
+
+Query:
+  reminders(personId: ID!): [Reminder!]!
+
+Mutation:
+  addReminder(personId: ID!, text: String!, dueDate: String): Reminder!
+  toggleReminder(id: ID!): Reminder!
+  deleteReminder(id: ID!): Boolean!
+
+Create server/src/resolvers/reminders.ts.
+Import into resolvers/index.ts.
+```
+
+---
+
+### Step 11.3 - Reminders page ✅
+
+```
+Create client/src/pages/RemindersPage.tsx.
+Route: /reminders (accessed by direct URL).
+
+Layout:
+  - Person selector at the top: 5 avatar buttons (one per person, accent color).
+    Selecting a person filters the reminders list below.
+  - Reminders list for the selected person:
+    - Each row: checkbox (done toggle), reminder text, optional due date in muted text,
+      delete button.
+    - Done reminders shown with strikethrough at the bottom of the list.
+    - "Clear done" button.
+  - Add reminder form at bottom:
+    - Text input (required)
+    - Due date picker (optional)
+    - Submit button: "Add Reminder"
+    - Form is pre-filtered to the currently selected person.
+
+  Person can only edit their own reminders (honor system — no auth required).
+  Style: dense, no tile borders, consistent with rest of app.
+```
+
+---
+
+### Step 11.4 - Reminders widget on Dashboard ✅
+
+```
+Create client/src/components/RemindersWidget.tsx.
+
+Shows each person's undone reminder count as a compact row.
+Clicking a person navigates to /reminders?person=<id> (pass personId as URL param).
+If a reminder has a dueDate of today, show it in gold.
+If all reminders are done for everyone: show "All clear" in muted text.
+Label: "REMINDERS" in uppercase gold.
+```
+
+---
+
+### Demo Checkpoint — Phase 11 ✅ Verified
+
+All items confirmed. `/reminders` person selector shows all 5 people with accent-colored avatar buttons; selecting a person loads their list. Add form pre-filters to selected person; due-date items highlighted in gold when due today. Done reminders shown with strikethrough at bottom; checkbox toggles back. Dashboard `RemindersWidget` shows each person's open count; clicking navigates to `/reminders?person=<id>` with that person pre-selected; "All clear" when everyone is done.
+
+**Implementation notes:**
+- `Person.reminders` field resolver added to `remindersResolvers.Person` — spread into `resolvers/index.ts` alongside `choreResolvers.Person` using object spread: `Person: { ...choreResolvers.Person, ...remindersResolvers.Person }`.
+- `dueDate` stored as `String?` ("YYYY-MM-DD") — no timezone conversion needed, compared directly with `new Date().toISOString().slice(0,10)`.
+- Overdue detection: `dueDate < today && !done` — shown with muted color. Due-today: `dueDate === today` — shown in gold.
+- `useSearchParams` reads `?person=<id>` on mount to pre-select person; falls back to `people[0]` when param is absent or invalid.
+- `RemindersWidget` fetches via `Person.reminders` field (single query for all people), not the `reminders(personId)` query, to avoid N+1 round trips on the dashboard.
+
+---
+
+## Phase 12 - Raspberry Pi Deployment ← Next
+
+### Step 12.1 - Production build
 
 ```
 In client/package.json, add a build script: "vite build"
@@ -1617,7 +1757,7 @@ After building, the entire app is served from a single Node process on port 4000
 
 ---
 
-### Step 10.2 - PM2 configuration
+### Step 12.2 - PM2 configuration
 
 ```
 Create ecosystem.config.js at the root:
@@ -1656,7 +1796,7 @@ at http://dashboard.local or similar.
 
 ---
 
-### Step 10.3 - Final Playwright E2E suite
+### Step 12.3 - Final Playwright E2E suite
 
 ```
 Create e2e/tests/full-e2e.spec.ts:
@@ -1696,7 +1836,7 @@ Test: "calendar navigation"
 
 ---
 
-### Demo Checkpoint — Phase 10
+### Demo Checkpoint — Phase 12
 
 - From another device on the home network (phone or tablet), navigate to `http://<pi-ip>:4000`.
 - The full Dashboard renders. All widgets show live data.
@@ -1706,9 +1846,9 @@ Test: "calendar navigation"
 
 ---
 
-## Phase 11 - Cron Jobs and Maintenance
+## Phase 13 - Cron Jobs and Maintenance
 
-### Step 11.1 - Server-side scheduled tasks
+### Step 13.1 - Server-side scheduled tasks
 
 ```
 Create server/src/cron.ts.
@@ -1734,7 +1874,7 @@ Document each cron job with a comment explaining its schedule and purpose.
 
 ---
 
-### Demo Checkpoint — Phase 11
+### Demo Checkpoint — Phase 13
 
 - Check server logs the morning after deployment — confirm the 00:01 cron jobs ran and a new word/track was pre-assigned.
 - Reload `/` after midnight — the Word of the Day and Music track have changed without any manual intervention.
@@ -1750,7 +1890,7 @@ Document each cron job with a comment explaining its schedule and purpose.
 | smoke.spec.ts | App loads, nav present, server ping |
 | chores.spec.ts | Load, complete, uncomplete, admin add, admin delete |
 | calendar.spec.ts | Month load, week view, day view, event detail |
-| responsive.spec.ts | Mobile no-scroll, iPad render, tap target sizes |
+| responsive.spec.ts | Mobile no-scroll, iPad render, tap target sizes (Phase 14) |
 | full-e2e.spec.ts | Weather, word, music, chore flow, message post, calendar nav |
 
 ---
@@ -1763,7 +1903,7 @@ Document each cron job with a comment explaining its schedule and purpose.
 | 2.5 | Chores pages | Touch target clarity, progress readability, person color differentiation |
 | 3.5 | Calendar | Grid legibility, event chip density, view-switch consistency, mobile tap areas |
 | 8.3 | Full dashboard | Compositional balance across all 6 widgets, cross-widget consistency, skeleton quality |
-| 9.1 | All pages | Responsive mechanics, touch target sizes, bottom sheet/modal interactions |
+| 14.1 | All pages | Responsive mechanics, touch target sizes, bottom sheet/modal interactions |
 
 **Tools used in all reviews:**
 - playwright plugin — `browser_take_screenshot`, `browser_resize`, `browser_snapshot`, `browser_click`, `browser_evaluate`
@@ -1790,215 +1930,68 @@ NODE_ENV=development
 
 ---
 
-## Phase 12 - Grocery List
+## Phase 14 - Responsiveness and Touch Polish
 
-### Step 12.1 - Grocery list data model
+### Step 14.1 - Touch and responsive audit
 
-```
-Add to server/prisma/schema.prisma:
-
-model GroceryItem {
-  id          String   @id @default(cuid())
-  name        String
-  quantity    String?  // e.g. "2 lbs", "1 bag"
-  category    String?  // e.g. "Produce", "Dairy", "Pantry"
-  addedBy     String   // person name (free text)
-  checked     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-}
-
-Run: npx prisma migrate dev --name add-grocery
-Run: npx prisma generate
-```
-
----
-
-### Step 12.2 - Grocery GraphQL schema and resolver
+**Tools:** Use the playwright plugin throughout this step — `browser_resize` to switch viewports, `browser_take_screenshot` to capture each state, `browser_snapshot` to inspect element bounding boxes, and `browser_click`/`browser_tap` to verify interactions feel responsive. Use `frontend-design` for any interaction patterns that need redesigning (e.g., if the bottom sheet animation needs rework).
 
 ```
-Add to GraphQL schema:
+Audit every interactive element across all pages and verify:
 
-type GroceryItem {
-  id: ID!
-  name: String!
-  quantity: String
-  category: String
-  addedBy: String!
-  checked: Boolean!
-  createdAt: String!
-}
+1. All tap targets are at minimum 44x44px. Use a utility class touch-target that adds
+   min-width and min-height of 44px, and sufficient padding.
 
-Query:
-  groceryItems: [GroceryItem!]!
+2. Calendar day cells on mobile are large enough to tap comfortably (min 40px height).
 
-Mutation:
-  addGroceryItem(name: String!, quantity: String, category: String, addedBy: String!): GroceryItem!
-  toggleGroceryItem(id: ID!): GroceryItem!
-  deleteGroceryItem(id: ID!): Boolean!
-  clearCheckedGroceryItems: Int!  # returns count deleted
+3. Chore checkboxes: the entire row (not just the checkbox icon) should be tappable.
 
-Create server/src/resolvers/grocery.ts with real Prisma implementations.
-Import into resolvers/index.ts.
+4. The music player play button: minimum 56x56px.
+
+5. All modals and bottom sheets:
+   - Have a visible close button (44x44px minimum).
+   - Close on backdrop tap.
+   - On mobile they slide up from bottom (transform: translateY animation).
+   - On desktop they are centered modals with backdrop blur.
+
+6. Verify the dashboard page on a 390x844 (iPhone 14) viewport using Playwright
+   mobile project and assert no horizontal scroll occurs.
+
+7. Verify on a 768x1024 (iPad) viewport.
+
+8. Verify on a 1280x800 (desktop) viewport.
 ```
 
 ---
 
-### Step 12.3 - Grocery admin page
+### Step 14.2 - Playwright responsive tests
 
 ```
-Create client/src/pages/GroceryAdminPage.tsx.
-Route: /grocery-admin (linked in NavBar).
+Add to e2e/tests/responsive.spec.ts:
 
-Features:
-  - Input form at top: item name (required), quantity (optional), category (optional),
-    added by (person name, free text).
-  - Submit adds to list instantly.
-  - Below: full grocery list grouped by category (unchecked items first).
-  - Each item: checkbox (toggles checked state), item name + quantity, added-by label,
-    delete button (X).
-  - Checked items shown with strikethrough and lower opacity.
-  - "Clear checked" button removes all checked items.
-  - Export button: downloads the unchecked items as a plain text file
-    formatted for easy reading on a phone offline (one item per line, grouped by category).
-    Use: const blob = new Blob([text], { type: 'text/plain' })
-         const url = URL.createObjectURL(blob)
-         <a download="grocery-list.txt" href={url}>
-  - Style: same dark theme, no tile borders, dense layout.
+Test: "dashboard - no horizontal scroll on mobile"
+  - Use Mobile Chrome project (390x844)
+  - Navigate to "/"
+  - Assert document.body.scrollWidth <= window.innerWidth
+
+Test: "dashboard renders on iPad viewport"
+  - Set viewport to 768x1024
+  - Navigate to "/"
+  - Assert all four widget sections are visible
+
+Test: "chores - tap target size"
+  - Navigate to /chores on Mobile Chrome
+  - Find each chore row, assert bounding box height >= 44
 ```
 
 ---
 
-### Step 12.4 - Grocery widget on Dashboard
+### Demo Checkpoint — Phase 14
 
-```
-Create client/src/components/GroceryWidget.tsx for the Dashboard.
-
-Shows the unchecked grocery items as a compact list.
-Label: "GROCERY LIST" in uppercase gold.
-If 0 items: show "List is empty" in ink-muted.
-If >5 items: show first 5 + "· +N more" footer link to /grocery-admin.
-"Add item →" link in footer navigates to /grocery-admin.
-
-Add to Dashboard Col 1 (below CalendarShell) or as a new dashboard section.
-Update DashboardPage.tsx to include GroceryWidget.
-```
-
----
-
-### Demo Checkpoint — Phase 12
-
-- /grocery-admin: add 3 items in different categories. They appear grouped by category.
-- Check one item. It moves to strikethrough state.
-- Click "Export" — a text file downloads with the unchecked items.
-- Dashboard shows the grocery widget with the unchecked items.
-- Click "Clear checked" — the checked item is removed.
-
----
-
-## Phase 13 - Personal Reminders
-
-### Step 13.1 - Reminders data model
-
-```
-Add to server/prisma/schema.prisma:
-
-model Reminder {
-  id        String   @id @default(cuid())
-  personId  String
-  person    Person   @relation(fields: [personId], references: [id])
-  text      String
-  dueDate   String?  // "YYYY-MM-DD" optional
-  done      Boolean  @default(false)
-  createdAt DateTime @default(now())
-}
-
-Update Person model to include:
-  reminders Reminder[]
-
-Run: npx prisma migrate dev --name add-reminders
-Run: npx prisma generate
-```
-
----
-
-### Step 13.2 - Reminders GraphQL schema and resolver
-
-```
-Add to GraphQL schema:
-
-type Reminder {
-  id: ID!
-  personId: String!
-  text: String!
-  dueDate: String
-  done: Boolean!
-  createdAt: String!
-}
-
-Extend Person type:
-  reminders: [Reminder!]!
-
-Query:
-  reminders(personId: ID!): [Reminder!]!
-
-Mutation:
-  addReminder(personId: ID!, text: String!, dueDate: String): Reminder!
-  toggleReminder(id: ID!): Reminder!
-  deleteReminder(id: ID!): Boolean!
-
-Create server/src/resolvers/reminders.ts.
-Import into resolvers/index.ts.
-```
-
----
-
-### Step 13.3 - Reminders page
-
-```
-Create client/src/pages/RemindersPage.tsx.
-Route: /reminders (linked in NavBar).
-
-Layout:
-  - Person selector at the top: 5 avatar buttons (one per person, accent color).
-    Selecting a person filters the reminders list below.
-  - Reminders list for the selected person:
-    - Each row: checkbox (done toggle), reminder text, optional due date in muted text,
-      delete button.
-    - Done reminders shown with strikethrough at the bottom of the list.
-    - "Clear done" button.
-  - Add reminder form at bottom:
-    - Text input (required)
-    - Due date picker (optional)
-    - Submit button: "Add Reminder"
-    - Form is pre-filtered to the currently selected person.
-
-  Person can only edit their own reminders (honor system — no auth required).
-  Style: dense, no tile borders, consistent with rest of app.
-```
-
----
-
-### Step 13.4 - Reminders widget on Dashboard
-
-```
-Create client/src/components/RemindersWidget.tsx.
-
-Shows each person's undone reminder count as a compact row.
-Clicking a person navigates to /reminders?person=<id> (pass personId as URL param).
-If a reminder has a dueDate of today, show it in gold.
-If all reminders are done for everyone: show "All clear" in muted text.
-Label: "REMINDERS" in uppercase gold.
-```
-
----
-
-### Demo Checkpoint — Phase 13
-
-- /reminders: select Harry. Add a reminder "Buy cleats" with a due date.
-- The reminder appears in Harry's list. Checkbox toggles done state.
-- Select Ruby — her list is separate.
-- Dashboard RemindersWidget shows each person's open reminder count.
-- Navigate to /reminders?person=<harry-id> — Harry is pre-selected.
+- Open browser DevTools to iPhone 14 (390×844) and navigate to `/chores`. Tap each chore row — the full row responds (not just the icon). No horizontal scroll.
+- Open to iPad (768×1024) and confirm the same. All tap targets are at least 44px tall.
+- Open a Calendar event detail on mobile — it slides up from the bottom. Tapping outside closes it.
+- Run the Playwright responsive tests: `npx playwright test tests/responsive.spec.ts`.
 
 ---
 

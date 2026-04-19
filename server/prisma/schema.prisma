@@ -8,11 +8,12 @@ datasource db {
 }
 
 model Person {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
   color     String
   chores    Chore[]
-  createdAt DateTime @default(now())
+  reminders Reminder[]
+  createdAt DateTime   @default(now())
 }
 
 model Chore {
@@ -59,4 +60,24 @@ model Track {
   artist   String
   filename String  @unique
   dateKey  String?
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id])
+  text      String
+  dueDate   String?
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model GroceryItem {
+  id        String   @id @default(cuid())
+  name      String
+  quantity  String?
+  category  String?
+  addedBy   String
+  checked   Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

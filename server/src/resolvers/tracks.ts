@@ -4,8 +4,12 @@ const prisma = new PrismaClient()
 
 const STUB_TRACK = { id: 't1', title: 'Golden Hour', artist: 'JVKE', url: '/music/golden-hour.mp3' }
 
+function todayKey(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })
+}
+
 async function getDailyTrack() {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayKey()
 
   const existing = await prisma.track.findFirst({ where: { dateKey: today } })
   if (existing) {
@@ -27,6 +31,13 @@ async function getDailyTrack() {
   })
 
   return { ...updated, url: `/music/${updated.filename}` }
+}
+
+export async function forceRefreshDailyTrack(): Promise<void> {
+  const today = todayKey()
+  await prisma.track.updateMany({ where: { dateKey: today }, data: { dateKey: null } })
+  await getDailyTrack()
+  console.log('[tracks] Force-refreshed daily track for', today)
 }
 
 export const tracksResolvers = {

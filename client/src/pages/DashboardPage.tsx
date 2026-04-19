@@ -3,6 +3,8 @@ import CalendarShell from '../components/CalendarShell'
 import WordWidget from '../components/WordWidget'
 import MessageWidget from '../components/MessageWidget'
 import ChoresSummaryShell from '../components/ChoresSummaryShell'
+import GroceryWidget from '../components/GroceryWidget'
+import RemindersWidget from '../components/RemindersWidget'
 import { useAerial } from '../contexts/AerialContext'
 
 export default function DashboardPage() {
@@ -21,15 +23,19 @@ export default function DashboardPage() {
       <MessageWidget />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 items-start">
 
-        {/* Column 1: Calendar */}
-        <CalendarShell />
+        {/* Column 1: Calendar + Grocery */}
+        <div className="flex flex-col gap-3">
+          <CalendarShell />
+          <GroceryWidget />
+        </div>
 
         {/* Column 2: Weather */}
         <WeatherWidget />
 
-        {/* Column 3: Chores + Word of Day */}
+        {/* Column 3: Chores + Reminders + Word of Day */}
         <div className="flex flex-col gap-3">
           <ChoresSummaryShell />
+          <RemindersWidget />
           <WordWidget />
         </div>
 

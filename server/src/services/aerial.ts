@@ -10,7 +10,7 @@ const CACHE_DIR = path.join(__dirname, '..', '..', 'cache')
 let todaysPath: string | null = null
 
 function dateKey(): string {
-  return new Date().toISOString().slice(0, 10)
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })
 }
 
 function cachePath(dk: string): string {
@@ -83,4 +83,13 @@ export async function ensureTodaysAerial(): Promise<string | null> {
 
 export function getTodaysAerialPath(): string | null {
   return todaysPath
+}
+
+export async function forceRefreshAerial(): Promise<void> {
+  const dk = dateKey()
+  const out = cachePath(dk)
+  if (fs.existsSync(out)) fs.unlinkSync(out)
+  todaysPath = null
+  await ensureTodaysAerial()
+  console.log('[aerial] Force-refreshed for', dk)
 }

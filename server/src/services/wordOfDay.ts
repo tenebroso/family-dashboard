@@ -142,8 +142,12 @@ function dateKeyHash(dateKey: string): number {
   return hash
 }
 
+function todayKey(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })
+}
+
 export async function getWordOfDay(): Promise<{ word: string; definition: string; partOfSpeech: string }> {
-  const dateKey = new Date().toISOString().slice(0, 10)
+  const dateKey = todayKey()
 
   const existing = await prisma.wordOfDay.findUnique({ where: { dateKey } })
   if (existing) {
@@ -161,4 +165,11 @@ export async function getWordOfDay(): Promise<{ word: string; definition: string
 
   await prisma.wordOfDay.create({ data: { ...result, dateKey } })
   return result
+}
+
+export async function forceRefreshWordOfDay(): Promise<void> {
+  const dateKey = todayKey()
+  await prisma.wordOfDay.deleteMany({ where: { dateKey } })
+  await getWordOfDay()
+  console.log('[wordOfDay] Force-refreshed for', dateKey)
 }

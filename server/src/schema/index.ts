@@ -5,6 +5,8 @@ import { weatherTypeDefs } from './types/weather.graphql'
 import { messageTypeDefs } from './types/message.graphql'
 import { trackTypeDefs } from './types/track.graphql'
 import { wordTypeDefs } from './types/word.graphql'
+import { groceryTypeDefs } from './types/grocery.graphql'
+import { reminderTypeDefs } from './types/reminder.graphql'
 
 const rootTypeDefs = `#graphql
   type Query {
@@ -15,6 +17,8 @@ const rootTypeDefs = `#graphql
     activeMessage: Message
     dailyTrack: Track!
     wordOfDay: WordOfDay!
+    groceryItems: [GroceryItem!]!
+    reminders(personId: ID!): [Reminder!]!
   }
 
   type Mutation {
@@ -25,6 +29,13 @@ const rootTypeDefs = `#graphql
     deleteChore(id: ID!): Boolean!
     createMessage(author: String!, body: String!, displayUntil: String): Message!
     deactivateMessage(id: ID!): Boolean!
+    addGroceryItem(name: String!, quantity: String, category: String, addedBy: String!): GroceryItem!
+    toggleGroceryItem(id: ID!): GroceryItem!
+    deleteGroceryItem(id: ID!): Boolean!
+    clearCheckedGroceryItems: Int!
+    addReminder(personId: ID!, text: String!, dueDate: String): Reminder!
+    toggleReminder(id: ID!): Reminder!
+    deleteReminder(id: ID!): Boolean!
   }
 `
 
@@ -37,4 +48,6 @@ export const typeDefs = [
   messageTypeDefs,
   trackTypeDefs,
   wordTypeDefs,
+  groceryTypeDefs,
+  reminderTypeDefs,
 ]

@@ -5,5 +5,6 @@ export const personTypeDefs = `#graphql
     color: String!
     chores(dayOfWeek: Int): [Chore!]!
     completionRate(dateKey: String!): Float!
+    reminders: [Reminder!]!
   }
 `

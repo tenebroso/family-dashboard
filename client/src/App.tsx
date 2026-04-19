@@ -9,6 +9,8 @@ import ChoresPage from './pages/ChoresPage'
 import CalendarPage from './pages/CalendarPage'
 import MessageAdminPage from './pages/MessageAdminPage'
 import ChoresAdminPage from './pages/ChoresAdminPage'
+import GroceryAdminPage from './pages/GroceryAdminPage'
+import RemindersPage from './pages/RemindersPage'
 
 const client = new ApolloClient({
   link: new HttpLink({ uri: 'http://localhost:4000/graphql' }),
@@ -27,6 +29,8 @@ export default function App() {
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/message-admin" element={<MessageAdminPage />} />
               <Route path="/chores-admin" element={<ChoresAdminPage />} />
+              <Route path="/grocery-admin" element={<GroceryAdminPage />} />
+              <Route path="/reminders" element={<RemindersPage />} />
             </Routes>
           </main>
           <MusicBar />

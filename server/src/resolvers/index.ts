@@ -4,6 +4,8 @@ import { weatherResolvers } from './weather'
 import { wordOfDayResolvers } from './wordOfDay'
 import { tracksResolvers } from './tracks'
 import { messagesResolvers } from './messages'
+import { groceryResolvers } from './grocery'
+import { remindersResolvers } from './reminders'
 
 export const resolvers = {
   Query: {
@@ -13,13 +15,20 @@ export const resolvers = {
     ...wordOfDayResolvers.Query,
     ...tracksResolvers.Query,
     ...messagesResolvers.Query,
+    ...groceryResolvers.Query,
+    ...remindersResolvers.Query,
   },
 
-  Person: choreResolvers.Person,
+  Person: {
+    ...choreResolvers.Person,
+    ...remindersResolvers.Person,
+  },
   Chore: choreResolvers.Chore,
 
   Mutation: {
     ...choreResolvers.Mutation,
     ...messagesResolvers.Mutation,
+    ...groceryResolvers.Mutation,
+    ...remindersResolvers.Mutation,
   },
 }
