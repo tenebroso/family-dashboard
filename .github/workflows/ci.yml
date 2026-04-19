@@ -37,9 +37,24 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: e2e
 
-      - name: Start server
-        run: npx ts-node src/index.ts &
+      - name: Migrate database
+        run: npx prisma migrate deploy
         working-directory: server
+
+      - name: Seed database
+        run: npx ts-node src/seed.ts
+        working-directory: server
+
+      - name: Build server
+        run: npm run build
+        working-directory: server
+
+      - name: Start server
+        run: node dist/index.js &
+        working-directory: server
+        env:
+          NODE_ENV: test
+          PORT: 4000
 
       - name: Start client dev server
         run: npx vite &
@@ -47,7 +62,7 @@ jobs:
 
       - name: Wait for ports
         run: |
-          npx wait-on http://localhost:4000/graphql http://localhost:5173 --timeout 30000
+          npx wait-on http://localhost:4000/graphql http://localhost:5173 --timeout 60000
 
       - name: Run Playwright tests
         run: npx playwright test --project=chromium
