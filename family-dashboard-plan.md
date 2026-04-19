@@ -1221,52 +1221,69 @@ All items confirmed. `/message-admin` form posts a message via `createMessage` m
 
 ## Phase 8 - Dashboard Page ← Next
 
+### Dashboard UX Principles (from Pencil & Paper guide)
+
+These principles were extracted from a professional UX pattern analysis and apply to Phase 8 and all subsequent UI work:
+
+**Layout and scanning:**
+- Users scan in an F/Z pattern — most important information goes top-left. For this dashboard: the Message banner (time-sensitive) sits at the very top full-width, then the three-column grid begins.
+- Structure sections top-down: most urgent/global at top, supporting context below.
+- Left column is the highest-attention zone — Calendar (what's happening today) belongs there.
+
+**Cards at natural height:**
+- Cards must NOT be forced to full column height. Let each card size to its content. A weather widget that only needs 180px should not stretch to 400px to match a taller neighbor. Use `items-start` on the grid, not `items-stretch`. Deliberate whitespace between cards is better than artificially tall cards.
+- Exception: if two adjacent cards naturally sum to similar height and you want visual alignment, that's a design choice — not a rule.
+
+**Information hierarchy:**
+- Use large bold numbers (Syne 800) as heroes for key metrics — temperature, chore counts. These catch the eye and signal "I've done the work of finding what matters."
+- Labels like "WORD OF THE DAY", "WEATHER", "UPCOMING" must always appear in the same position within each card (top-left), same typographic treatment. Consistency reduces cognitive load.
+
+**"Does this spark joy?" rule:**
+- Don't add a widget because the data exists. Ask: does this actually help the family? If a piece of data doesn't answer a question someone has every day, cut it or deprioritize it.
+
+**Progressive disclosure:**
+- Show the at-a-glance summary by default. Details appear on interaction (tap event → detail panel, tap chores → ChoresPage). The dashboard is the overview layer — not the detail layer.
+
+**Comparisons and context:**
+- Bare numbers are harder to interpret than numbers-with-context. WeatherWidget shows "feels like" alongside the actual temp. ChoresSummary shows "3/5 done" not just a percentage. These comparisons are what turn data into meaning.
+
+**Empty states and loading:**
+- Every card must handle its loading state (skeleton shimmer) and empty state (null message → card disappears, no chores → "All done!" message). Missing these makes the UI feel unfinished.
+
+**Whitespace over density:**
+- If a card feels cramped, the answer is usually removing an element, not shrinking padding. A wall of data causes users to disengage. Err on the side of breathing room.
+
+---
+
 ### Step 8.1 - Dashboard layout
 
 ```
-Create client/src/pages/DashboardPage.tsx.
+The DashboardPage already exists (created in Phase 6.5). Refine it using the UX
+principles above. The current shell-based layout is already structurally correct —
+this step replaces placeholder shells with the final widget composition and applies
+UX principles throughout.
 
-This is the home screen - the view that stays open on the iPad all day.
+Current state: DashboardPage uses MessageWidget (real), WeatherWidget (real),
+CalendarShell (stub), WordWidget (real), ChoresSummaryShell (stub).
 
-Layout (responsive):
-- Desktop/Tablet landscape (>= 768px): 3-column CSS Grid
-  - Column 1 (wide): Calendar mini-view (this week's events as a simple list) + Message widget
-  - Column 2 (wide): WeatherWidget (top) + WordWidget (below)
-  - Column 3 (narrow): MusicWidget (top) + Chores summary (bottom - compact version
-    showing just each person's completion percentage for today, tappable to go to /chores)
-- Mobile (< 768px): single column stack in this order:
-  WeatherWidget, MessageWidget, ChoresWidget (compact), MusicWidget, WordWidget
+This step: no new components. Refine the layout and ensure UX principles apply.
 
-Design requirements:
-- Background: #111111 (surface)
-- Page has no visible scroll on tablet landscape - everything fits in viewport height.
-  On mobile, natural scroll is fine.
-- Each widget card: background #1A1A1A, border 1px solid rgba(201,168,76,0.15),
-  border-radius 12px, padding 20px.
-- Cards have a very subtle box-shadow using gold at 5% opacity.
-- The layout should feel like a well-designed control panel or editorial spread.
-  Not a generic dashboard. Deliberate whitespace.
+Layout review checklist:
+- grid uses items-start (cards at natural height, no stretching)
+- MessageWidget is full-width above the 3-column grid (top of page, most urgent)
+- Column 1 (left, highest attention): CalendarShell — upcoming events
+- Column 2 (center): WeatherWidget (top, hero numbers) + WordWidget (below)
+- Column 3 (right): ChoresSummaryShell (completion context)
+- On mobile (< 768px): single column — Message, Calendar, Weather, Chores, Word
+- gap-3 between cards (breathing room without waste)
+- No card has a min-height that would force it taller than its content
 
-Dashboard mini calendar (not the full CalendarPage):
-- Show a compact "Upcoming" list: next 5 events from today forward.
-- Each event: dot in event color, event title, date/time.
-- "View Calendar" link that navigates to /calendar.
-
-Chores summary widget (compact, for Dashboard only):
-- Four avatar circles (letter + person color).
-- Under each: their name and today's completion percentage.
-- Tapping navigates to /chores.
-
-Data queries on Dashboard:
-- weather (no args)
-- calendarEvents for next 14 days
-- activeMessage
-- dailyTrack
-- wordOfDay
-- people (with today's completionRate)
-
-Use Apollo useQuery for each. Show skeleton loaders for each card while loading.
-Skeleton style: dark base (#222) with a subtle shimmer animation (CSS keyframe).
+Skeleton loaders:
+- Each widget shows a loading skeleton (shimmer animation) while its query is pending.
+- Skeleton style: linear-gradient(90deg, #1A1A1A 25%, #252525 50%, #1A1A1A 75%)
+  animated left-to-right, 1.5s infinite. Heights approximate the real content.
+- Create client/src/components/Skeleton.tsx — a reusable div that accepts className.
+  The shimmer keyframe lives in index.css.
 ```
 
 ---
@@ -1274,30 +1291,38 @@ Skeleton style: dark base (#222) with a subtle shimmer animation (CSS keyframe).
 ### Step 8.2 - Skeleton loaders
 
 ```
-Create client/src/components/SkeletonCard.tsx.
+Create client/src/components/Skeleton.tsx.
 
-A reusable component that accepts width, height, and borderRadius props.
-Renders a dark rectangle with a left-to-right shimmer animation:
-- Background: linear-gradient(90deg, #1A1A1A 25%, #252525 50%, #1A1A1A 75%)
-- Background-size: 200% 100%
-- CSS keyframe animation: shimmer, 1.5s ease-in-out infinite
-  - 0%: background-position 200% 0
-  - 100%: background-position -200% 0
+A minimal reusable shimmer block:
+  export default function Skeleton({ className }: { className?: string }) {
+    return <div className={`animate-shimmer rounded ${className}`} />
+  }
 
-Use this in each widget for loading states.
+Add @keyframes shimmer to client/src/index.css:
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, #1A1A1A 25%, #252525 50%, #1A1A1A 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+Add Skeleton blocks to each widget's loading branch. Heights should approximate the
+real content — e.g. WeatherWidget loading shows a tall block for the temp number
+and a row of narrower blocks for the forecast strip.
 ```
 
 ---
 
 ### Demo Checkpoint — Phase 8
 
-- `/` on a 1280×800 desktop: 3-column layout visible, no scroll required to see all widgets.
-- `/` on a 768×1024 iPad viewport (use browser DevTools): same 3-column layout, all cards visible.
-- `/` on a 390×844 mobile viewport: single-column stack — Weather, Message, Chores Summary, Music, Word of the Day.
-- Each widget card has the correct dark background, gold border, and shadow.
-- Skeleton shimmer loaders are visible for 1–2 seconds on a hard reload before data arrives.
-- Tapping the Chores Summary navigates to `/chores`.
-- "View Calendar" link on the mini-calendar navigates to `/calendar`.
+- `/` on 1280×800: 3-column layout, cards at natural height (no forced stretching). Cards in the same row may be different heights — that's correct.
+- MessageWidget full-width above the grid when a message is active; absent (no empty space) when no message.
+- `/` on 390×844 mobile: single-column stack. Message → Calendar → Weather → Chores → Word.
+- Skeleton shimmer visible during a hard reload before data arrives.
+- Every card correctly handles its empty state (no message = card gone, not blank space).
 
 ---
 
@@ -1349,8 +1374,122 @@ This is the most comprehensive design review in the project. For the first time 
    This is the time to make the dashboard genuinely beautiful — Phase 9 only handles
    responsiveness mechanics, not visual refinement.
 
-8. Final screenshot at all four viewports. Sign off before moving to Phase 9.
+8. Final screenshot at all four viewports. Sign off before moving to Phase 8.5.
 ```
+
+---
+
+## Phase 8.5 - Apple Aerial Background + Glassmorphism Cards
+
+### Overview
+
+This is a personal home dashboard, not a shipped product — using Apple's publicly accessible Aerial screensaver manifests for personal display is fine. The implementation fetches one aerial still per day server-side (no video stored, no redistribution), caches the JPEG locally by dateKey, and serves it as a background image. Cards switch to a translucent glass appearance so the photograph is visible through the UI while text remains fully legible.
+
+**Why now (after Phase 8, before Phase 9):** The glassmorphism card style fundamentally changes how all widgets look. Phase 9's touch/responsive audit should audit the final visual design, not an interim one.
+
+**Implementation notes up front:**
+- Apple's Aerial video files are HEVC, typically 2–6 GB each. Do NOT download full videos.
+- Extract a still frame by piping only the first ~5 MB of the video stream through `ffmpeg -i pipe:0 -vframes 1 -q:v 2 output.jpg`. ffmpeg can decode a frame from the first I-frame in the stream without reading the full file.
+- The manifest at `https://sylvan.apple.com/Aerials/2x/entries.json` contains `assets` array. Each asset has a `url` (HEVC video), `accessibilityLabel` (location name), and `timeOfDay`.
+- Pick the daily entry with `hash(dateKey) % assets.length` for determinism.
+- Cache the output JPEG in `server/cache/aerial-{dateKey}.jpg`. On server start, check if today's exists — if so, skip the download entirely.
+- The endpoint is `GET /api/aerial` — responds with the JPEG file (or a 204 if not yet ready).
+- `ffmpeg` must be installed on the Pi: `sudo apt install ffmpeg`.
+
+---
+
+### Step 8.5.1 - Server: Aerial image service
+
+```
+Create server/src/services/aerial.ts.
+
+Install: node-fetch (already available via global fetch in Node 18+)
+Requires: ffmpeg installed on the system (check with spawn('ffmpeg', ['-version']))
+
+Logic:
+1. ensureTodaysAerial(): Promise<string | null>
+   - Compute dateKey = today's YYYY-MM-DD.
+   - If server/cache/aerial-{dateKey}.jpg exists, return its path immediately.
+   - Fetch https://sylvan.apple.com/Aerials/2x/entries.json
+   - Pick asset: assets[hash(dateKey) % assets.length]
+   - Stream the first 6 MB of the asset URL via HTTP range request:
+       fetch(url, { headers: { Range: 'bytes=0-6291455' } })
+   - Pipe the response body into ffmpeg:
+       ffmpeg -i pipe:0 -vframes 1 -q:v 2 {outputPath}
+   - On success, return outputPath. On any error, return null (fallback: no background).
+   - hash(dateKey): simple sum of char codes, same pattern as wordOfDay service.
+
+2. Expose the cached path via a getter: getTodaysAerialPath(): string | null
+
+Create server/cache/ directory (gitignored). Add "server/cache/" to .gitignore.
+
+In server/src/index.ts:
+- On startup, call ensureTodaysAerial() in the background (don't await — let it run async).
+- Add route: GET /api/aerial
+  - If getTodaysAerialPath() is non-null, serve the JPEG with res.sendFile().
+  - Otherwise respond 204 No Content.
+
+In server/src/cron.ts (Phase 11 will expand this):
+- Add a job at 00:05 daily to call ensureTodaysAerial() for the new day.
+```
+
+---
+
+### Step 8.5.2 - Client: Aerial background + glass card design
+
+```
+In client/src/pages/DashboardPage.tsx:
+- On mount, attempt to load the background: try fetching /api/aerial with a HEAD request.
+  If 200, set the dashboard root's background-image to url('/api/aerial').
+  If 204 or error, fall back to the existing #111111 surface background — the glass
+  cards degrade gracefully to their standard dark style.
+
+- Background image CSS:
+    background-image: url('/api/aerial');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+
+Glass card design (applied to ALL widget cards when aerial background is active):
+  Replace: bg-surface-raised rounded-lg
+  With:    backdrop-blur-md bg-black/50 rounded-lg ring-1 ring-white/10
+
+  This gives:
+  - 50% black overlay so the image isn't overwhelming
+  - backdrop-filter: blur(12px) for the frosted glass look
+  - A very subtle white ring (1px at 10% opacity) as a card separator — replaces gold borders
+  - Text colors remain: ink (#F5F0E8) for primary, ink-muted (#9A9488) for secondary
+  - Gold accent labels ("WORD OF THE DAY", "WEATHER") still use text-gold — the contrast
+    is sufficient against the darkened blurred background
+
+Add a CSS custom property --aerial-active: 0 | 1 on the root element so widget
+components can react if needed. Set it to 1 when the background image loads successfully.
+
+Readable text guarantee: run a browser contrast check in the UI/UX review. If any
+text reads below WCAG AA (4.5:1) on the glass card, increase the bg-black/50 to
+bg-black/60. Prioritize legibility over visible-background ratio.
+
+NavBar and MusicBar:
+- NavBar: add backdrop-blur-sm bg-black/70 (was bg-surface/95) when aerial is active.
+- MusicBar: add backdrop-blur-sm bg-black/80 (was bg-[#0A0A0A]).
+- These elements already sit at the edges of the screen where the image shows most.
+```
+
+---
+
+### Demo Checkpoint — Phase 8.5
+
+- Hard reload the dashboard. Within a few seconds (first run: ~10s for ffmpeg frame extraction) the aerial background appears — a landscape photo from Apple's library.
+- All five widget cards show the frosted glass appearance (blurred background visible behind translucent card).
+- All text is legible at a glance: weather numbers, calendar events, chore names.
+- The location/title of the aerial image does NOT need to be shown (it's decoration, not information).
+- Reload the next day (or change the system date) — a different aerial image appears.
+- With no aerial background (API unreachable, ffmpeg not installed), the dashboard falls back cleanly to the solid dark surface — glass cards degrade to standard bg-surface-raised.
+
+**Known constraints:**
+- First run of the day takes ~10s (streaming 6 MB + ffmpeg decode). After that, the cached JPEG serves instantly.
+- If the Apple CDN is unreachable (network down, Apple changes the manifest), fall back silently.
+- ffmpeg must be installed: `sudo apt install ffmpeg` on the Pi. In local dev, install via Homebrew: `brew install ffmpeg`.
 
 ---
 
