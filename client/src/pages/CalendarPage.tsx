@@ -436,7 +436,7 @@ function DayEventsPanel({
 }
 
 export default function CalendarPage() {
-  const [view, setView] = useState<View>('month')
+  const [view, setView] = useState<View>('week')
   const [currentDate, setCurrentDate] = useState(dayjs())
   const [selectedDayData, setSelectedDayData] = useState<{ date: dayjs.Dayjs; events: CalendarEvent[] } | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)

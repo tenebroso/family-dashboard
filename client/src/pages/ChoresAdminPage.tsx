@@ -114,9 +114,14 @@ function EditChoreForm({ chore, onSave, onCancel }: {
   )
 }
 
+const LAST_PERSON_KEY = 'choresAdmin_lastPersonId'
+
 function AddChoreForm({ people, onAdded }: { people: Person[]; onAdded: () => void }) {
   const [title, setTitle] = useState('')
-  const [personId, setPersonId] = useState(people[0]?.id ?? '')
+  const [personId, setPersonId] = useState(() => {
+    const saved = localStorage.getItem(LAST_PERSON_KEY)
+    return (saved && people.some(p => p.id === saved)) ? saved : (people[0]?.id ?? '')
+  })
   const [selectedDays, setSelectedDays] = useState<number[]>([])
   const [createChore, { loading }] = useMutation(CREATE_CHORE, {
     refetchQueries: ['ChoresAdmin'],
@@ -125,11 +130,17 @@ function AddChoreForm({ people, onAdded }: { people: Person[]; onAdded: () => vo
   const toggleDay = (d: number) =>
     setSelectedDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d].sort())
 
+  const handlePersonChange = (id: string) => {
+    setPersonId(id)
+    localStorage.setItem(LAST_PERSON_KEY, id)
+  }
+
   const handleSubmit = async () => {
     if (!title.trim()) return
     await createChore({ variables: { input: { title: title.trim(), personId, dayOfWeek: selectedDays } } })
     setTitle('')
     setSelectedDays([])
+    localStorage.setItem(LAST_PERSON_KEY, personId)
     onAdded()
   }
 
@@ -145,7 +156,7 @@ function AddChoreForm({ people, onAdded }: { people: Person[]; onAdded: () => vo
         />
         <select
           value={personId}
-          onChange={e => setPersonId(e.target.value)}
+          onChange={e => handlePersonChange(e.target.value)}
           className="bg-surface-card text-ink text-sm rounded-md px-3 py-2 border border-gold/20 outline-none focus:border-gold/50"
         >
           {people.map(p => (

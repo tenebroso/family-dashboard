@@ -19,7 +19,7 @@ export default function MessageShell() {
   if (!loading && !msg) return null
 
   return (
-    <div className="bg-surface-raised border-l-2 border-l-gold border border-gold/20 rounded-xl p-5 shadow-[0_0_12px_rgba(201,168,76,0.05)]">
+    <div className="bg-surface-raised border-l-2 border-l-gold rounded-lg p-4">
       <p className="text-[10px] uppercase tracking-widest text-gold font-medium mb-2">Message</p>
       {loading ? (
         <div className="space-y-1.5">

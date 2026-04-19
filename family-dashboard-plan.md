@@ -1014,6 +1014,128 @@ client/src/components/MusicWidget.tsx replaces MusicShell on DashboardPage.
 
 ---
 
+## Phase 6.5 - Design Overhaul, Mylo & New Features Foundation ✅ Complete
+
+### Overview
+
+Before building new features, the dashboard needs a visual and structural overhaul based on the following direction:
+
+- **Remove the "tile" concept** — cards no longer have visible outlines/borders. Sections are defined by typography, spacing, and background contrast, not boxes. Think financial terminal, not iOS widgets.
+- **Music player → persistent bottom bar** — the MusicWidget card is removed from the dashboard grid. A thin fixed bar (~52px) at the bottom of every page replaces it. Play/pause and track info are always accessible without consuming dashboard real estate.
+- **Calendar defaults to Week view** — the most immediately useful view for family scheduling.
+- **Chores admin: remember last person** — the Add Chore form remembers the last selected person so adding multiple chores for the same person doesn't require re-selecting.
+- **Add Mylo** — 5th household member added to the DB seed (purple #A855F7).
+- **Tighter spacing** — reduce card padding, grid gaps, and inner element spacing to fit more data at a glance.
+
+---
+
+### Step 6.5.1 - Add Mylo & re-seed ✅ Complete
+
+```
+Update server/src/seed.ts to add a 5th person:
+  Mylo — color #A855F7 (purple)
+
+Add a few starter chores for Mylo with varied dayOfWeek arrays.
+
+Re-run: npm run seed (from server/)
+Note: this wipes existing completions, which is acceptable.
+```
+
+---
+
+### Step 6.5.2 - Design system: remove tile borders, tighten spacing ✅ Complete
+
+```
+Update every widget and shell component that uses:
+  "bg-surface-raised border border-gold/20 rounded-xl shadow-[...]"
+
+Replace with:
+  "bg-surface-raised rounded-lg" (no border, reduced radius)
+
+Reduce padding across all cards from p-5/px-5 to p-4/px-4.
+Reduce dashboard grid gap from gap-5 to gap-3.
+
+Specifically update:
+  - WeatherWidget.tsx
+  - WordWidget.tsx
+  - CalendarShell.tsx
+  - ChoresSummaryShell.tsx
+  - MessageShell.tsx (keep left gold border as a style accent: "border-l-2 border-gold")
+
+Dashboard DashboardPage.tsx:
+  - Remove MusicWidget import and slot
+  - Col 3 becomes: WordWidget (top) + ChoresSummaryShell (bottom)
+  - Add pb-16 to the page wrapper so content isn't hidden behind MusicBar
+```
+
+---
+
+### Step 6.5.3 - Music player: persistent bottom bar ✅ Complete
+
+```
+Create client/src/components/MusicBar.tsx.
+
+This component:
+  - Is mounted once in App.tsx (above the router, below ApolloProvider)
+  - Persists across page navigation — the audio element never unmounts
+  - Fixed position: bottom-0 left-0 right-0, z-50, height 52px
+  - Background: #0A0A0A (darker than surface), border-t border-white/5
+
+Layout (left to right):
+  1. Play/pause icon button (32×32px, circular, gold border on hover)
+  2. Track info: title in ink/small-semibold, artist in ink-muted/smaller — separated by a middle dot
+  3. Right side: "TODAY'S SONG" label in tiny uppercase gold
+
+Progress line:
+  - Absolute positioned at the very top of the bar (top-0, height 1px, bg-surface-card)
+  - Fill: bg-gold/60 advancing with playback
+
+Loading state: show "Loading..." as track info while query is pending.
+No track: hide the bar entirely (return null).
+
+Update App.tsx:
+  - Import and render <MusicBar /> inside <BrowserRouter> but outside <Routes>
+  - Add pb-14 to the <main> element so page content doesn't hide behind the bar
+```
+
+---
+
+### Step 6.5.4 - Calendar defaults to week view ✅ Complete
+
+```
+In client/src/pages/CalendarPage.tsx:
+  Change: const [view, setView] = useState<View>('month')
+  To:     const [view, setView] = useState<View>('week')
+```
+
+---
+
+### Step 6.5.5 - Chores admin: remember last selected person ✅ Complete
+
+```
+In client/src/pages/ChoresAdminPage.tsx, in AddChoreForm:
+  - After a successful createChore, store the selected personId in localStorage
+    under the key "choresAdmin_lastPersonId"
+  - On mount, initialize personId state from localStorage (falling back to people[0].id)
+```
+
+---
+
+### Demo Checkpoint — Phase 6.5 ✅ Verified
+
+All items confirmed. Dashboard renders with no tile borders — sections defined by `bg-surface-raised` background contrast only. Music bar (52px, fixed bottom) shows "The Way · Fastball" with a progress line and persists across all page navigations. `/calendar` opens directly in Week view with today highlighted. `/chores` shows all 5 people including Mylo (purple #A855F7) with their seeded chores. `/chores-admin` Add Chore form remembers the last selected person via `localStorage`.
+
+**Implementation notes:**
+- `MusicBar.tsx` is mounted in `App.tsx` inside `<BrowserRouter>` but outside `<Routes>` — the audio element never unmounts on navigation, so playback continues across pages.
+- `<main>` has both `pt-14` (NavBar clearance) and `pb-14` (MusicBar clearance) to prevent content overlap.
+- All widget containers had `border border-gold/20 rounded-xl shadow-[...]` replaced with `rounded-lg` only (no border). `MessageShell` retains `border-l-2 border-l-gold` as a design accent.
+- ChoresSummaryShell redesigned from avatar circles + percentages to a per-person progress bar row — works correctly with 5 people where the old `justify-between` circle layout would have been cramped.
+- `localStorage` key `choresAdmin_lastPersonId` stores the last-selected person across sessions; validated against current people list on mount.
+- Dashboard grid uses `items-start` so columns render at their natural content height and the page scrolls naturally, avoiding fixed-height layout conflicts with the variable-height message banner.
+- Grocery List (Phase 12) and Personal Reminders (Phase 13) added to plan as full phases with DB models, GraphQL, admin pages, and dashboard widgets.
+
+---
+
 ## Phase 7 - Custom Message ← Next
 
 ### Step 7.1 - Message resolver
@@ -1497,6 +1619,218 @@ OPEN_METEO_LNG=-87.9065
 PORT=4000
 NODE_ENV=development
 ```
+
+---
+
+## Phase 12 - Grocery List
+
+### Step 12.1 - Grocery list data model
+
+```
+Add to server/prisma/schema.prisma:
+
+model GroceryItem {
+  id          String   @id @default(cuid())
+  name        String
+  quantity    String?  // e.g. "2 lbs", "1 bag"
+  category    String?  // e.g. "Produce", "Dairy", "Pantry"
+  addedBy     String   // person name (free text)
+  checked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+Run: npx prisma migrate dev --name add-grocery
+Run: npx prisma generate
+```
+
+---
+
+### Step 12.2 - Grocery GraphQL schema and resolver
+
+```
+Add to GraphQL schema:
+
+type GroceryItem {
+  id: ID!
+  name: String!
+  quantity: String
+  category: String
+  addedBy: String!
+  checked: Boolean!
+  createdAt: String!
+}
+
+Query:
+  groceryItems: [GroceryItem!]!
+
+Mutation:
+  addGroceryItem(name: String!, quantity: String, category: String, addedBy: String!): GroceryItem!
+  toggleGroceryItem(id: ID!): GroceryItem!
+  deleteGroceryItem(id: ID!): Boolean!
+  clearCheckedGroceryItems: Int!  # returns count deleted
+
+Create server/src/resolvers/grocery.ts with real Prisma implementations.
+Import into resolvers/index.ts.
+```
+
+---
+
+### Step 12.3 - Grocery admin page
+
+```
+Create client/src/pages/GroceryAdminPage.tsx.
+Route: /grocery-admin (linked in NavBar).
+
+Features:
+  - Input form at top: item name (required), quantity (optional), category (optional),
+    added by (person name, free text).
+  - Submit adds to list instantly.
+  - Below: full grocery list grouped by category (unchecked items first).
+  - Each item: checkbox (toggles checked state), item name + quantity, added-by label,
+    delete button (X).
+  - Checked items shown with strikethrough and lower opacity.
+  - "Clear checked" button removes all checked items.
+  - Export button: downloads the unchecked items as a plain text file
+    formatted for easy reading on a phone offline (one item per line, grouped by category).
+    Use: const blob = new Blob([text], { type: 'text/plain' })
+         const url = URL.createObjectURL(blob)
+         <a download="grocery-list.txt" href={url}>
+  - Style: same dark theme, no tile borders, dense layout.
+```
+
+---
+
+### Step 12.4 - Grocery widget on Dashboard
+
+```
+Create client/src/components/GroceryWidget.tsx for the Dashboard.
+
+Shows the unchecked grocery items as a compact list.
+Label: "GROCERY LIST" in uppercase gold.
+If 0 items: show "List is empty" in ink-muted.
+If >5 items: show first 5 + "· +N more" footer link to /grocery-admin.
+"Add item →" link in footer navigates to /grocery-admin.
+
+Add to Dashboard Col 1 (below CalendarShell) or as a new dashboard section.
+Update DashboardPage.tsx to include GroceryWidget.
+```
+
+---
+
+### Demo Checkpoint — Phase 12
+
+- /grocery-admin: add 3 items in different categories. They appear grouped by category.
+- Check one item. It moves to strikethrough state.
+- Click "Export" — a text file downloads with the unchecked items.
+- Dashboard shows the grocery widget with the unchecked items.
+- Click "Clear checked" — the checked item is removed.
+
+---
+
+## Phase 13 - Personal Reminders
+
+### Step 13.1 - Reminders data model
+
+```
+Add to server/prisma/schema.prisma:
+
+model Reminder {
+  id        String   @id @default(cuid())
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id])
+  text      String
+  dueDate   String?  // "YYYY-MM-DD" optional
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+Update Person model to include:
+  reminders Reminder[]
+
+Run: npx prisma migrate dev --name add-reminders
+Run: npx prisma generate
+```
+
+---
+
+### Step 13.2 - Reminders GraphQL schema and resolver
+
+```
+Add to GraphQL schema:
+
+type Reminder {
+  id: ID!
+  personId: String!
+  text: String!
+  dueDate: String
+  done: Boolean!
+  createdAt: String!
+}
+
+Extend Person type:
+  reminders: [Reminder!]!
+
+Query:
+  reminders(personId: ID!): [Reminder!]!
+
+Mutation:
+  addReminder(personId: ID!, text: String!, dueDate: String): Reminder!
+  toggleReminder(id: ID!): Reminder!
+  deleteReminder(id: ID!): Boolean!
+
+Create server/src/resolvers/reminders.ts.
+Import into resolvers/index.ts.
+```
+
+---
+
+### Step 13.3 - Reminders page
+
+```
+Create client/src/pages/RemindersPage.tsx.
+Route: /reminders (linked in NavBar).
+
+Layout:
+  - Person selector at the top: 5 avatar buttons (one per person, accent color).
+    Selecting a person filters the reminders list below.
+  - Reminders list for the selected person:
+    - Each row: checkbox (done toggle), reminder text, optional due date in muted text,
+      delete button.
+    - Done reminders shown with strikethrough at the bottom of the list.
+    - "Clear done" button.
+  - Add reminder form at bottom:
+    - Text input (required)
+    - Due date picker (optional)
+    - Submit button: "Add Reminder"
+    - Form is pre-filtered to the currently selected person.
+
+  Person can only edit their own reminders (honor system — no auth required).
+  Style: dense, no tile borders, consistent with rest of app.
+```
+
+---
+
+### Step 13.4 - Reminders widget on Dashboard
+
+```
+Create client/src/components/RemindersWidget.tsx.
+
+Shows each person's undone reminder count as a compact row.
+Clicking a person navigates to /reminders?person=<id> (pass personId as URL param).
+If a reminder has a dueDate of today, show it in gold.
+If all reminders are done for everyone: show "All clear" in muted text.
+Label: "REMINDERS" in uppercase gold.
+```
+
+---
+
+### Demo Checkpoint — Phase 13
+
+- /reminders: select Harry. Add a reminder "Buy cleats" with a due date.
+- The reminder appears in Harry's list. Checkbox toggles done state.
+- Select Ruby — her list is separate.
+- Dashboard RemindersWidget shows each person's open reminder count.
+- Navigate to /reminders?person=<harry-id> — Harry is pre-selected.
 
 ---
 

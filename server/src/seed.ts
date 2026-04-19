@@ -11,6 +11,7 @@ async function main() {
   const ruby = await prisma.person.create({ data: { name: 'Ruby', color: '#E8607A' } })
   const krysten = await prisma.person.create({ data: { name: 'Krysten', color: '#7BC67E' } })
   const jon = await prisma.person.create({ data: { name: 'Jon', color: '#C9A84C' } })
+  const mylo = await prisma.person.create({ data: { name: 'Mylo', color: '#A855F7' } })
 
   const chores = [
     { title: 'Make bed', personId: harry.id, dayOfWeek: JSON.stringify([]) },
@@ -28,13 +29,17 @@ async function main() {
     { title: 'Walk dog', personId: jon.id, dayOfWeek: JSON.stringify([]) },
     { title: 'Mow lawn', personId: jon.id, dayOfWeek: JSON.stringify([6]) },
     { title: 'Pay bills', personId: jon.id, dayOfWeek: JSON.stringify([1]) },
+
+    { title: 'Feed fish', personId: mylo.id, dayOfWeek: JSON.stringify([]) },
+    { title: 'Clean room', personId: mylo.id, dayOfWeek: JSON.stringify([6]) },
+    { title: 'Pack backpack', personId: mylo.id, dayOfWeek: JSON.stringify([0, 1, 2, 3, 4]) },
   ]
 
   for (const chore of chores) {
     await prisma.chore.create({ data: chore })
   }
 
-  console.log('Seeded 4 people and 12 chores.')
+  console.log('Seeded 5 people and 15 chores.')
 }
 
 main()

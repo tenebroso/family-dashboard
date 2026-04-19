@@ -39,15 +39,15 @@ export default function CalendarShell() {
     data?.calendarEvents?.slice(0, 5) ?? []
 
   return (
-    <div className="h-full bg-surface-raised border border-gold/20 rounded-xl shadow-[0_0_12px_rgba(201,168,76,0.05)] flex flex-col">
+    <div className="bg-surface-raised rounded-lg flex flex-col">
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex items-baseline justify-between border-b border-gold/10">
+      <div className="px-4 pt-4 pb-3 flex items-baseline justify-between border-b border-white/5">
         <p className="text-xs uppercase tracking-widest text-gold font-medium">Upcoming</p>
         <p className="text-xs text-ink-muted">Next 14 days</p>
       </div>
 
       {/* Events */}
-      <div className="flex-1 px-5 py-4">
+      <div className="flex-1 px-4 py-3">
         {loading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -73,8 +73,8 @@ export default function CalendarShell() {
       </div>
 
       {/* Footer */}
-      <div className="px-5 pb-5 pt-0">
-        <div className="border-t border-gold/10 pt-4">
+      <div className="px-4 pb-4 pt-0">
+        <div className="border-t border-white/5 pt-3">
           <a
             href="/calendar"
             className="text-xs text-gold/50 hover:text-gold transition-colors flex items-center gap-1 tracking-wide"

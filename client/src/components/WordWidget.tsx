@@ -17,8 +17,8 @@ export default function WordWidget() {
   const wod = data?.wordOfDay
 
   return (
-    <div className="bg-surface-raised border border-gold/20 rounded-xl p-5 shadow-[0_0_12px_rgba(201,168,76,0.05)]">
-      <p className="text-[10px] uppercase tracking-widest text-gold font-medium mb-3">Word of the Day</p>
+    <div className="bg-surface-raised rounded-lg p-4">
+      <p className="text-[10px] uppercase tracking-widest text-gold font-medium mb-2">Word of the Day</p>
       {loading ? (
         <div className="space-y-2">
           <div className="animate-pulse h-8 w-40 bg-surface-card rounded" />

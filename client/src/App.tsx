@@ -3,6 +3,7 @@ import { ApolloProvider } from '@apollo/client/react'
 import { HttpLink } from '@apollo/client/link/http'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import NavBar from './components/NavBar'
+import MusicBar from './components/MusicBar'
 import DashboardPage from './pages/DashboardPage'
 import ChoresPage from './pages/ChoresPage'
 import CalendarPage from './pages/CalendarPage'
@@ -19,7 +20,7 @@ export default function App() {
     <ApolloProvider client={client}>
       <BrowserRouter>
         <NavBar />
-        <main className="pt-14">
+        <main className="pt-14 pb-14">
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/chores" element={<ChoresPage />} />
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/chores-admin" element={<ChoresAdminPage />} />
           </Routes>
         </main>
+        <MusicBar />
       </BrowserRouter>
     </ApolloProvider>
   )

@@ -57,13 +57,13 @@ export default function WeatherWidget() {
   const forecast = data?.weather?.forecast ?? []
 
   return (
-    <div className="h-full bg-surface-raised border border-gold/20 rounded-xl shadow-[0_0_12px_rgba(201,168,76,0.05)] flex flex-col overflow-hidden">
-      <div className="px-5 pt-5 pb-0 flex items-baseline justify-between">
+    <div className="bg-surface-raised rounded-lg flex flex-col overflow-hidden">
+      <div className="px-4 pt-4 pb-0 flex items-baseline justify-between">
         <p className="text-xs uppercase tracking-widest text-gold font-medium">Weather</p>
         <p className="text-xs text-ink-muted">Milwaukee</p>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center px-5 py-4">
+      <div className="flex flex-col px-4 py-4">
         {loading || !current ? (
           <div className="space-y-2">
             <div className="animate-pulse h-16 w-40 bg-surface-card rounded" />
@@ -87,8 +87,8 @@ export default function WeatherWidget() {
         )}
       </div>
 
-      <div className="px-5 pb-5">
-        <div className="border-t border-gold/10 pt-4">
+      <div className="px-4 pb-4">
+        <div className="border-t border-white/5 pt-3">
           {loading || forecast.length === 0 ? (
             <div className="flex justify-between gap-1">
               {Array.from({ length: 7 }).map((_, i) => (
