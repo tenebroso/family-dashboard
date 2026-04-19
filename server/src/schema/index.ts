@@ -24,6 +24,7 @@ const rootTypeDefs = `#graphql
     updateChore(input: UpdateChoreInput!): Chore!
     deleteChore(id: ID!): Boolean!
     createMessage(author: String!, body: String!, displayUntil: String): Message!
+    deactivateMessage(id: ID!): Boolean!
   }
 `
 

@@ -1136,7 +1136,7 @@ All items confirmed. Dashboard renders with no tile borders — sections defined
 
 ---
 
-## Phase 7 - Custom Message ← Next
+## Phase 7 - Custom Message ✅ Complete
 
 ### Step 7.1 - Message resolver
 
@@ -1207,16 +1207,19 @@ If a message exists:
 
 ---
 
-### Demo Checkpoint — Phase 7
+### Demo Checkpoint — Phase 7 ✅ Verified
 
-- `/message-admin` renders the form. Fill in author and body and submit.
-- Navigate to `/` — the Message card replaced: shows the new message with author and timestamp.
-- Return to `/message-admin` — the active message preview is shown with a Deactivate button. Click it.
-- Navigate to `/` — the Message card is gone (returns null, renders nothing).
+All items confirmed. `/message-admin` form posts a message via `createMessage` mutation (deactivates any prior active message first). Dashboard shows the MessageWidget with gold left border, message body, and author. Deactivate button on admin page fires `deactivateMessage` mutation — widget disappears from dashboard (returns null, renders nothing) and the grid collapses cleanly.
+
+**Implementation notes:**
+- `server/src/resolvers/messages.ts` — real Prisma resolver. `createMessage` first calls `updateMany({ isActive: false })` then inserts the new record. `deactivateMessage` sets `isActive: false` by id.
+- `deactivateMessage(id: ID!): Boolean!` added to both the GraphQL schema (`schema/index.ts`) and the resolver.
+- `MessageWidget.tsx` replaces `MessageShell.tsx` on DashboardPage. Uses `AnimatePresence` + `framer-motion` for fade+slide entrance. Returns `null` when `activeMessage` is null so the dashboard row collapses.
+- `resolvers/index.ts` now spreads `messagesResolvers.Query` and `messagesResolvers.Mutation` — the old inline stubs are removed.
 
 ---
 
-## Phase 8 - Dashboard Page
+## Phase 8 - Dashboard Page ← Next
 
 ### Step 8.1 - Dashboard layout
 

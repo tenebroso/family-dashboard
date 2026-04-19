@@ -1,13 +1,13 @@
 import WeatherWidget from '../components/WeatherWidget'
 import CalendarShell from '../components/CalendarShell'
 import WordWidget from '../components/WordWidget'
-import MessageShell from '../components/MessageShell'
+import MessageWidget from '../components/MessageWidget'
 import ChoresSummaryShell from '../components/ChoresSummaryShell'
 
 export default function DashboardPage() {
   return (
     <div className="min-h-screen p-3 pt-4 md:p-4">
-      <MessageShell />
+      <MessageWidget />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
 
         {/* Column 1: Calendar */}

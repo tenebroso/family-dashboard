@@ -3,8 +3,7 @@ import { calendarResolvers } from './calendar'
 import { weatherResolvers } from './weather'
 import { wordOfDayResolvers } from './wordOfDay'
 import { tracksResolvers } from './tracks'
-
-const now = new Date()
+import { messagesResolvers } from './messages'
 
 export const resolvers = {
   Query: {
@@ -13,13 +12,7 @@ export const resolvers = {
     ...weatherResolvers.Query,
     ...wordOfDayResolvers.Query,
     ...tracksResolvers.Query,
-    activeMessage: () => ({
-      id: 'm1',
-      author: 'Mom',
-      body: "Don't forget: soccer practice at 4pm today!",
-      displayUntil: null,
-      createdAt: now.toISOString(),
-    }),
+    ...messagesResolvers.Query,
   },
 
   Person: choreResolvers.Person,
@@ -27,12 +20,6 @@ export const resolvers = {
 
   Mutation: {
     ...choreResolvers.Mutation,
-    createMessage: (_: unknown, args: { author: string; body: string; displayUntil?: string }) => ({
-      id: `msg-${Date.now()}`,
-      author: args.author,
-      body: args.body,
-      displayUntil: args.displayUntil ?? null,
-      createdAt: new Date().toISOString(),
-    }),
+    ...messagesResolvers.Mutation,
   },
 }
