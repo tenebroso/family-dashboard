@@ -5,7 +5,7 @@ import { useActivePerson } from '../contexts/PersonContext'
 
 const MESSAGES_QUERY = gql`
   query Messages {
-    messages(limit: 50) {
+    messages(limit: 10) {
       id
       personSlug
       body

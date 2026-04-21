@@ -25,13 +25,16 @@ export interface CalendarEvent {
   personSlug: string | null
 }
 
-const CALENDARS = [
-  { calendarId: process.env.GOOGLE_CALENDAR_ID_JON,     personSlug: 'jon'     },
-  { calendarId: process.env.GOOGLE_CALENDAR_ID_KRYSTEN, personSlug: 'krysten' },
-  { calendarId: process.env.GOOGLE_CALENDAR_ID_HARRY,   personSlug: 'harry'   },
-  { calendarId: process.env.GOOGLE_CALENDAR_ID_RUBY,    personSlug: 'ruby'    },
-  { calendarId: process.env.GOOGLE_CALENDAR_ID_MYLO,    personSlug: 'mylo'    },
-].filter((c): c is { calendarId: string; personSlug: string } => Boolean(c.calendarId))
+// GOOGLE_CALENDAR_ID_KRYSTEN is the shared Family calendar (always visible to everyone)
+const CALENDARS: { calendarId: string; personSlug: string | null }[] = [
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_JON,          personSlug: 'jon'     },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_KRYSTEN,      personSlug: null      },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_HARRY,        personSlug: 'harry'   },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_HARRY_SOCCER, personSlug: 'harry'   },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_RUBY,         personSlug: 'ruby'    },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_RUBY_SOCCER,  personSlug: 'ruby'    },
+  { calendarId: process.env.GOOGLE_CALENDAR_ID_MYLO,         personSlug: 'mylo'    },
+].filter((c): c is { calendarId: string; personSlug: string | null } => Boolean(c.calendarId))
 
 type CacheEntry = { data: CalendarEvent[]; expires: number }
 const cache = new Map<string, CacheEntry>()
@@ -45,9 +48,11 @@ function createCalendarClient() {
   return google.calendar({ version: 'v3', auth: oauth2Client })
 }
 
+const FAMILY_COLOR = '#9A9488'
+
 async function fetchCalendarForPerson(
   calendarId: string,
-  personSlug: string,
+  personSlug: string | null,
   start: Date,
   end: Date,
 ): Promise<CalendarEvent[]> {
@@ -70,7 +75,8 @@ async function fetchCalendarForPerson(
     const isAllDay = !event.start?.dateTime
     const startStr = isAllDay ? event.start!.date! : event.start!.dateTime!
     const endStr = isAllDay ? event.end!.date! : event.end!.dateTime!
-    const color = event.colorId ? (GOOGLE_COLOR_MAP[event.colorId] ?? '#C9A84C') : '#C9A84C'
+    const defaultColor = personSlug === null ? FAMILY_COLOR : '#C9A84C'
+    const color = event.colorId ? (GOOGLE_COLOR_MAP[event.colorId] ?? defaultColor) : defaultColor
     return {
       id: event.id ?? `evt-${Date.now()}`,
       title: event.summary ?? '(No title)',

@@ -28,6 +28,7 @@ const rootTypeDefs = `#graphql
     updateChore(input: UpdateChoreInput!): Chore!
     deleteChore(id: ID!): Boolean!
     sendMessage(body: String!, personSlug: String!): Message!
+    deleteMessage(id: ID!): Boolean!
     addGroceryItem(name: String!, quantity: String, category: String, addedBy: String!): GroceryItem!
     toggleGroceryItem(id: ID!): GroceryItem!
     deleteGroceryItem(id: ID!): Boolean!

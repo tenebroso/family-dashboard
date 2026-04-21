@@ -13,6 +13,7 @@ import CalendarPage from './pages/CalendarPage'
 import ChoresAdminPage from './pages/ChoresAdminPage'
 import GroceryAdminPage from './pages/GroceryAdminPage'
 import RemindersPage from './pages/RemindersPage'
+import MessageAdminPage from './pages/MessageAdminPage'
 
 const client = new ApolloClient({
   link: new HttpLink({ uri: 'http://localhost:4000/graphql' }),
@@ -36,6 +37,8 @@ function AppShell() {
             <Route path="/:personSlug/chores-admin" element={<ChoresAdminPage />} />
             <Route path="/:personSlug/grocery-admin" element={<GroceryAdminPage />} />
             <Route path="/:personSlug/reminders" element={<RemindersPage />} />
+            <Route path="/message-admin" element={<MessageAdminPage />} />
+            <Route path="/:personSlug/message-admin" element={<MessageAdminPage />} />
           </Routes>
         </main>
       </div>

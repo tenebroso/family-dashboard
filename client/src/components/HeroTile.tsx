@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client/react'
 import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import { useTimeOfDay } from '../hooks/useTimeOfDay'
+import { useActivePerson } from '../contexts/PersonContext'
 
 dayjs.extend(isoWeek)
 
@@ -61,12 +62,18 @@ export default function HeroTile() {
   const tod = useTimeOfDay()
   const now = useLiveNow()
   const today = now
+  const { activePerson } = useActivePerson()
 
   const start = today.startOf('day').toISOString()
   const end = today.endOf('day').toISOString()
 
   const { data } = useQuery(TODAY_EVENTS_QUERY, { variables: { start, end } })
-  const events: CalendarEvent[] = data?.calendarEvents ?? []
+  const allEvents: CalendarEvent[] = data?.calendarEvents ?? []
+
+  // When a person is selected, show only their events + family (null personSlug) events
+  const events = activePerson
+    ? allEvents.filter(e => e.personSlug === null || e.personSlug === activePerson)
+    : allEvents
 
   const sorted = [...events].sort((a, b) => {
     if (a.allDay && !b.allDay) return -1
@@ -81,7 +88,9 @@ export default function HeroTile() {
       {/* Header — date left, clock right */}
       <div className="hero-head">
         <div>
-          <div className="hero-greet">{GREETINGS[tod]}, family</div>
+          <div className="hero-greet">
+            {GREETINGS[tod]}, {activePerson ? (PERSON_NAMES[activePerson] ?? activePerson) : 'family'}
+          </div>
           <h1 className="hero-date">
             {today.format('dddd')}, <em>{today.format('MMMM D')}</em>
           </h1>

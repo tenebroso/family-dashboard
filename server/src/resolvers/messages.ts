@@ -15,6 +15,11 @@ export const messagesResolvers = {
   },
 
   Mutation: {
+    deleteMessage: async (_: unknown, args: { id: string }) => {
+      await prisma.message.delete({ where: { id: args.id } })
+      return true
+    },
+
     sendMessage: async (_: unknown, args: { body: string; personSlug: string }) => {
       const message = await prisma.message.create({
         data: { body: args.body, personSlug: args.personSlug },

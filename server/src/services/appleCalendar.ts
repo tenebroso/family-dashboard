@@ -9,7 +9,7 @@ const CALENDAR_COLORS: Record<string, string> = {
 
 const CALENDAR_PERSON_SLUGS: Record<string, string> = {
   "Jon's Calendar": 'jon',
-  'Untitled': 'jon',
+  'Untitled': 'krysten',
 }
 
 const TARGET_CALENDARS = new Set(["Jon's Calendar", 'Untitled'])
