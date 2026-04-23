@@ -2,11 +2,12 @@ import { google } from 'googleapis'
 import * as chrono from 'chrono-node'
 import { createAppleCalendarEvent } from './appleCalendar'
 
-// jon and krysten write to Apple Calendar
-const APPLE_CALENDAR_PEOPLE = new Set(['jon', 'krysten'])
+// krysten writes to Apple Calendar
+const APPLE_CALENDAR_PEOPLE = new Set(['krysten'])
 
-// harry, ruby, mylo write to Google Calendar (if IDs are configured)
+// jon, harry, ruby, mylo write to Google Calendar (if IDs are configured)
 const GOOGLE_CALENDAR_IDS: Record<string, string | undefined> = {
+  jon:   process.env.GOOGLE_CALENDAR_ID_JON,
   harry: process.env.GOOGLE_CALENDAR_ID_HARRY,
   ruby:  process.env.GOOGLE_CALENDAR_ID_RUBY,
   mylo:  process.env.GOOGLE_CALENDAR_ID_MYLO,

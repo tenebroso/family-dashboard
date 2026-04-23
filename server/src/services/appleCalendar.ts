@@ -71,24 +71,79 @@ export async function fetchAppleCalendarEvents(start: Date, end: Date): Promise<
         const comp = new ICAL.Component(jcal)
         const vevents = comp.getAllSubcomponents('vevent')
 
+        // Separate master events from recurrence exceptions (RECURRENCE-ID)
+        const masters = new Map<string, ICAL.Component>()
+        const exceptions = new Map<string, ICAL.Component[]>()
         for (const vevent of vevents) {
-          const event = new ICAL.Event(vevent)
-          const isAllDay = event.startDate.isDate
+          const uid = vevent.getFirstPropertyValue('uid') as string
+          if (vevent.getFirstProperty('recurrence-id')) {
+            if (!exceptions.has(uid)) exceptions.set(uid, [])
+            exceptions.get(uid)!.push(vevent)
+          } else {
+            masters.set(uid, vevent)
+          }
+        }
 
-          allEvents.push({
-            id: event.uid,
-            title: event.summary || '(No title)',
-            start: isAllDay
-              ? event.startDate.toString()
-              : event.startDate.toJSDate().toISOString(),
-            end: isAllDay
-              ? event.endDate.toString()
-              : event.endDate.toJSDate().toISOString(),
-            allDay: isAllDay,
-            description: event.description || null,
-            color,
-            personSlug,
-          })
+        // Exception VEVENTs (RECURRENCE-ID) already have the correct overridden date — filter by range then push
+        for (const excList of exceptions.values()) {
+          for (const exc of excList) {
+            const ev = new ICAL.Event(exc)
+            const evMs = ev.startDate.toJSDate().getTime()
+            if (evMs < start.getTime() || evMs >= end.getTime()) continue
+            const isAllDay = ev.startDate.isDate
+            allEvents.push({
+              id: `${ev.uid}_exc_${ev.startDate.toString()}`,
+              title: ev.summary || '(No title)',
+              start: isAllDay ? ev.startDate.toString() : ev.startDate.toJSDate().toISOString(),
+              end: isAllDay ? ev.endDate.toString() : ev.endDate.toJSDate().toISOString(),
+              allDay: isAllDay,
+              description: ev.description || null,
+              color,
+              personSlug,
+            })
+          }
+        }
+
+        for (const [, master] of masters) {
+          const event = new ICAL.Event(master)
+
+          if (event.isRecurring()) {
+            // Expand occurrences within [start, end]; iterate from the top since ICAL.Time
+            // timezone handling makes passing a startTime unreliable.
+            const iter = event.iterator()
+            let next = iter.next()
+            let count = 0
+            while (next && count++ < 2000) {
+              const nextMs = next.toJSDate().getTime()
+              if (nextMs >= end.getTime()) break
+              if (nextMs < start.getTime()) { next = iter.next(); continue }
+              const details = event.getOccurrenceDetails(next)
+              const isAllDay = details.startDate.isDate
+              allEvents.push({
+                id: `${event.uid}_${next.toString()}`,
+                title: details.item.summary || '(No title)',
+                start: isAllDay ? details.startDate.toString() : details.startDate.toJSDate().toISOString(),
+                end: isAllDay ? details.endDate.toString() : details.endDate.toJSDate().toISOString(),
+                allDay: isAllDay,
+                description: details.item.description || null,
+                color,
+                personSlug,
+              })
+              next = iter.next()
+            }
+          } else {
+            const isAllDay = event.startDate.isDate
+            allEvents.push({
+              id: event.uid,
+              title: event.summary || '(No title)',
+              start: isAllDay ? event.startDate.toString() : event.startDate.toJSDate().toISOString(),
+              end: isAllDay ? event.endDate.toString() : event.endDate.toJSDate().toISOString(),
+              allDay: isAllDay,
+              description: event.description || null,
+              color,
+              personSlug,
+            })
+          }
         }
       } catch (e) {
         console.error('[apple calendar] Failed to parse event:', e)

@@ -123,7 +123,7 @@ export default function HeroTile() {
   const end = today.endOf('day').toISOString()
 
   const { data: eventsData } = useQuery<{ calendarEvents: CalendarEvent[] }>(
-    TODAY_EVENTS_QUERY, { variables: { start, end } }
+    TODAY_EVENTS_QUERY, { variables: { start, end }, pollInterval: 15 * 60 * 1000 }
   )
   const { data: choresData, loading: choresLoading } = useQuery<{ people: Person[] }>(
     HERO_CHORES_QUERY, { variables: { dayOfWeek: DAY_OF_WEEK, dateKey: DATE_KEY } }

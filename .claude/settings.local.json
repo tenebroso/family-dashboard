@@ -83,7 +83,11 @@
       "Bash(xargs ls *)",
       "Bash(pm2 logs *)",
       "Bash(ts-node -e ' *)",
-      "Bash(kill 61674)"
+      "Bash(kill 61674)",
+      "Read(//Users/jonbukiewicz/.pm2/**)",
+      "Bash(kill 62567)",
+      "Bash(grep -v \"^$\")",
+      "Bash(pkill -f \"dist/index.js\")"
     ]
   }
 }
