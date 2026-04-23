@@ -21,7 +21,7 @@ export default function WordWidget() {
 
   return (
     <div className={cardClass}>
-      <p className="text-[10px] uppercase tracking-widest text-gold font-medium mb-2">Word of the Day</p>
+      <p className="text-[10px] uppercase tracking-widest text-gold font-medium mb-2 tile-eyebrow">Word of the Day</p>
       {loading ? (
         <div className="space-y-2">
           <Skeleton className="h-8 w-40" />
