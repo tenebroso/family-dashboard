@@ -7,6 +7,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'
 import { ChevronLeft, ChevronRight, X, Clock } from 'lucide-react'
 import { WeatherDayModal, WeatherIcon } from '../components/WeatherDayModal'
 import type { WeatherDay } from '../components/WeatherDayModal'
+import { useParams } from 'react-router-dom'
 
 dayjs.extend(isoWeek)
 
@@ -20,6 +21,7 @@ const CALENDAR_EVENTS_QUERY = gql`
       allDay
       description
       color
+      personSlug
     }
     weather {
       forecast {
@@ -43,6 +45,17 @@ interface CalendarEvent {
   allDay: boolean
   description: string | null
   color: string
+  personSlug: string | null
+}
+
+function personColor(slug: string | null | undefined, fallback: string): string {
+  if (slug) return `var(--p-${slug})`
+  return fallback
+}
+
+function personBg(slug: string | null | undefined, fallback: string): string {
+  if (slug) return `color-mix(in oklch, var(--p-${slug}) 12%, transparent)`
+  return fallback
 }
 
 type View = 'month' | 'week' | 'day'
@@ -85,9 +98,9 @@ function EventChip({ event, onClick }: { event: CalendarEvent; onClick: (e: Reac
       data-testid="event-chip"
       className="w-full text-left text-xs truncate rounded px-1.5 py-0.5 mb-0.5 font-medium leading-5"
       style={{
-        backgroundColor: event.color + '2e',
-        borderLeft: `2px solid ${event.color}`,
-        color: event.color,
+        backgroundColor: personBg(event.personSlug, event.color + '2e'),
+        borderLeft: `2px solid ${personColor(event.personSlug, event.color)}`,
+        color: personColor(event.personSlug, event.color),
       }}
     >
       {!event.allDay && (
@@ -176,7 +189,7 @@ function MonthView({
                     <div
                       key={evt.id}
                       className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: evt.color }}
+                      style={{ backgroundColor: personColor(evt.personSlug, evt.color) }}
                     />
                   ))}
                 </div>
@@ -252,11 +265,11 @@ function WeekView({
                     onClick={() => onEventClick(evt)}
                     className="w-full text-left rounded-lg p-2 text-xs transition-opacity hover:opacity-80"
                     style={{
-                      backgroundColor: evt.color + '22',
-                      borderLeft: `3px solid ${evt.color}`,
+                      backgroundColor: personBg(evt.personSlug, evt.color + '22'),
+                      borderLeft: `3px solid ${personColor(evt.personSlug, evt.color)}`,
                     }}
                   >
-                    <div className="font-semibold truncate" style={{ color: evt.color }}>
+                    <div className="font-semibold truncate" style={{ color: personColor(evt.personSlug, evt.color) }}>
                       {evt.title}
                     </div>
                     {!evt.allDay && (
@@ -333,9 +346,9 @@ function DayView({
                   style={{
                     top,
                     height,
-                    backgroundColor: evt.color + '33',
-                    borderLeft: `3px solid ${evt.color}`,
-                    color: evt.color,
+                    backgroundColor: personBg(evt.personSlug, evt.color + '33'),
+                    borderLeft: `3px solid ${personColor(evt.personSlug, evt.color)}`,
+                    color: personColor(evt.personSlug, evt.color),
                   }}
                 >
                   <div className="font-semibold truncate">{evt.title}</div>
@@ -369,7 +382,7 @@ function EventDetailModal({ event, onClose }: { event: CalendarEvent; onClose: (
         <div className="flex items-start gap-3 mb-5">
           <div
             className="w-1 h-12 rounded-full shrink-0 mt-0.5"
-            style={{ backgroundColor: event.color }}
+            style={{ backgroundColor: personColor(event.personSlug, event.color) }}
           />
           <div className="flex-1 min-w-0">
             <h2 className="font-display font-bold text-xl text-ink leading-tight">{event.title}</h2>
@@ -445,7 +458,7 @@ function DayEventsPanel({
               key={evt.id}
               onClick={() => onEventClick(evt)}
               className="w-full text-left rounded-xl p-4 flex items-start gap-3 hover:bg-surface transition-colors border border-transparent hover:border-gold/10"
-              style={{ borderLeftColor: evt.color, borderLeftWidth: 4 }}
+              style={{ borderLeftColor: personColor(evt.personSlug, evt.color), borderLeftWidth: 4 }}
             >
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-ink truncate">{evt.title}</div>
@@ -476,6 +489,9 @@ export default function CalendarPage() {
   const { start, end } = useMemo(() => getDateRange(view, currentDate), [view, currentDate])
 
   const { data, loading } = useQuery(CALENDAR_EVENTS_QUERY, { variables: { start, end } })
+
+  const { personSlug } = useParams<{ personSlug: string }>()
+  
   const events: CalendarEvent[] = data?.calendarEvents ?? []
   const eventsByDate = useMemo(() => groupByDate(events), [events])
 
@@ -519,7 +535,7 @@ export default function CalendarPage() {
     <div className="min-h-screen bg-surface px-4 pb-10 pt-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-end mb-2">
-          <a href="/" className="text-xs text-ink-muted hover:text-ink transition-colors">← Home</a>
+          <a href={personSlug ? `/${personSlug}` : '/'} className="text-xs text-ink-muted hover:text-ink transition-colors">← Home</a>
         </div>
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">

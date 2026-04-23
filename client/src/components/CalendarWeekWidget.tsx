@@ -53,6 +53,16 @@ function formatTime(isoStr: string): string {
   return dayjs(isoStr).format('h:mm A')
 }
 
+function personColor(slug: string | null | undefined, fallback: string): string {
+  if (slug) return `var(--p-${slug})`
+  return fallback
+}
+
+function personBg(slug: string | null | undefined, fallback: string): string {
+  if (slug) return `color-mix(in oklch, var(--p-${slug}) 10%, transparent)`
+  return fallback
+}
+
 function groupByDate(events: CalendarEvent[]): Map<string, CalendarEvent[]> {
   const map = new Map<string, CalendarEvent[]>()
   events.forEach(evt => {
@@ -76,7 +86,7 @@ function EventDetailModal({ event, onClose }: { event: CalendarEvent; onClose: (
         style={{ background: 'var(--surface)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-lg)' }}
       >
         <div className="flex items-start gap-3 mb-5">
-          <div className="w-1 h-12 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: event.color }} />
+          <div className="w-1 h-12 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: personColor(event.personSlug, event.color) }} />
           <div className="flex-1 min-w-0">
             <h2 className="font-display font-bold text-xl leading-tight" style={{ color: 'var(--ink)' }}>{event.title}</h2>
           </div>
@@ -242,12 +252,12 @@ export default function CalendarWeekWidget() {
                     onClick={() => setSelectedEvent(evt)}
                     className="w-full text-left rounded-md p-1 text-xs transition-opacity hover:opacity-80"
                     style={{
-                      backgroundColor: evt.color + '18',
-                      borderLeft: `2px solid ${evt.color}`,
+                      backgroundColor: personBg(evt.personSlug, evt.color + '18'),
+                      borderLeft: `2px solid ${personColor(evt.personSlug, evt.color)}`,
                       opacity: dimmed ? 0.3 : 1,
                     }}
                   >
-                    <div className="font-semibold truncate leading-tight" style={{ color: evt.color }}>
+                    <div className="font-semibold truncate leading-tight" style={{ color: personColor(evt.personSlug, evt.color) }}>
                       <span className="hidden sm:inline">{evt.title}</span>
                       <span className="sm:hidden">{evt.title[0]}</span>
                     </div>

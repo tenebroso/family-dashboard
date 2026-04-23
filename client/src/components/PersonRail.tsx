@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useMatch } from 'react-router-dom'
 import { useActivePerson } from '../contexts/PersonContext'
 import type { PersonSlug } from '../contexts/PersonContext'
 
@@ -40,9 +40,12 @@ export default function PersonRail() {
 
   const hasActive = activePerson !== null
 
+  const match = useMatch('/:personSlug/:route*')
+
   function handleSelect(slug: PersonSlug) {
+
     setActivePerson(slug)
-    navigate(`/${slug}`)
+    navigate(match ? `/${slug}/${match.params.route ?? ''}` : `/${slug}`)
   }
 
   function handleClear() {
