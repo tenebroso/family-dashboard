@@ -60,7 +60,7 @@ export default function MusicBar() {
       {track && (
         <audio
           ref={audioRef}
-          src={`http://localhost:4000${track.url}`}
+          src={import.meta.env.PROD ? track.url : `http://localhost:4000${track.url}`}
           preload="metadata"
         />
       )}

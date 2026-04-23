@@ -15,8 +15,10 @@ import GroceryAdminPage from './pages/GroceryAdminPage'
 import RemindersPage from './pages/RemindersPage'
 import MessageAdminPage from './pages/MessageAdminPage'
 
+const graphqlUri = import.meta.env.PROD ? '/graphql' : 'http://localhost:4000/graphql'
+
 const client = new ApolloClient({
-  link: new HttpLink({ uri: 'http://localhost:4000/graphql' }),
+  link: new HttpLink({ uri: graphqlUri }),
   cache: new InMemoryCache(),
 })
 
