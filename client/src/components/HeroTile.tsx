@@ -168,7 +168,7 @@ export default function HeroTile() {
     if (!a.allDay && b.allDay) return 1
     return dayjs(a.start).diff(dayjs(b.start))
   })
-  const nextEvent = sorted.find(e => !e.allDay && dayjs(e.end).isAfter(now))
+  const nextEvent = sorted.find(e => !e.allDay && dayjs(e.start).isAfter(now))
 
   // Chores — filter to active person
   const allPeople: Person[] = choresData?.people ?? []

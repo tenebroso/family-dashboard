@@ -243,7 +243,7 @@ export default function CalendarWeekWidget() {
               </div>
 
               {/* Events */}
-              <div className="p-1 space-y-1 overflow-hidden">
+              <div className="p-2 space-y-2 overflow-hidden">
                 {dayEvents.map(evt => {
                   const dimmed = activePerson !== null && evt.personSlug !== null && evt.personSlug !== activePerson
                   return (
