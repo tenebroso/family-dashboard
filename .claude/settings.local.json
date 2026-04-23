@@ -80,7 +80,10 @@
       "Bash(tar -x -O \"family-dashboard/project/app.jsx\")",
       "WebFetch(domain:api.anthropic.com)",
       "Bash(pkill -f \"node.*server/dist\")",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(pm2 logs *)",
+      "Bash(ts-node -e ' *)",
+      "Bash(kill 61674)"
     ]
   }
 }

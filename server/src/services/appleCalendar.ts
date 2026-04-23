@@ -3,23 +3,26 @@ import ICAL from 'ical.js'
 import { randomUUID } from 'crypto'
 import { CalendarEvent } from './googleCalendar'
 
+// Apple uses U+2019 RIGHT SINGLE QUOTATION MARK in "Jon's Calendar"
+const JON_CAL = 'Jon’s Calendar'
+
 const CALENDAR_COLORS: Record<string, string> = {
-  "Jon's Calendar": '#C9A84C',
+  [JON_CAL]:  '#C9A84C',
   'Untitled': '#7BC67E',
 }
 
 const CALENDAR_PERSON_SLUGS: Record<string, string> = {
-  "Jon's Calendar": 'jon',
+  [JON_CAL]:  'jon',
   'Untitled': 'krysten',
 }
 
 // Invert: person slug → Apple calendar display name
 const PERSON_CALENDAR_NAMES: Record<string, string> = {
-  jon:     "Jon's Calendar",
+  jon:     JON_CAL,
   krysten: 'Untitled',
 }
 
-const TARGET_CALENDARS = new Set(["Jon's Calendar", 'Untitled'])
+const TARGET_CALENDARS = new Set([JON_CAL, 'Untitled'])
 
 function calendarName(displayName: string | Record<string, unknown> | undefined): string | null {
   if (!displayName) return null
