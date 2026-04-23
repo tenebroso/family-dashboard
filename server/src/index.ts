@@ -1,9 +1,10 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
 import express from 'express'
 import cors from 'cors'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import path from 'path'
+dotenv.config({ path: path.join(__dirname, '..', '.env') })
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 import { ensureTodaysAerial, getTodaysAerialPath } from './services/aerial'
