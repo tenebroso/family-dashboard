@@ -30,6 +30,14 @@ async function main() {
   await apollo.start()
   app.use('/graphql', cors(), expressMiddleware(apollo))
 
+  if (process.env.NODE_ENV === 'production') {
+    const clientDist = path.join(__dirname, '..', '..', 'client', 'dist')
+    app.use(express.static(clientDist))
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(clientDist, 'index.html'))
+    })
+  }
+
   app.listen(port, '0.0.0.0', () => {
     console.log(`Server ready at http://0.0.0.0:${port}/graphql`)
   })
