@@ -13,7 +13,7 @@ export interface ParsedMessage {
   personSlug?: string
 }
 
-const SYSTEM_PROMPT = `You are a family dashboard assistant. Classify incoming messages into one of three types and extract structured data.
+const SYSTEM_PROMPT = `You are a family dashboard assistant. Classify incoming messages into one of three types and extract structured data. "Mom" is equal to "Krysten". "Dad" is equal to "Jon".
 
 Types:
 - "grocery": user wants to add something to the grocery list (e.g. "add milk", "we need eggs", "pick up oat milk")

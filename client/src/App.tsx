@@ -2,7 +2,6 @@ import { ApolloClient, InMemoryCache } from '@apollo/client'
 import { ApolloProvider } from '@apollo/client/react'
 import { HttpLink } from '@apollo/client/link/http'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import MusicBar from './components/MusicBar'
 import TopBar from './components/TopBar'
 import { AerialProvider } from './contexts/AerialContext'
 import { PersonProvider } from './contexts/PersonContext'
@@ -45,7 +44,7 @@ function AppShell() {
           </Routes>
         </main>
       </div>
-      <MusicBar />
+      {/* <MusicBar /> */}
     </AerialProvider>
   )
 }

@@ -1,15 +1,18 @@
 import { google } from 'googleapis'
 import * as chrono from 'chrono-node'
+import { createAppleCalendarEvent } from './appleCalendar'
 
-const PERSON_CALENDAR_IDS: Record<string, string | undefined> = {
-  jon:     process.env.GOOGLE_CALENDAR_ID_JON,
-  krysten: process.env.GOOGLE_CALENDAR_ID_KRYSTEN,
-  harry:   process.env.GOOGLE_CALENDAR_ID_HARRY,
-  ruby:    process.env.GOOGLE_CALENDAR_ID_RUBY,
-  mylo:    process.env.GOOGLE_CALENDAR_ID_MYLO,
+// jon and krysten write to Apple Calendar
+const APPLE_CALENDAR_PEOPLE = new Set(['jon', 'krysten'])
+
+// harry, ruby, mylo write to Google Calendar (if IDs are configured)
+const GOOGLE_CALENDAR_IDS: Record<string, string | undefined> = {
+  harry: process.env.GOOGLE_CALENDAR_ID_HARRY,
+  ruby:  process.env.GOOGLE_CALENDAR_ID_RUBY,
+  mylo:  process.env.GOOGLE_CALENDAR_ID_MYLO,
 }
 
-function createCalendarClient() {
+function createGoogleCalendarClient() {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -23,12 +26,6 @@ export async function createCalendarEvent(
   eventTitle: string,
   dateText: string,
 ): Promise<string | null> {
-  const calendarId = PERSON_CALENDAR_IDS[personSlug]
-  if (!calendarId) {
-    console.warn(`[calendarWriter] No calendar ID for person: ${personSlug}`)
-    return null
-  }
-
   const parsed = chrono.parseDate(dateText, new Date(), { forwardDate: true })
   if (!parsed) {
     console.warn(`[calendarWriter] Could not parse date: "${dateText}"`)
@@ -36,10 +33,20 @@ export async function createCalendarEvent(
   }
 
   const startTime = parsed
-  const endTime = new Date(startTime.getTime() + 60 * 60 * 1000) // default 1hr
+  const endTime = new Date(startTime.getTime() + 60 * 60 * 1000)
+
+  if (APPLE_CALENDAR_PEOPLE.has(personSlug)) {
+    return createAppleCalendarEvent(personSlug, eventTitle, startTime, endTime)
+  }
+
+  const calendarId = GOOGLE_CALENDAR_IDS[personSlug]
+  if (!calendarId) {
+    console.warn(`[calendarWriter] No calendar ID configured for person: ${personSlug}`)
+    return null
+  }
 
   try {
-    const calendar = createCalendarClient()
+    const calendar = createGoogleCalendarClient()
     const response = await calendar.events.insert({
       calendarId,
       requestBody: {
@@ -50,7 +57,7 @@ export async function createCalendarEvent(
     })
     return response.data.id ?? null
   } catch (err) {
-    console.error('[calendarWriter] Failed to create event:', err)
+    console.error('[calendarWriter] Google Calendar write failed:', err)
     return null
   }
 }
