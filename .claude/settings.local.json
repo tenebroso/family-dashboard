@@ -87,7 +87,11 @@
       "Read(//Users/jonbukiewicz/.pm2/**)",
       "Bash(kill 62567)",
       "Bash(grep -v \"^$\")",
-      "Bash(pkill -f \"dist/index.js\")"
+      "Bash(pkill -f \"dist/index.js\")",
+      "Bash(pm2 list *)",
+      "Bash(kill 65583)",
+      "Bash(kill 67548)",
+      "Bash(echo \"New server PID: $!\")"
     ]
   }
 }

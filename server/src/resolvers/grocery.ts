@@ -3,11 +3,17 @@ import { syncGroceryList } from '../services/googleDocs'
 
 const prisma = new PrismaClient()
 
-async function syncAfterMutation() {
-  const items = await prisma.groceryItem.findMany({
-    orderBy: [{ checked: 'asc' }, { createdAt: 'asc' }],
-  })
-  syncGroceryList(items).catch(() => {})
+let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+function syncAfterMutation() {
+  if (syncDebounceTimer) clearTimeout(syncDebounceTimer)
+  syncDebounceTimer = setTimeout(async () => {
+    syncDebounceTimer = null
+    const items = await prisma.groceryItem.findMany({
+      orderBy: [{ checked: 'asc' }, { createdAt: 'asc' }],
+    })
+    syncGroceryList(items).catch(() => {})
+  }, 500)
 }
 
 export const groceryResolvers = {

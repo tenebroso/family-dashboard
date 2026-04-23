@@ -196,7 +196,7 @@ export default function HeroTile() {
         <div className="hero-clock-block">
           {now.format('h:mm A')}
           <div className="hero-clock-tz">
-            {today.format('dddd').toUpperCase()} · WEEK {today.isoWeek()}
+            WEEK {today.isoWeek()}
           </div>
         </div>
       </div>
