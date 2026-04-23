@@ -55,7 +55,7 @@ function relativeTime(val: string): string {
 }
 
 export default function MessageWidget() {
-  const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY)
+  const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY, { pollInterval: 30_000 })
   const [send] = useMutation(SEND_MESSAGE, {
     refetchQueries: [{ query: MESSAGES_QUERY }, 'HeroTileEvents', 'HeroChores'],
   })

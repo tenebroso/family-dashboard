@@ -153,6 +153,7 @@ function PersonCard({ person, completed, onToggle }: {
 export default function ChoresPage() {
   const { data, loading } = useQuery<{ people: Person[] }>(CHORES_QUERY, {
     variables: { dayOfWeek: DAY_OF_WEEK, dateKey: DATE_KEY },
+    pollInterval: 30_000,
   })
 
   const [completed, setCompleted] = useState<Set<string>>(new Set())

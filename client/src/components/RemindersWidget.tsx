@@ -25,7 +25,7 @@ type Person = { id: string; name: string; color: string; reminders: Reminder[] }
 const today = new Date().toISOString().slice(0, 10)
 
 export default function RemindersWidget() {
-  const { data, loading } = useQuery<{ people: Person[] }>(PEOPLE_REMINDERS_QUERY)
+  const { data, loading } = useQuery<{ people: Person[] }>(PEOPLE_REMINDERS_QUERY, { pollInterval: 60_000 })
   const navigate = useNavigate()
   const cardClass = useCardClass()
 

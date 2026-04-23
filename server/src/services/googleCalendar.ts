@@ -89,8 +89,8 @@ async function fetchCalendarForPerson(
     }
   })
 
-  cache.set(cacheKey, { data: events, expires: Date.now() + 15 * 60 * 1000 })
-  setTimeout(() => cache.delete(cacheKey), 15 * 60 * 1000)
+  cache.set(cacheKey, { data: events, expires: Date.now() + 5 * 60 * 1000 })
+  setTimeout(() => cache.delete(cacheKey), 5 * 60 * 1000)
   return events
 }
 
