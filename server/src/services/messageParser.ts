@@ -64,7 +64,7 @@ export async function parseMessage(body: string, senderSlug: string): Promise<Pa
               },
               personSlug: {
                 type: 'string',
-                description: 'Person the reminder is for, inferred from message text (harry/ruby/krysten/jon/mylo)',
+                description: 'Person the reminder is for. If the message says "me", "I", or "my" without naming someone else, use the sender slug provided in the message context. Valid values: harry/ruby/krysten/jon/mylo',
               },
             },
             required: ['type'],
@@ -72,7 +72,7 @@ export async function parseMessage(body: string, senderSlug: string): Promise<Pa
         },
       ],
       tool_choice: { type: 'auto' },
-      messages: [{ role: 'user', content: body }],
+      messages: [{ role: 'user', content: `[Sender: ${senderSlug}]\n${body}` }],
     })
 
     const toolUse = response.content.find(b => b.type === 'tool_use')
