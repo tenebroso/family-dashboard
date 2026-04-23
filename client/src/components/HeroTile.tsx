@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
+import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import { useTimeOfDay } from '../hooks/useTimeOfDay'
 import { useActivePerson } from '../contexts/PersonContext'
+import Skeleton from './Skeleton'
 
 dayjs.extend(isoWeek)
 
@@ -22,6 +24,16 @@ const TODAY_EVENTS_QUERY = gql`
   }
 `
 
+const CHORES_QUERY = gql`
+  query HeroChores($dateKey: String!) {
+    people {
+      id
+      name
+      completionRate(dateKey: $dateKey)
+    }
+  }
+`
+
 interface CalendarEvent {
   id: string
   title: string
@@ -30,6 +42,20 @@ interface CalendarEvent {
   allDay: boolean
   color: string
   personSlug: string | null
+}
+
+interface Person {
+  id: string
+  name: string
+  completionRate: number
+}
+
+const PERSON_COLORS: Record<string, string> = {
+  jon:     'var(--p-jon)',
+  krysten: 'var(--p-krysten)',
+  harry:   'var(--p-harry)',
+  ruby:    'var(--p-ruby)',
+  mylo:    'var(--p-mylo)',
 }
 
 function useLiveNow() {
@@ -63,14 +89,16 @@ export default function HeroTile() {
   const now = useLiveNow()
   const today = now
   const { activePerson } = useActivePerson()
+  const navigate = useNavigate()
 
   const start = today.startOf('day').toISOString()
   const end = today.endOf('day').toISOString()
+  const dateKey = today.format('YYYY-MM-DD')
 
-  const { data } = useQuery<{ calendarEvents: CalendarEvent[] }>(TODAY_EVENTS_QUERY, { variables: { start, end } })
-  const allEvents: CalendarEvent[] = data?.calendarEvents ?? []
+  const { data: eventsData } = useQuery<{ calendarEvents: CalendarEvent[] }>(TODAY_EVENTS_QUERY, { variables: { start, end } })
+  const { data: choresData, loading: choresLoading } = useQuery<{ people: Person[] }>(CHORES_QUERY, { variables: { dateKey } })
 
-  // When a person is selected, show only their events + family (null personSlug) events
+  const allEvents: CalendarEvent[] = eventsData?.calendarEvents ?? []
   const events = activePerson
     ? allEvents.filter(e => e.personSlug === null || e.personSlug === activePerson)
     : allEvents
@@ -82,6 +110,13 @@ export default function HeroTile() {
   })
 
   const nextEvent = sorted.find(e => !e.allDay && dayjs(e.end).isAfter(now))
+
+  const allPeople: Person[] = choresData?.people ?? []
+  const people = activePerson
+    ? allPeople.filter(p => p.name.toLowerCase() === activePerson)
+    : allPeople
+
+  const choresPath = activePerson ? `/${activePerson}/chores` : '/chores'
 
   return (
     <div className="tile hero-tile">
@@ -127,48 +162,70 @@ export default function HeroTile() {
         <div className="hero-next">
           <div className="hero-next-badge">All clear</div>
           <div className="hero-next-title" style={{ marginLeft: 16 }}>
-            Nothing else on the calendar today.
+            Nothing on the calendar today.
           </div>
         </div>
       )}
 
-      {/* Today's agenda timeline */}
+      {/* Today's Chores */}
       <div className="timeline">
         <div className="timeline-head">
-          <h3 className="timeline-head-title">Today's agenda</h3>
-          <span className="timeline-head-count">
-            {sorted.length} {sorted.length === 1 ? 'event' : 'events'}
-          </span>
+          <h3 className="timeline-head-title">Today's chores</h3>
+          <button
+            onClick={() => navigate(choresPath)}
+            className="timeline-head-count"
+            style={{ cursor: 'pointer', textDecoration: 'none' }}
+          >
+            View all →
+          </button>
         </div>
 
-        {sorted.length === 0 ? (
+        {choresLoading ? (
+          <div className="space-y-3 pt-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-2">
+                <Skeleton className="w-6 h-6 rounded-full flex-shrink-0" />
+                <Skeleton className="h-2 flex-1 rounded-full" />
+                <Skeleton className="w-8 h-3 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : people.length === 0 ? (
           <div style={{ color: 'var(--ink-3)', fontSize: 14, padding: '20px 0' }}>
-            Nothing scheduled today.
+            No chores assigned.
           </div>
         ) : (
-          sorted.map(evt => {
-            const isPast = !evt.allDay && dayjs(evt.end).isBefore(now)
-            const isNow = !evt.allDay && evt === nextEvent && dayjs(evt.start).diff(now, 'minute') < 60
-
-            return (
-              <div
-                key={evt.id}
-                className={`t-row${isPast ? ' t-past' : ''}${isNow ? ' t-now' : ''}`}
-                style={{ '--event-color': evt.color } as React.CSSProperties}
-              >
-                <div className="t-time">
-                  {evt.allDay ? 'All day' : dayjs(evt.start).format('h:mma')}
-                </div>
-                <div className="t-body">
-                  <span className="t-dot" />
-                  <span className="t-title">{evt.title}</span>
-                  {evt.personSlug && (
-                    <span className="t-who">{PERSON_NAMES[evt.personSlug] ?? evt.personSlug}</span>
-                  )}
-                </div>
-              </div>
-            )
-          })
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8 }}>
+            {people.map(p => {
+              const slug = p.name.toLowerCase()
+              const pColor = PERSON_COLORS[slug] ?? 'var(--accent)'
+              const pct = Math.round(p.completionRate * 100)
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => navigate(choresPath)}
+                  className="flex items-center gap-2 w-full text-left"
+                  style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                >
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                    style={{ backgroundColor: pColor }}
+                  >
+                    {p.name[0]}
+                  </div>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--hairline)' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, backgroundColor: pColor }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold w-8 text-right tabular-nums" style={{ color: pColor }}>
+                    {pct}%
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
     </div>

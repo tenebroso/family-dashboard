@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import HeroTile from '../components/HeroTile'
 import WeatherWidget from '../components/WeatherWidget'
 import MessageWidget from '../components/MessageWidget'
-import ChoresSummaryShell from '../components/ChoresSummaryShell'
+
 import CalendarWeekWidget from '../components/CalendarWeekWidget'
 import GroceryWidget from '../components/GroceryWidget'
 import { useActivePerson } from '../contexts/PersonContext'
@@ -33,7 +33,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="dash-below">
-        <ChoresSummaryShell />
         <GroceryWidget />
       </div>
     </div>

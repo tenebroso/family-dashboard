@@ -39,6 +39,7 @@ function AppShell() {
             <Route path="/:personSlug/chores-admin" element={<ChoresAdminPage />} />
             <Route path="/:personSlug/grocery-admin" element={<GroceryAdminPage />} />
             <Route path="/:personSlug/reminders" element={<RemindersPage />} />
+            <Route path="/grocery-admin" element={<GroceryAdminPage />} />
             <Route path="/message-admin" element={<MessageAdminPage />} />
             <Route path="/:personSlug/message-admin" element={<MessageAdminPage />} />
           </Routes>
