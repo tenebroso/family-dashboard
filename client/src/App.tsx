@@ -45,6 +45,7 @@ function AppShell() {
         </main>
       </div>
       {/* <MusicBar /> */}
+      
     </AerialProvider>
   )
 }

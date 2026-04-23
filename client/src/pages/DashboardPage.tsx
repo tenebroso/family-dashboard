@@ -8,6 +8,7 @@ import CalendarWeekWidget from '../components/CalendarWeekWidget'
 import GroceryWidget from '../components/GroceryWidget'
 import { useActivePerson } from '../contexts/PersonContext'
 import type { PersonSlug } from '../contexts/PersonContext'
+import WordWidget from '../components/WordWidget'
 
 export default function DashboardPage() {
   const { personSlug } = useParams<{ personSlug: string }>()
@@ -21,11 +22,14 @@ export default function DashboardPage() {
     <div className="dash-grid">
       <div className="dash-hero">
         <HeroTile />
+         <GroceryWidget />
+         <WordWidget /> 
       </div>
 
       <div className="dash-side">
         <WeatherWidget />
         <MessageWidget />
+        
       </div>
 
       <div className="dash-week">
@@ -33,7 +37,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="dash-below">
-        <GroceryWidget />
+       
+         
       </div>
     </div>
   )

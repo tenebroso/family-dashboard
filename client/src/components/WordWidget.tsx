@@ -17,7 +17,7 @@ const WORD_QUERY = gql`
 export default function WordWidget() {
   const { data, loading } = useQuery<{ wordOfDay: { word: string; partOfSpeech: string; definition: string } }>(WORD_QUERY)
   const wod = data?.wordOfDay
-  const cardClass = useCardClass('p-4')
+  const cardClass = useCardClass('tile p-4')
 
   return (
     <div className={cardClass}>

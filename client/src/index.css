@@ -187,7 +187,7 @@ body {
   gap: var(--gap);
 }
 
-.dash-hero { grid-column: 1; grid-row: 1; }
+.dash-hero { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: var(--gap);}
 .dash-side { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: var(--gap); }
 .dash-week { grid-column: 1 / -1; grid-row: 2; }
 .dash-below { grid-column: 1 / -1; grid-row: 3; display: flex; gap: var(--gap); align-items: flex-start; }
