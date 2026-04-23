@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { useRef, useEffect, useState, FormEvent } from 'react'
+import { useRef, useEffect, useState, type FormEvent } from 'react'
 import { useActivePerson } from '../contexts/PersonContext'
 
 const MESSAGES_QUERY = gql`
@@ -55,7 +55,7 @@ function relativeTime(val: string): string {
 }
 
 export default function MessageWidget() {
-  const { data, loading } = useQuery(MESSAGES_QUERY)
+  const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY)
   const [send] = useMutation(SEND_MESSAGE, {
     refetchQueries: [{ query: MESSAGES_QUERY }],
   })

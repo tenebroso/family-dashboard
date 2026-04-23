@@ -1,0 +1,38 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: HOME
+      - generic [ref=e6]:
+        - link "Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Chores" [ref=e8] [cursor=pointer]:
+          - /url: /chores
+        - link "Calendar" [ref=e9] [cursor=pointer]:
+          - /url: /calendar
+  - main [ref=e10]:
+    - generic [ref=e11]:
+      - heading "Post a Message" [level=1] [ref=e12]
+      - paragraph [ref=e13]: This message will appear on the dashboard for everyone to see.
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: From
+          - textbox "Mom, Dad, …" [ref=e17]
+        - generic [ref=e18]:
+          - generic [ref=e19]: Message
+          - textbox "What do you want the family to see?" [ref=e20]
+          - paragraph [ref=e21]: 280 characters left
+        - generic [ref=e22]:
+          - generic [ref=e23]: Display Until (optional)
+          - textbox [ref=e24]
+        - button "Post Message" [disabled] [ref=e25]
+        - paragraph [ref=e41]: Your message is now live on the dashboard.
+      - generic [ref=e26]:
+        - paragraph [ref=e27]: Currently Active
+        - generic [ref=e42]:
+          - paragraph [ref=e43]: Soccer practice is at 4pm today — don't be late!
+          - paragraph [ref=e44]: — Mom
+          - button "Deactivate" [ref=e45]
+  - generic [ref=e33]:
+    - button "Play" [ref=e34]
+    - paragraph [ref=e40]: The Way·Fastball
+    - paragraph [ref=e38]: Today's Song

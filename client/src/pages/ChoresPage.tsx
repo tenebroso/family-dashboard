@@ -151,7 +151,7 @@ function PersonCard({ person, completed, onToggle }: {
 }
 
 export default function ChoresPage() {
-  const { data, loading } = useQuery(CHORES_QUERY, {
+  const { data, loading } = useQuery<{ people: Person[] }>(CHORES_QUERY, {
     variables: { dayOfWeek: DAY_OF_WEEK, dateKey: DATE_KEY },
   })
 

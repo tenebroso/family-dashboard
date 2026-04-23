@@ -39,7 +39,7 @@ function ThemeToggle() {
 
 export default function TopBar() {
   const navigate = useNavigate()
-  const { data } = useQuery(PEOPLE_QUERY)
+  const { data } = useQuery<{ people: Array<{ id: string; name: string }> }>(PEOPLE_QUERY)
   const names: string[] = data?.people?.map((p: { name: string }) => p.name) ?? []
 
   return (

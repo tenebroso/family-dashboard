@@ -45,7 +45,7 @@ function formatDate(val: string): string {
 }
 
 export default function MessageAdminPage() {
-  const { data, loading } = useQuery(MESSAGES_QUERY)
+  const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY)
   const [deleteMessage] = useMutation(DELETE_MESSAGE, {
     refetchQueries: [{ query: MESSAGES_QUERY }],
   })

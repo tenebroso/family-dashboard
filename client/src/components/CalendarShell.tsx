@@ -51,7 +51,7 @@ export default function CalendarShell() {
     return { start: now.toISOString(), end: end.toISOString() }
   }, [])
 
-  const { data, loading } = useQuery(CALENDAR_QUERY, { variables: { start, end } })
+  const { data, loading } = useQuery<{ calendarEvents: Array<{ id: string; title: string; start: string; allDay: boolean }> }>(CALENDAR_QUERY, { variables: { start, end } })
 
   const events: Array<{ id: string; title: string; start: string; allDay: boolean }> =
     data?.calendarEvents?.slice(0, 5) ?? []

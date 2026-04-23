@@ -15,7 +15,7 @@ const TRACK_QUERY = gql`
 `
 
 export default function MusicBar() {
-  const { data, loading } = useQuery(TRACK_QUERY)
+  const { data, loading } = useQuery<{ dailyTrack: { id: string; title: string; artist: string; url: string } | null }>(TRACK_QUERY)
   const track = data?.dailyTrack
 
   const audioRef = useRef<HTMLAudioElement>(null)

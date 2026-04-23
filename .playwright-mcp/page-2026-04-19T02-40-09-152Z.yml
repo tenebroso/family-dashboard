@@ -1,0 +1,605 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=e6]
+        - navigation [ref=e19]:
+          - generic [ref=e20]:
+            - link "About" [ref=e21] [cursor=pointer]:
+              - /url: /about
+            - link "Services" [ref=e22] [cursor=pointer]:
+              - /url: /services
+            - link "Articles" [ref=e23] [cursor=pointer]:
+              - /url: /articles
+      - link "Contact Us" [ref=e25] [cursor=pointer]:
+        - /url: /contact-us
+        - generic [ref=e26]: Contact Us
+  - generic [ref=e31]:
+    - generic:
+      - list:
+        - listitem
+    - heading "Dashboard Design UX Patterns" [level=1] [ref=e32]
+    - generic [ref=e33]: January 2, 2025
+    - list [ref=e35]:
+      - listitem [ref=e36]:
+        - generic [ref=e38]: Fanny Vassilatos
+      - listitem [ref=e39]:
+        - generic [ref=e41]: Ceara Crawshaw
+  - generic [ref=e45]:
+    - generic [ref=e49]:
+      - link "Example H2" [ref=e50] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e51]: Example H2
+      - link "Example H3" [ref=e53] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e54]: Example H3
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - paragraph [ref=e57]: Whether it’s for analytical, operational or strategic purposes, being able to interpret the right information at a glance is pivotal for teams and departments of all sizes. When designing a data dashboard for your own enterprise product, your team needs to be very intentional about what data points get showcased. Make no mistake, data dashboard UX is tricky, but hopefully we can help. In this article we’ll share the dashboard design UX best practices we’ve learned over the years.
+        - heading "Why does dashboard design matter?" [level=2] [ref=e58]
+        - paragraph [ref=e59]: A product’s dashboards* serve a critical purpose in exposing key data and actionable insights – effectively exposing what’s under the hood in a way that’s useful. With data and by extension AI, being more and more relevant in our modern world, dashboards serve to extend the possibilities of what can be achieved through our use of software.
+        - paragraph [ref=e60]:
+          - text: "*"
+          - strong [ref=e61]: dashboards
+          - text: – the term dashboards is often synonymous with the concept of a homepage in an application or even any experience where there is a sprinkle of data vis (to an entire user experience centred around data and information).
+        - paragraph [ref=e62]: In this article we attempt to lay out the types of dashboards and identify them as different types of experiences, at any rate, make sure you clarify with the team you're working with what "the dashboard" actually is that everyone is talking about.
+        - heading "Why are dashboards relevant to enterprise software?" [level=2] [ref=e63]
+        - paragraph [ref=e64]: "In data-heavy platforms, a common pain point is navigating multiple data sources and disjointed systems. Dashboards can unite those systems together and provide a global overview. Dashboards offer an at-a-glance snapshot and prevent users from having to check 10,000 screens just to “know what’s up”. In summary:"
+        - list [ref=e65]:
+          - listitem [ref=e66]: ⭐ They amalgamate multiple data sources to give us a clearer picture of what’s going on
+          - listitem [ref=e67]: ⭐ They visualize data so we can sense the dynamics between different things
+          - listitem [ref=e68]: ⭐ They are typically quite efficient representations of systems which helps to manage things
+        - heading "Dashboards are challenging" [level=2] [ref=e69]
+        - paragraph [ref=e70]: "To be crystal clear, designing excellent dashboards is a very complex process which is super difficult to get right, even when you’re using all the best UX practices. There are a lot of barriers and parts that make it difficult. To name a few:"
+        - list [ref=e71]:
+          - listitem [ref=e72]:
+            - strong [ref=e73]: Data-wise
+            - text: – It’s difficult to understand the data model and the state of the data in its entirety – this is especially true when data varies from customer to customer – this means that you need to protect for a lot of edge cases
+          - listitem [ref=e74]:
+            - strong [ref=e75]: User testing
+            - text: – in our experience, we’ve had some difficulty with conducting user testing with figma prototypes, because the data we fudge doesn’t really reflect the participants dataset, so recognizing issues with it is a much higher cognitive lift. Alternatively pairing with developers to build stuff if you have a setup like that where tapping into real data is possible, that’s ideal. It doesn’t protect necessarily for the data-similarity issue, but it does made the visualizations more realistic overall which can really help improve the user testing insights
+          - listitem [ref=e76]:
+            - strong [ref=e77]: Technical challenges
+            - text: – Using out-of-the-box libraries is very typical for dashboards, which is often the only realistic approach to take as an org. With that, inevitably there are things that aren’t possible and unexpected constraints you didn’t know would show up…. You know gotchas!
+          - listitem [ref=e78]:
+            - strong [ref=e79]: Performance
+            - text: – sometimes the experience is undermined by performance drama, where these massive datasets need to do a ton of computing on the fly or it’s just difficult to render things on the front end, giving you a choppy feeling as you navigate things
+        - generic [ref=e82]:
+          - text: If you’re working on any data-rich experience check out our
+          - link "Data Mapping Workshop" [ref=e83] [cursor=pointer]:
+            - /url: https://www.pencilandpaper.io/product/enterprise-data-mapping-workshop
+          - text: (it's our secret weapon to making great dashboards, filters and tables!)
+        - heading "Things to consider for your dashboard UX design" [level=2] [ref=e84]
+        - paragraph [ref=e85]: Follow these prompts along with your team as you embark on tackling your dashboard UX design. These prompts should help you think about how you want to apply dashboard best practices to your specific scenario.
+        - paragraph [ref=e86]:
+          - strong [ref=e87]: Is the data clean enough?
+          - text: The very first thing you get to do is a data architecture analysis. Sounds fancy? But really, just sit down with your
+          - emphasis [ref=e88]: brainiest
+          - text: "peeps, look at your data structure, have a chat with your DBA. What data do you even have? Is the data maintainable? Is the metadata consistent and scalable? Start with prompts like these:"
+        - list [ref=e89]:
+          - listitem [ref=e90]: Is the data tracked over time?
+          - listitem [ref=e91]: How much historical data do we have? (years, months etc)
+          - listitem [ref=e92]: Can we calculate if/when statements to create insights?
+        - paragraph [ref=e93]:
+          - strong [ref=e94]: Map out user context
+          - text: As much as it would be nice to design a dashboard for each persona, that wouldn’t be very efficient. Find the overlaps and divergences.
+          - text: If the divergences are small enough, creating multiple unique versions might not be necessary. But if they are large, you should consider catering to separate personas.
+          - text: Aim to keep it global at first (default state) + allow for granularity with interactions (see below).
+        - paragraph [ref=e95]:
+          - strong [ref=e96]: Uncover the data structure and details
+        - paragraph [ref=e97]:
+          - text: Work with a data expert to answer the right questions early in the process. Interestingly, the details here matter and there's a set system you can follow to uncover those vital details - saving time and surprises down the road. Our
+          - link "Data Mapping Workshop" [ref=e98] [cursor=pointer]:
+            - /url: /product/enterprise-data-mapping-workshop
+          - text: outlines a foolproof and efficient process for doing just this!
+        - generic [ref=e100]:
+          - generic [ref=e101]: ✅ 📊 Eliminate the difficulty by 50%
+          - generic [ref=e102]:
+            - text: Over and over, we found ourselves having bit "gotchas" when designing dashboards, filters, tables - anything "data-ish" - all because we found out key info late in the process. We created a system that solves for that. Dig in and discover more about our
+            - link "Data Mapping Workshop" [ref=e103] [cursor=pointer]:
+              - /url: "#"
+            - text: ", you'll thank yourself later!"
+        - paragraph [ref=e104]:
+          - strong [ref=e105]: Determine dashboard design goals
+          - text: What are users expecting to do with that screen? What questions do they need the dashboard to answer?
+        - list [ref=e106]:
+          - listitem [ref=e107]: What needs their attention?
+          - listitem [ref=e108]: What do they need to report on?
+          - listitem [ref=e109]: What deserves a spot on the dashboard?
+          - listitem [ref=e110]: What are the most global metrics that deserve higher visibility?
+          - listitem [ref=e111]: What needs to be visualized?
+          - listitem [ref=e112]: What personas/scenarios does this dashboard need to be catered to?
+        - paragraph [ref=e113]:
+          - strong [ref=e114]: Figure out what key actions will be executed there —prioritize warnings and actionable items
+          - text: In order to offer an experience that is informative at the overview level, you need to be very aware of what users are looking for. You can always allow them to drill down but be sure you surface the key stuff they can take action on, and any warnings they should quickly be made aware of.
+        - paragraph [ref=e115]:
+          - strong [ref=e116]: Find out what is taking the most time for users to compile
+          - text: Try to prioritize which charts will actually make it to the dashboard. For this, you need a good understanding of your typical user personas, what are they currently doing to obtain this information? Of these things, which ones do they do every day? Versus once a month or once a quarter?
+          - text: To do this, try a workflow mapping exercise with your users, or you can learn a lot by reviewing their internal spreadsheets or reports.
+          - text: This can help guide the selection process of what to actually show on the dashboard. When personas are very differentiated, this can warrant creating multiple versions of the dashboard.
+        - paragraph [ref=e117]: ‍
+        - paragraph [ref=e118]: ‍
+        - figure [ref=e119]:
+          - iframe [ref=e121]:
+            
+        - paragraph [ref=e122]:
+          - text: 👀 Have a look at our
+          - link "Data Mapping Workshop" [ref=e123] [cursor=pointer]:
+            - /url: https://www.pencilandpaper.io/product/enterprise-data-mapping-workshop
+          - text: to find out more.
+        - heading "Types of dashboard experiences and use cases" [level=2] [ref=e124]
+        - paragraph [ref=e125]: Dashboards can be very ‘view only’ or they can be deeply interactive and integrated into how users achieve their goals. At an abstraction level, you can think of a dashboard as a page with some data visualization in there, because they are wildly diverse.
+        - paragraph [ref=e126]:
+          - strong [ref=e127]: Reporting
+          - text: This is a comprehensive or overview content, often serves to amalgamate data all together. Often you see an export function and/or share functionality. The point of it is to tell a story with data.
+        - paragraph [ref=e128]: Ex. quarterly earnings data
+        - paragraph [ref=e129]:
+          - strong [ref=e130]: Monitoring
+          - text: This functions to alert and warn users. This is a more living, breathing type of dashboard, where data may be live and ticking away in realtime. The point of this dashboard is to alert people to problems and anomalies.
+        - paragraph [ref=e131]: Ex. monitoring a fleet of smart devices or web uptime/downtime
+        - paragraph [ref=e132]:
+          - strong [ref=e133]: Exploring and discovery
+          - text: This functions to give users a means to discover data and infer insights. Here, playing with the data, drilling into it, exploring around is the focus. The point of this type of dashboard is to give users flexible means to find out new things.
+        - paragraph [ref=e134]:
+          - text: Ex. Open data experiences like Our World in Data, example
+          - link "Mental Health" [ref=e135] [cursor=pointer]:
+            - /url: https://ourworldindata.org/mental-health
+        - paragraph [ref=e136]:
+          - strong [ref=e137]: Functional and integrated
+          - text: This functions to guide users towards where they need to focus. It’s a less urgent version of a monitoring dashboard and might show much less information. The point of this type of dashboard is to show users where they might need to focus.
+        - paragraph [ref=e138]: Ex. a project management tool showing “at risk” tasks in a queue
+        - paragraph [ref=e139]:
+          - strong [ref=e140]: Product home page
+          - text: This functions as a contextual index of sorts. It’s more about giving an overview as well as serving as a navigation, this is super common in enterprise software. The point of this type of dashboard is to give users context before they navigate somewhere.
+        - paragraph [ref=e141]: Ex. a SaaS application for marketing which shows you main sections like leads and sales with totals and deltas
+        - generic [ref=e145]:
+          - text: Data Dashboard Design Service
+          - text: Sick of fumbling through iterations and still overwelming and underwelming your users? We work with B2B SaaS companies and others working to deliver great data-rich user experiences. Explore our
+          - link "Dashboard UX service" [ref=e146] [cursor=pointer]:
+            - /url: /services/data-dashboard
+          - text: .
+        - heading "Anatomy of dashboard UX" [level=2] [ref=e147]
+        - figure [ref=e148]:
+          - generic:
+            - img "hand-drawn simplified dashboard screens. First one showing a filters area as a left sidebar, navigation as a top bar, and a content area made of sections. Second one showing the zoomed-in content area and separate sections made of modules. Third one showing a zoomed-in module made of data, line chart and key numbers"
+        - paragraph [ref=e149]:
+          - text: Ok friends, here’s where we start to both zoom in AND zoom out on the whole experience of a dashboard. The experience of using a dashboard isn’t just looking at some charts, it involves
+          - link "interactions" [ref=e150] [cursor=pointer]:
+            - /url: /articles/microinteractions-ux-interaction-patterns
+          - text: and key moments during your experience that you need to factor into your dashboard design. We’re applying a lens of the moment-to-moment experience within a dashboard experience, so we can appreciate not JUST the graphs and charts, but everything surrounding them.
+        - heading "Navigation" [level=3] [ref=e151]
+        - paragraph [ref=e152]:
+          - strong [ref=e153]: AKA Getting there.
+          - text: Without getting into the ins and outs of navigation (we’ve written an in-depth article on this topic already for you to peruse). It’s important to appreciate the state of mind and expectations set, prior to the person engaging with your dashboard at all. Don’t forget this part of the journey.
+        - figure [ref=e154]:
+          - generic:
+            - img "Dashboard with navigation on the left and selected state on the item selected"
+        - generic [ref=e156]:
+          - generic [ref=e157]: "We recommend:"
+          - list [ref=e158]:
+            - listitem [ref=e159]:
+              - generic [ref=e160]:
+                - text: Following
+                - link "navigation patterns and best practices" [ref=e161] [cursor=pointer]:
+                  - /url: https://pencilandpaper.io/articles/ux-pattern-analysis-navigation/
+                - text: – so that when people reach the dashboard experience they are at an advantage compared to a disadvantage – brain cells shouldn’t be wasted on weird nav, especially when you have data to analyze
+        - heading "Getting Oriented" [level=3] [ref=e162]
+        - paragraph [ref=e163]:
+          - strong [ref=e164]: AKA figuring out what you’re looking at.
+          - text: "Upon navigating to the page itself. This is the moment where the user viewing this page does the mental lift of figuring out: what the page is for, what it’s showing me, what it’s meant to do, if they can achieve their task or their goal here or not."
+        - figure [ref=e165]:
+          - generic:
+            - img "Dashboard with large hero section with a title and description"
+        - generic [ref=e167]:
+          - generic [ref=e168]: "We recommend:"
+          - list [ref=e169]:
+            - listitem [ref=e170]:
+              - generic [ref=e171]: A clear page title – so people can immediately know what the point of the page is overall
+            - listitem [ref=e172]:
+              - generic [ref=e173]: A clear description of the page – so people can understand what they can do there
+        - figure [ref=e174]
+        - generic [ref=e176]:
+          - generic [ref=e177]: "We recommend:"
+          - list [ref=e178]:
+            - listitem [ref=e179]:
+              - generic [ref=e180]: Charts and graphs are conceptually grouped together – so that people can understand what should be considered together and separately. When there’s just “a bunch of data” people can feel alienated and disoriented.
+        - figure [ref=e181]
+        - generic [ref=e183]:
+          - generic [ref=e184]: "We recommend:"
+          - list [ref=e185]:
+            - listitem [ref=e186]:
+              - generic [ref=e187]: When you’re at that first layer of discovery, you want to help people understand what the chart contains and where it can lead them, so overview type of charts can be a great place to start
+            - listitem [ref=e188]:
+              - generic [ref=e189]: "Defaults are chosen for all your charts which don’t show #allthethings by default which are appropriate for the audience (this is tricky work and key to creating high quality interactions) – just because you have the data, doesn’t mean it should be shown"
+        - figure [ref=e190]
+        - generic [ref=e192]:
+          - generic [ref=e193]: "We recommend:"
+          - list [ref=e194]:
+            - listitem [ref=e195]:
+              - generic [ref=e196]: Jargon is explained via tooltips and other forms of descriptions – people shouldn’t have to put on their Sherlock Holmes hat and launch an investigation everytime they look at your interface
+        - paragraph [ref=e197]:
+          - text: Don’t forget to include any
+          - strong [ref=e198]: loading feedback
+          - text: and
+          - strong [ref=e199]: empty states
+          - text: that might apply to the page – this can easily be omitted or forgotten, but missing out on this gives your experience the vibe of a rackety chair as opposed to an ergonomic delight with lumbar support, if you catch our drift.
+        - paragraph [ref=e200]: p.s. Are you seeing just how many considerations you need to consider when making a high-quality interactive experience? Yowza. No wonder you’re tired.🍪🛏️
+        - heading "Filtering and parsing the data" [level=3] [ref=e201]
+        - paragraph [ref=e202]:
+          - strong [ref=e203]: AKA finding and discovering information
+          - text: . There’s a lot to the
+          - link "filtering" [ref=e204] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/filtering-a-data-table-while-editing/
+          - text: of the data itself, which you’ll need to dig into the UX best practices for and really give it some attention.
+        - figure [ref=e205]:
+          - generic:
+            - img "Dashboard showing filters on the left with prioritized filter categories"
+        - generic [ref=e207]:
+          - generic [ref=e208]: "We recommend:"
+          - list [ref=e209]:
+            - listitem [ref=e210]:
+              - generic [ref=e211]: Prioritize the filters presented by default to be super useful
+        - figure [ref=e212]
+        - generic [ref=e214]:
+          - generic [ref=e215]: "We recommend:"
+          - list [ref=e216]:
+            - listitem [ref=e217]:
+              - generic [ref=e218]:
+                - text: Don‘t forget
+                - link "loading ux" [ref=e219] [cursor=pointer]:
+                  - /url: /articles/ux-pattern-analysis-loading-feedback/
+                - text: considerations, it’s key to understanding that the system is working, more details on how to do this in our loading article
+        - paragraph [ref=e220]: ‍
+        - heading "Drilling into information" [level=3] [ref=e221]
+        - paragraph [ref=e222]:
+          - strong [ref=e223]: AKA Digging deeper.
+          - text: Drilling further into the information to reveal more detail, reference something or double-check information is an important part of the experience in a dashboard. This is the part where users are free to explore more and discover and really “use” the data. If people want more, that’s usually a good sign.
+        - figure [ref=e224]:
+          - generic:
+            - img "Dashboard wireframe showing flow of opening overlay drawer or navigating to a details page"
+        - heading "Drawer pattern" [level=4] [ref=e225]
+        - paragraph [ref=e226]: This pattern allows a lot of flexible space to present information without having to exit the context you’re currently in.
+        - figure [ref=e227]:
+          - generic:
+            - img "Dashboard design showing pop out drawer with metadata and actions"
+        - heading "Details page" [level=4] [ref=e228]
+        - paragraph [ref=e229]: This pattern allows you to house a whole bunch of details in an entire view, which in and of itself could have dashboard-like qualities! But let’s not get crazy.
+        - figure [ref=e230]:
+          - generic:
+            - img "Dashboard design with table view showing totals at the top"
+        - heading "Executing actions" [level=3] [ref=e231]
+        - paragraph [ref=e232]:
+          - strong [ref=e233]: AKA getting tasks done.
+          - text: Dashboards, like the rest of your software, need to get stuff done. As such, you need to account for this in your dashboard experience. For dashboards, they might have simple interactions, like say an “export” button, for others you might be executing something more complex, say like pushing a software update to specific instances or something like that.
+        - figure [ref=e234]:
+          - generic:
+            - img "Dashboard design table view showing multi-select rows and action button"
+        - paragraph [ref=e235]: ‍
+        - generic [ref=e237]:
+          - generic [ref=e238]: "We recommend:"
+          - list [ref=e239]:
+            - listitem [ref=e240]:
+              - generic [ref=e241]: Interaction feedback – use success and error feedback as needed (we suggest brushing up on these patterns)
+            - listitem [ref=e242]:
+              - generic [ref=e243]: Multi-select – make sure that multiselect interactions are obvious and have appropriate affordances which you can’t miss.Consider if the best way to show feedback is contextualized or more global.
+            - listitem [ref=e244]:
+              - generic [ref=e245]: Prioritize actions – make the most important the most noticeable and the least important, the least noticeable
+            - listitem [ref=e246]:
+              - generic [ref=e247]: For multiple actions, they can be housed in a dropdown button (see more on table actions and high quality interactions)
+        - paragraph [ref=e248]: Now that we’ve reviewed dashboard experiences in a holistic way, now it’s time to dig in more into the data visualization, layouts, cards and the like. Let’s go!
+        - paragraph [ref=e249]: ‍
+        - heading "Bring in the professionals" [level=2] [ref=e250]
+        - paragraph [ref=e251]: Now, if you're a small team and data is central to your experience, it may be obvious at a certain point that incorporating data science, user complexity, interaction design, visual design and user testing all by yourself isn't working, or isn't working fast enough. In a word, you're under-resourced, but the stakes are high and getting your dashboard right is of great consequence to your business.
+        - paragraph [ref=e252]:
+          - text: Even some of the best designers and best data scientists in the world have an enormous challenge of making data make sense. On top of that, user expectations for great data experiences are only increasing. Perhaps it's time to consider shying away from the DIY approach to designing dashboards and call in the rare experts that can get it done. Explore our
+          - link "data dashboards UX service" [ref=e253] [cursor=pointer]:
+            - /url: /services/data-dashboard
+          - text: and see how we can whip your experience into shape in no time.
+        - paragraph [ref=e254]: ‍
+        - heading "Layout UI patterns for dashboards" [level=2] [ref=e255]
+        - heading "Intuitive page layout" [level=3] [ref=e256]
+        - paragraph [ref=e257]: Dashboard UX design and UI are very closely related. On such a critical page, you need to optimize content placement for the way your users will scan the page. This key page acts as a homebase with strategic entry points into more granular flows. Users should be able to click a module or chart and enter a dedicated page for that data type.
+        - paragraph [ref=e258]: To optimize that behaviour, consider the typical eye-scanning patterns that are true for web pages. For left-to-right (LTR) language speakers, those would be the F and Z patterns.
+        - paragraph [ref=e259]: The F shape suggests that the eye will naturally get drawn to the top-left corner at first and then scan horizontally, before zig-zagging (that’s the Z) down the page, again starting from left to right for the following sections or rows.
+        - figure [ref=e260]:
+          - generic:
+            - 'img "hand-drawn simplified dashboard screen in purple with directional lines in pink starting from #1 in the top left corner, going across to the top right of the page, then diagonally down to #2 middle-left, going towards the right but stopping mid-page, going diagonally down to #3 bottom-left and then a little further to the right"'
+        - paragraph [ref=e261]:
+          - emphasis [ref=e262]: Eye-tracking research shows that users tend to scan webpages in “F” and “Z” shapes
+        - paragraph [ref=e263]: Since the top left area gets more attention, that’s where you want to showcase the most global numbers, or the most relevant data.
+        - paragraph [ref=e264]: You’ll want to structure your charts and graphs into related sections going top-down. Starting of course with the most important at the top, following with a global overview in the middle, and wrapping up with a more detailed breakdown at the bottom.
+        - paragraph [ref=e265]: Research around the F pattern proves that the further down users get on a page, the less they scan the full width of the row. So again, make sure to stick the important stuff on the left side.
+        - heading "Consistent card layout" [level=3] [ref=e266]
+        - paragraph [ref=e267]: Card layouts are very common for data dashboards and come in many shapes and sizes. A card layout doesn’t mean all your charts are visually enclosed in a distinct “div”. It just means that your charts and graphs are treated the same way, consistently placed along their title, labels, legend and other accessories.
+        - figure [ref=e268]:
+          - generic:
+            - 'img "Examples of styles of cards containing title, line chart and legeng: Floating with no background, Card with white background and rounded corners, Title accent with bold full-width coloured line underneath title"'
+        - paragraph [ref=e269]: You’ll want to study the best way to layout your graphs inside their cards. Make sure you decide on a solution that can allow for different types of graphs, and that leaves room for recurring elements like key values, date pickers and legends.
+        - paragraph [ref=e270]: Here, consistency is key. You’ll help your users a lot if they can quickly find the title on the top left of each module, or the legend always at the bottom center. That’ll help reduce visual noise when they scan the page.
+        - figure [ref=e271]:
+          - generic:
+            - img "Bar chart, line chart and pie chart, laid out in cards of various sizes all with title in the top left, date picker in the top right, and legend at the bottom"
+        - heading "Chart UX patterns you can use" [level=2] [ref=e272]
+        - paragraph [ref=e273]: Now that you’ve nailed down the page structure that works best for your users and your data, let’s zoom in a little and explore ways to elevate the charts and graphs you present in your dashboard.
+        - paragraph [ref=e274]:
+          - text: "Think of it this way: how much"
+          - emphasis [ref=e275]: extra love
+          - text: do your out-of-the-box graphs deserve? Of course a lot of the patterns mentioned below come for free with your typical chart library but do the work of determining which small tweaks need to be brought to elevate your data and better meet the user needs.
+        - heading "Use of colour" [level=3] [ref=e276]
+        - paragraph [ref=e277]: Smart use of colour is a very elegant way to provide additional meaning to the data. How might we go beyond the basic language of red-yellow-green for bad-neutral-good?
+        - figure [ref=e278]:
+          - generic:
+            - img "Red colour square Negative, Yellow colour square Neutral, Green colour square Positive"
+        - paragraph [ref=e279]: Some of your charts might benefit from a secondary palette like different shades of, say, your brand colour to express levels of intensity. Higher values could indicate larger quantities or densities, and lower values smaller ones.
+        - figure [ref=e280]:
+          - generic:
+            - img "Rectangular scale of colour samples going from 10 - light purple to 100 - almost black, with Brand Colour being pointed to number 40"
+        - paragraph [ref=e281]:
+          - emphasis [ref=e282]: Using variations of the same colour to represent levels of intensity
+        - paragraph [ref=e283]: Other classics if your page is already filled with stoplights are blues to indicate positive values, and oranges for negative trends.
+        - figure [ref=e284]:
+          - generic:
+            - img "sample of three shades of blue and a blue line chart trending up with caption Blues Positive trend. Sample of three shades of orange and an orange line chart trending down with caption Oranges Negative trend"
+        - paragraph [ref=e285]:
+          - emphasis [ref=e286]: Blues and oranges provide the same levels of vibrancy and contrast as greens and reds, without your UI feeling like a trading terminal
+        - paragraph [ref=e287]: When exploring colours, it’s important to keep accessibility in mind. To ensure good visibility, make sure the colours you choose have high enough contrast against your background colour.
+        - heading "Lines, fills and textures" [level=3] [ref=e288]
+        - paragraph [ref=e289]: Again with accessibility in mind, it’s considered best practice not to rely on colour alone. Look for ways to add some hashes or texture in your fills and your legends.
+        - figure [ref=e290]:
+          - generic:
+            - img "Base colour and variations by adding a dot grid, vertical lines, horizontal lines, line grid, diagonal lines to the right, diagonal lines to the left, diagonal grid"
+        - paragraph [ref=e291]:
+          - emphasis [ref=e292]: We can build a lot of variety from a single base colour
+        - paragraph [ref=e293]: The same holds true for lines. A line chart with a bunch of solid lines in different colours can quickly become hard to interpret. You can add in a variety of styles of dotted lines.
+        - figure [ref=e294]:
+          - generic:
+            - 'img "sample of various dotted line styles: dots, dashes, wider gaps, dashes & dots, variable dash length, solid"'
+        - paragraph [ref=e295]:
+          - emphasis [ref=e296]: Increase accessibility with dotted and dashed lines
+        - paragraph [ref=e297]: ‍
+        - blockquote [ref=e298]:
+          - text: 👋 If this is all A LOT and you've been trying to "just figure it out" with a tiny team, we can help you get a great new version out the door in no time, check out our
+          - link "UX services" [ref=e299] [cursor=pointer]:
+            - /url: /services
+          - text: and
+          - link "dashboard design services" [ref=e300] [cursor=pointer]:
+            - /url: /services/data-dashboard
+          - text: for more info.
+        - paragraph [ref=e301]: ‍
+        - heading "Deltas" [level=3] [ref=e302]
+        - paragraph [ref=e303]: "Deltas are used to showcase differences (aka: diffs). When relevant, make sure your charts bring forward consistent deltas to your users. They can be relative (% change since same day last month) or absolute (absolute difference compared to global average). Deltas should catch the eye and be quick and easy to make sense of."
+        - figure [ref=e304]:
+          - generic:
+            - 'img "collage of various types of deltas: Icon first has a colour indicator red yellow green, an icon trending up flat or down and the percentage change; Textual has a small arrow icon trending up flat or down and a natural language label; Inline is displayed inside a table row with percentage change on top of small coloured dot red green yellow with pale label"'
+        - paragraph [ref=e305]:
+          - emphasis [ref=e306]: Deltas are either positive, neutral (little to no change), or negative
+        - paragraph [ref=e307]: A typical way to present deltas in the context of graphs is to allow users to select from a few options.
+        - figure [ref=e308]:
+          - generic:
+            - 'img "line chart in a card layout with a delta dropdown in the top right corner where options are selectable: compare to last week, last month, last year, industry"'
+        - heading "Responsiveness" [level=3] [ref=e309]
+        - paragraph [ref=e310]: When adapting your dashboard UX design for mobile, the first question to ask is whether all the information is relevant for your users’ “on-the-go” scenarios. Try to understand what they need to see when they’re not sitting at their desk. Chances are they don’t need it all and you’ll save yourself a whole lot of work.
+        - paragraph [ref=e311]: Maybe only display that top section, the most important or global data, and fit it in a vertical layout instead?
+        - figure "A stacked bar chart in its desktop horizontal version" [ref=e312]:
+          - generic:
+            - img "stacked bar chart in a horizontal layout where hovering on a colour from one bar highlights the same colour in all bars"
+          - emphasis [ref=e314]: A stacked bar chart in its desktop horizontal version
+        - paragraph [ref=e315]: ‍
+        - figure "The same stacked bar chart adapted to a vertical layout for mobile" [ref=e316]:
+          - generic:
+            - img "mobile dark interface showing vertical layout for a bar chart"
+          - generic [ref=e317]: The same stacked bar chart adapted to a vertical layout for mobile
+        - paragraph [ref=e318]: ‍
+        - figure [ref=e319]:
+          - generic:
+            - 'img "mobile dark interface showing a blurred bar chart with white text on top: \"this chart is better viewed on a larger screen, try rotating your device into landscape mode"'
+        - paragraph [ref=e320]: ‍
+        - paragraph [ref=e321]: There’s also no harm in indicating that this page or a particular chart is better experienced on a larger screen, or to encourage them to flip their mobile in landscape mode.
+        - heading "Data labels on charts" [level=3] [ref=e322]
+        - paragraph [ref=e323]: In general, labels are central to excellent UX design, dashboard design is no exception. When dealing with large timescales or datasets, negotiating space might become a bit tricky. Angled labels typically work well, but there’s always a limit. You should account for those edge cases early and pre-determine the logic to use once the threshold gets surpassed.
+        - paragraph [ref=e324]: "There are different ways to navigate label length. Determine in advance how you want long labels to behave. How many characters can you display without it feeling too bloated? How do you want to manage ellipses to best serve your users? For example, deciding to crop the ending versus the middle of a label? “September 19” truncated to 6 characters can become: “Septem…” or “Sept… 19”; which one conveys the most information?"
+        - paragraph [ref=e325]: "If space really becomes an issue, remember: not everything has to be visible at all times. The visual of the chart itself should communicate the majority of the insight. So don’t hesitate to hide some labels altogether and leverage tooltips in these denser views where more specific labels could appear only on hover."
+        - figure [ref=e326]:
+          - generic:
+            - img "line chart showing a lot of x-axis labels one per week and per month and per quarter very dense barely legible"
+        - figure [ref=e327]:
+          - generic:
+            - img "line chart with fewer x-axis labels shown by default only one label per quarter instead of per month"
+        - paragraph [ref=e328]:
+          - emphasis [ref=e329]: Here we’ve got one endpoint per week, but only display labels for Quarters to provide the high-level trends & projections
+        - paragraph [ref=e330]: You can prevent some of these issues by limiting the length of the selectable filters or date range to ensure users can only select as much as the viewport can offer.
+        - paragraph [ref=e331]: Finally, there’s always the option of coding a horizontal scroll. But for this, watch out for where the scrollbar will appear and account for the room it’ll take up!
+        - heading "Typography & hierarchy" [level=3] [ref=e332]
+        - paragraph [ref=e333]:
+          - text: When looking at trendy
+          - emphasis [ref=e334]: dribbbl-y
+          - text: dashboards, we often see big bold numbers in a stylish display font. When done well, these typographic accents can really help the functionality of your dashboard. They do a great job at catching the eye. If you’ve done your research and identified the right numbers to accentuate this way, it demonstrates confidence and decisiveness.
+        - figure [ref=e335]:
+          - generic:
+            - img "dashboard interface with beige background colour and dark green accents where key numbers are shown in a very bold and larger font size"
+        - paragraph [ref=e336]: From the user’s perspective, it means you’ve done your job, you know what your users are looking for and you’ve made sure the system is effectively keeping track of these data points. All-around trust-builder. And karma points.
+        - heading "Interactive graphs and charts" [level=2] [ref=e337]
+        - paragraph [ref=e338]: Okay, now that our charts and graphs are neat and consistent inside their page structure, let’s look at interactions we can offer our users.
+        - paragraph [ref=e339]: To avoid barraging the user with data, you can borrow some of the concepts of progressive disclosure. Offering gentle reveals and visual emphasis upon the user’s request really helps mitigate overwhelm and confusion. Here are a few interactive UX patterns that embrace those principles.
+        - heading "Tooltips & hover states" [level=3] [ref=e340]
+        - paragraph [ref=e341]: Hover states are the perfect way to hide that secondary layer of detail while avoiding visual noise. Since the goal of the dashboard is to provide an at-a-glance snapshot, the visual of bars or lines should be enough for users to sense the trends. But revealing additional detail upon hover is a great use of progressive disclosure. That way your users can leverage it when needed, and it doesn’t clutter the page by default.
+        - figure [ref=e342]:
+          - generic:
+            - img "Colourful stacked bar chart where hovering on legend items highlights the related colour in each bar"
+        - heading "Toggling variables" [level=3] [ref=e343]
+        - paragraph [ref=e344]: Another interaction that could be relevant for some of your charts is the turning on and off of certain variables. Let’s say the default view of a line chart presents 7 different lines. It might be useful for the user to hide some of those endpoints so they can focus on comparing a smaller selection.
+        - paragraph [ref=e345]: This can be implemented by making your legend items into a checkbox list.
+        - figure [ref=e346]:
+          - generic:
+            - img "Part of a dashboard screen where deselecting items from a table view affects the number of lines visible in the data chart above"
+        - heading "Filters within dashboards" [level=3] [ref=e347]
+        - generic [ref=e350]:
+          - text: 🥅 We wrote a full
+          - link "piece on filtering" [ref=e351] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/user-experience/ux-pattern-analysis-enterprise-filtering/
+          - text: targeted to enterprise software needs, have a look!
+        - paragraph [ref=e352]: In short, you can offer your users a full-page filter sidebar (or horizontal bar for that matter) but this means the filter selection affects the whole page —i.e. every single chart at once. It’s always useful to have filters always accessible; consider a fixed header for users to easily initiate them as they navigate the page.
+        - paragraph [ref=e353]: Another option is to have smaller filter options inside each module or section. That way, users can be specific in what they want to see. They could filter the top section by location, and then select a specific date range for the middle section.
+        - heading "Custom personalized dashboard pattern examples" [level=3] [ref=e354]
+        - paragraph [ref=e355]: Now, if you really want to go all out and you know from your users that the dashboard is where they spend most of their time, you might want to build some customization options.
+        - paragraph [ref=e356]: This can take many shapes. You could allow them to move modules around, and reorganize the order of the sections by drag-and-dropping. (Fancy!) You can also let them hide and show some sections.
+        - paragraph [ref=e357]: You might even want to consider integrating a custom “build your own dashboard” flow in the onboarding UX. That way, they get to explicitly pick the endpoints they want to see and they get to make it as minimal or as complex as they wish.
+        - figure "Example of Jira’s Create Dashboard flow. You get to pick Gadgets and organize them inside a module layout" [ref=e358]:
+          - generic:
+            - img "Jira example of adding gadgets to a new dashboard and rearranging the layout"
+          - emphasis [ref=e360]: Example of Jira’s Create Dashboard flow. You get to pick Gadgets and organize them inside a module layout
+        - paragraph [ref=e361]: ‍
+        - heading "Common dashboard UX problems" [level=2] [ref=e362]
+        - heading "Density disjoint problem" [level=3] [ref=e363]
+        - paragraph [ref=e364]:
+          - text: The data eyeball attack🫣 – It’s like a wall of text, but make it data. This is where density of the data makes users run for the hills – there’s a lot, and technically it’s impressive, but the density isn’t appropriate for those outside of the role of “data scientist” or “data analyst”.
+          - strong [ref=e365]: If there’s some room to integrate a visual break, an extra serving of whitespace or just a little bit less shown by default, why not try it out and see what your crew thinks.📏
+        - paragraph [ref=e366]:
+          - text: 🖇️ More on solutions to this in
+          - link "Typography & hierarchy" [ref=e367] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/ux-pattern-analysis-data-dashboards/#typography-hierarchy
+        - heading "Data seems random and unfocused" [level=3] [ref=e368]
+        - paragraph [ref=e369]:
+          - text: "This happens when the general attitude on the team is this: We have it, so why not show it? This sounds great in theory, but in practice, this shows serious diminishing returns, as more and more charts serve to destabilize users, as they assume if it’s present, then it must be important. The hard work of information architecture is what actually makes a data dashboard experience great, not the fact that there’s a BUNCH of charts."
+          - strong [ref=e370]: Next time you CAN put another chart in, ask yourself, is this going to be really useful? 🧐..AKA ask yourself, does this spark joy?” 😉
+        - paragraph [ref=e371]:
+          - text: 🖇️ More on solutions to this in
+          - link "Toggling variables" [ref=e372] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/ux-pattern-analysis-data-dashboards/#toggling-variables
+        - heading "Comparisons and baselines are lacking" [level=3] [ref=e373]
+        - paragraph [ref=e374]:
+          - text: Even with well-designed and used dashboards, you can still get the feedback that “this is just a bunch of data”, which is fair enough. Have you ever tried to estimate story points (in an agile team) without a frame reference around your estimate (1,3,5,8 etc). What about when you compare it to a previous story, it becomes much easier. In the data world, our cognitive landmarks (like average or target numbers) can really help us to gauge where we are and what we’re looking at.
+          - strong [ref=e375]: If you get the feedback “this is a lot of numbers”, apply the lens of comparison and see if that helps.🍏🍊
+        - paragraph [ref=e376]:
+          - text: 🖇️ More on approaching solutions to this in
+          - link "Deltas" [ref=e377] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/ux-pattern-analysis-data-dashboards/#deltas
+          - text: .
+        - figure "This is GA4, Google’s new iteration of Analytics. The acronym DAU / MAU is not defined" [ref=e378]:
+          - generic:
+            - img "Dashboard design example from GA4 without acronym labels"
+          - emphasis [ref=e380]: This is GA4, Google’s new iteration of Analytics. The acronym DAU / MAU is not defined
+        - paragraph [ref=e381]: ‍
+        - heading "Technical jargon and lack of information" [level=3] [ref=e382]
+        - paragraph [ref=e383]:
+          - text: In a feat of irony, one of the most common UX issues is that data is simply shown but not explained in the least. It can be a stretch to even get a title on the page or a graph, let alone a description! On top of that, acronyms are used to shorten things, but explanations in the form of tooltips, legends or other mechanisms are missed. So the user simply sits there, blinking into the abyss.
+          - strong [ref=e384]: Next time you create a dashboard, apply the lens of someone with zero context, see if you can turn that vacant stare into a nerdy smile.🥴→ 🤓
+          - text: 🖇️ More on approaching solutions to this in
+          - link "Tooltips & hover states" [ref=e385] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/ux-pattern-analysis-data-dashboards/#tooltips-hoverstates
+        - heading "Colour-coding mishaps" [level=3] [ref=e386]
+        - paragraph [ref=e387]:
+          - text: It’s common knowledge that only using colour to indicate the status of something can leave our colour-blind friends in the dark, it’s not considered accessible (especially as the main two colours for good vs bad is red and green *face palm*). Issues around colour coding extend not just around this particular issue, but colour can be overused in data dashboards quite easily without mapping to a particular meaning. When you have various colours within charts themselves, plus status indication, queues for interaction you can get into a situation where you’re suddenly looking at a rainbow salad with nothing sticking out as important.
+          - strong [ref=e388]: "Next time someone says: yeah let’s just make that box purple, implore your team to see reason and try to describe the convention in words first, then see if it still warrants a colour to be involved. 💜"
+        - paragraph [ref=e389]:
+          - text: 🖇️ More on approaching solutions to this in
+          - link "use of colour" [ref=e390] [cursor=pointer]:
+            - /url: https://pencilandpaper.io/articles/ux-pattern-analysis-data-dashboards/#use-of-colour
+          - text: .
+        - paragraph [ref=e391]: Whether or not you venture into these more advanced interactions, you always want to give your users some options. If ever the way you designed the dashboard doesn’t meet their needs, you should always allow the data to be exported as raw CSV’s so they can pull it out and manipulate it elsewhere. That’s just some basic data etiquette. Data needs to be free! If you love the data, let it go. 🕊
+        - heading "Wrapping up" [level=2] [ref=e392]
+        - paragraph [ref=e393]: This article has touched on a lot of dashboard considerations and design moves you can make, but we're only really scratching the surface of the real complexity in designing experiences like this. Data exploration and understanding is an organic and iterative process for a user. Out there, we're catering to data noobs all the day to data scientists and uber data geeks. This is a wide spectrum of understanding and many of our precious users have a really tough time articulating what's going on in their minds when data is right in front of them.
+        - paragraph [ref=e394]: On top of that, most designers aren't comfortable with data and most data people aren't comfortable with design. So the only way to make a super great experience is to collaborate at an elite level.
+        - paragraph [ref=e395]: Another factor that comes into play is AI and how that integrates into all levels of data exploration. We have use cases for people to get a "specific answer" as well as view and understand trends and anomalies, issues and quirks with the data. WOW.!
+        - paragraph [ref=e396]: So, you've got a meaty task in front of you, but here's some motivation. The more people understand data, hte more logical and informed their decisions and perspective can be right? Keep going!
+      - generic [ref=e399]:
+        - generic [ref=e400]:
+          - heading "Data-rich design, but easier" [level=2] [ref=e401]
+          - heading "Our secret methodology for features that hinge on data." [level=2] [ref=e402]
+          - paragraph [ref=e404]:
+            - text: Our
+            - strong [ref=e405]: Data Mapping Workshop
+            - text: sets you up to design any dashboard, filter, data table or search experience like a total pro, creating better initial designs off the bat and iterating higher quality end results. Stop struggling to understand the material you're working with, take control and make better design!
+        - generic [ref=e406]:
+          - generic [ref=e407]:
+            - heading "Data Mapping Workshop" [level=2] [ref=e408]
+            - generic [ref=e409]: $499 USD
+          - link "Learn More" [ref=e410] [cursor=pointer]:
+            - /url: /product/enterprise-data-mapping-workshop
+            - generic [ref=e411]: Learn More
+      - generic [ref=e412]:
+        - heading "Continue Reading..." [level=2] [ref=e414]
+        - generic [ref=e415]:
+          - list [ref=e417]:
+            - listitem [ref=e418]:
+              - link "Error Message UX, Handling & Feedback Error handling UX requires special thought, especially in enterprise software. They may take a variety of modalities, such as toasts, banners, modals, or in-line messages, and may even be mapped across multiple screens in a multi-faceted flow…" [ref=e419] [cursor=pointer]:
+                - /url: /articles/ux-pattern-analysis-error-feedback
+                - generic [ref=e421]:
+                  - heading "Error Message UX, Handling & Feedback" [level=3] [ref=e422]
+                  - paragraph [ref=e423]: Error handling UX requires special thought, especially in enterprise software. They may take a variety of modalities, such as toasts, banners, modals, or in-line messages, and may even be mapped across multiple screens in a multi-faceted flow…
+            - listitem [ref=e424]:
+              - link "Filter UX Design Patterns Is it just us, or do all resources about filtering UX revolve around e-commerce? It might be “easier” to document the ins and outs of an interaction where you have control over the..." [ref=e425] [cursor=pointer]:
+                - /url: /articles/ux-pattern-analysis-enterprise-filtering
+                - generic [ref=e427]:
+                  - heading "Filter UX Design Patterns" [level=3] [ref=e428]
+                  - paragraph [ref=e429]: Is it just us, or do all resources about filtering UX revolve around e-commerce? It might be “easier” to document the ins and outs of an interaction where you have control over the...
+            - listitem [ref=e430]:
+              - link "5 Enterprise UX Examples That Increase Flexibility Call it whatever you want, enterprise software AKA complex software AKA SAAS products, whichever is..." [ref=e431] [cursor=pointer]:
+                - /url: /articles/enterprise-ux-patterns
+                - generic [ref=e433]:
+                  - heading "5 Enterprise UX Examples That Increase Flexibility" [level=3] [ref=e434]
+                  - paragraph [ref=e435]: Call it whatever you want, enterprise software AKA complex software AKA SAAS products, whichever is...
+          - list [ref=e437]:
+            - listitem [ref=e438]:
+              - link "UX Training Benefits for Your Product Team To achieve truly great UX and see the ROI, you need to get many people on board with the UX mindset. This includes those closest to the product like developers..." [ref=e439] [cursor=pointer]:
+                - /url: /articles/ux-training-benefits-for-your-product-team
+                - generic [ref=e442]:
+                  - heading "UX Training Benefits for Your Product Team" [level=3] [ref=e443]
+                  - paragraph [ref=e444]: To achieve truly great UX and see the ROI, you need to get many people on board with the UX mindset. This includes those closest to the product like developers...
+  - generic [ref=e445]:
+    - generic [ref=e447]:
+      - generic [ref=e448]:
+        - link "pencil & paper Logo" [ref=e449] [cursor=pointer]:
+          - /url: /
+          - img "pencil & paper Logo"
+        - generic [ref=e450]:
+          - text: We strive to make people’s lives easier by designing satisfying interactions that help bridge the human/computer divide.
+          - link "Learn more about us." [ref=e451] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e452]:
+          - img "love canada logo"
+          - generic [ref=e453]:
+            - text: A proudly Canadian Design Company
+            - text: 3 Fan Tan Alley Suite 400, Victoria, BC, V8W 3G9
+            - link "Write us" [ref=e454] [cursor=pointer]:
+              - /url: /contact-us
+      - generic [ref=e455]:
+        - generic [ref=e456]: Shortcuts
+        - generic [ref=e457]:
+          - link "About" [ref=e458] [cursor=pointer]:
+            - /url: /about
+          - link "Services" [ref=e459] [cursor=pointer]:
+            - /url: /services-2024
+          - link "Products" [ref=e460] [cursor=pointer]:
+            - /url: /products
+          - link "Articles" [ref=e461] [cursor=pointer]:
+            - /url: /articles
+          - link "Login" [ref=e462] [cursor=pointer]:
+            - /url: https://labs.pencilandpaper.io/login/
+      - generic [ref=e463]:
+        - generic [ref=e464]: Connect
+        - generic [ref=e465]:
+          - link "Youtube" [ref=e466] [cursor=pointer]:
+            - /url: https://www.youtube.com/@pencilpaperlabs
+          - link "LinkedIn" [ref=e467] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/pencil-and-paper
+      - link "Join Our Newsletter" [ref=e469] [cursor=pointer]:
+        - /url: /newsletter
+        - generic [ref=e470]: Join Our Newsletter
+    - generic [ref=e472]:
+      - generic [ref=e473]: © 2026 Pencil & Paper Design Company.
+      - generic [ref=e474]:
+        - link "Terms & Conditions" [ref=e475] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Privacy Policy" [ref=e476] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Cookie Policy" [ref=e477] [cursor=pointer]:
+          - /url: /cookie-policy
+        - link [ref=e478] [cursor=pointer]:
+          - /url: https://pencilandpaper.io/feed/
+          - img [ref=e480]
+  - img "share icon" [ref=e487] [cursor=pointer]
+  - iframe [ref=e488]:
+    

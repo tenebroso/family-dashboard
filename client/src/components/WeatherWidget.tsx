@@ -131,8 +131,11 @@ function dayAbbr(dateStr: string) {
   return d.toLocaleDateString('en-US', { weekday: 'short' })
 }
 
+interface WCurrent { temp: number; feelsLike: number; conditionCode: number; conditionLabel: string; humidity: number }
+interface WDay { date: string; tempHigh: number; tempLow: number; conditionCode: number; conditionLabel: string; precipitation: number }
+
 export default function WeatherWidget() {
-  const { data, loading } = useQuery(WEATHER_QUERY)
+  const { data, loading } = useQuery<{ weather: { current: WCurrent; forecast: WDay[] } }>(WEATHER_QUERY)
   const current = data?.weather?.current
   const forecast = (data?.weather?.forecast ?? []).slice(0, 4)
 

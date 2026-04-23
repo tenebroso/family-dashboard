@@ -262,7 +262,7 @@ function PersonColumn({ person }: { person: Person }) {
 }
 
 export default function ChoresAdminPage() {
-  const { data, loading } = useQuery(ADMIN_QUERY)
+  const { data, loading } = useQuery<{ people: Person[] }>(ADMIN_QUERY)
   const [showAdd, setShowAdd] = useState(false)
   const people: Person[] = data?.people ?? []
 

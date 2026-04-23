@@ -33,7 +33,7 @@ const PERSON_VARS: Record<string, string> = {
 }
 
 export default function PersonRail() {
-  const { data } = useQuery(PEOPLE_QUERY)
+  const { data } = useQuery<{ people: Person[] }>(PEOPLE_QUERY)
   const { activePerson, setActivePerson } = useActivePerson()
   const navigate = useNavigate()
   const people: Person[] = data?.people ?? []

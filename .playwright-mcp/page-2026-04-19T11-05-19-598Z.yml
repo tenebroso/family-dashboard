@@ -1,0 +1,24 @@
+- generic [ref=e2]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - paragraph [ref=e6]: Message
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - button "Upcoming Next 14 days View full calendar →" [ref=e13] [cursor=pointer]:
+            - generic [ref=e14]:
+              - paragraph [ref=e15]: Upcoming
+              - paragraph [ref=e16]: Next 14 days
+            - paragraph [ref=e36]:
+              - text: View full calendar
+              - generic [ref=e37]: →
+          - paragraph [ref=e39]: Grocery List
+        - generic [ref=e45]:
+          - paragraph [ref=e46]: Weather
+          - paragraph [ref=e47]: Milwaukee
+        - generic [ref=e77]:
+          - button "Chores Today" [ref=e78]:
+            - paragraph [ref=e79]: Chores Today
+          - paragraph [ref=e107]: Word of the Day
+  - generic [ref=e114]:
+    - button "Play" [disabled] [ref=e115]
+    - paragraph [ref=e119]: Today's Song

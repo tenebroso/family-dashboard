@@ -44,7 +44,7 @@ export default function TodayAgendaWidget() {
   const start = useMemo(() => today.startOf('day').toISOString(), [today.format('YYYY-MM-DD')])
   const end = useMemo(() => today.endOf('day').toISOString(), [today.format('YYYY-MM-DD')])
 
-  const { data, loading } = useQuery(TODAY_QUERY, { variables: { start, end } })
+  const { data, loading } = useQuery<{ calendarEvents: CalendarEvent[] }>(TODAY_QUERY, { variables: { start, end } })
 
   const events: CalendarEvent[] = useMemo(() => {
     const all: CalendarEvent[] = data?.calendarEvents ?? []

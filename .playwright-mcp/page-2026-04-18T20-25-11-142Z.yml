@@ -1,0 +1,93 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: HOME
+      - generic [ref=e6]:
+        - link "Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Chores" [ref=e8] [cursor=pointer]:
+          - /url: /chores
+        - link "Calendar" [ref=e9] [cursor=pointer]:
+          - /url: /calendar
+  - main [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - paragraph [ref=e17]: Upcoming
+            - paragraph [ref=e18]: Next 14 days
+          - list [ref=e20]:
+            - listitem [ref=e21]:
+              - generic [ref=e23]:
+                - paragraph [ref=e24]: Soccer practice
+                - paragraph [ref=e25]: Tomorrow
+            - listitem [ref=e26]:
+              - generic [ref=e28]:
+                - paragraph [ref=e29]: Dentist - Ruby
+                - paragraph [ref=e30]: Tuesday
+            - listitem [ref=e31]:
+              - generic [ref=e33]:
+                - paragraph [ref=e34]: Family dinner
+                - paragraph [ref=e35]: Thursday
+            - listitem [ref=e36]:
+              - generic [ref=e38]:
+                - paragraph [ref=e39]: Grocery run
+                - paragraph [ref=e40]: Apr 26
+            - listitem [ref=e41]:
+              - generic [ref=e43]:
+                - paragraph [ref=e44]: Harry's birthday
+                - paragraph [ref=e45]: Apr 30
+          - link "View full calendar →" [ref=e48] [cursor=pointer]:
+            - /url: /calendar
+            - text: View full calendar
+            - generic [ref=e49]: →
+        - generic [ref=e50]:
+          - paragraph [ref=e51]: Message
+          - paragraph [ref=e52]: "Don't forget: soccer practice at 4pm today!"
+          - paragraph [ref=e53]: — Mom
+      - generic [ref=e54]:
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - paragraph [ref=e58]: Weather
+            - paragraph [ref=e59]: Milwaukee
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: 68°
+            - paragraph [ref=e62]: Partly Cloudy
+            - generic [ref=e63]:
+              - paragraph [ref=e64]: Feels like 65°F
+              - paragraph [ref=e65]: Humidity 55%
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e71]: Mon
+              - generic [ref=e74]: Tue
+              - generic [ref=e77]: Wed
+              - generic [ref=e80]: Thu
+              - generic [ref=e83]: Fri
+              - generic [ref=e86]: Sat
+              - generic [ref=e89]: Sun
+            - paragraph [ref=e90]: 7-day forecast
+        - generic [ref=e91]:
+          - paragraph [ref=e92]: Word of the Day
+          - paragraph [ref=e93]: ephemeral
+          - paragraph [ref=e94]: adjective
+          - paragraph [ref=e95]: Lasting for a very short time.
+      - generic [ref=e96]:
+        - generic [ref=e104]:
+          - paragraph [ref=e105]: Today's Song
+          - paragraph [ref=e106]: Golden Hour
+          - paragraph [ref=e107]: JVKE
+        - generic [ref=e108]:
+          - paragraph [ref=e109]: Chores
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - generic [ref=e112]: H
+              - generic [ref=e113]: Harry
+            - generic [ref=e114]:
+              - generic [ref=e115]: R
+              - generic [ref=e116]: Ruby
+            - generic [ref=e117]:
+              - generic [ref=e118]: K
+              - generic [ref=e119]: Krysten
+            - generic [ref=e120]:
+              - generic [ref=e121]: J
+              - generic [ref=e122]: Jon

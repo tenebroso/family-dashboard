@@ -290,7 +290,7 @@ function WeekView({
 }
 
 function DayView({
-  currentDate,
+  currentDate: _currentDate,
   events,
   onEventClick,
 }: {
@@ -488,7 +488,7 @@ export default function CalendarPage() {
 
   const { start, end } = useMemo(() => getDateRange(view, currentDate), [view, currentDate])
 
-  const { data, loading } = useQuery(CALENDAR_EVENTS_QUERY, { variables: { start, end } })
+  const { data, loading } = useQuery<{ calendarEvents: CalendarEvent[]; weather: { forecast: WeatherDay[] } }>(CALENDAR_EVENTS_QUERY, { variables: { start, end } })
 
   const { personSlug } = useParams<{ personSlug: string }>()
   

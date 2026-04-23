@@ -11,7 +11,7 @@ const TRACK_QUERY = gql`
 `
 
 export default function MusicShell() {
-  const { data, loading } = useQuery(TRACK_QUERY)
+  const { data, loading } = useQuery<{ dailyTrack: { title: string; artist: string } | null }>(TRACK_QUERY)
   const track = data?.dailyTrack
 
   return (

@@ -79,7 +79,8 @@
       "Bash(tar -x -O \"family-dashboard/project/tiles.jsx\")",
       "Bash(tar -x -O \"family-dashboard/project/app.jsx\")",
       "WebFetch(domain:api.anthropic.com)",
-      "Bash(pkill -f \"node.*server/dist\")"
+      "Bash(pkill -f \"node.*server/dist\")",
+      "Bash(xargs ls *)"
     ]
   }
 }

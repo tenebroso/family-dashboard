@@ -67,7 +67,7 @@ export default function HeroTile() {
   const start = today.startOf('day').toISOString()
   const end = today.endOf('day').toISOString()
 
-  const { data } = useQuery(TODAY_EVENTS_QUERY, { variables: { start, end } })
+  const { data } = useQuery<{ calendarEvents: CalendarEvent[] }>(TODAY_EVENTS_QUERY, { variables: { start, end } })
   const allEvents: CalendarEvent[] = data?.calendarEvents ?? []
 
   // When a person is selected, show only their events + family (null personSlug) events

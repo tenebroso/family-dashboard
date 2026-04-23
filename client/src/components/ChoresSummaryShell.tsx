@@ -26,7 +26,7 @@ const PERSON_COLORS: Record<string, string> = {
 }
 
 export default function ChoresSummaryShell() {
-  const { data, loading } = useQuery(PEOPLE_QUERY, { variables: { dateKey: DATE_KEY } })
+  const { data, loading } = useQuery<{ people: Array<{ id: string; name: string; completionRate: number }> }>(PEOPLE_QUERY, { variables: { dateKey: DATE_KEY } })
   const { activePerson } = useActivePerson()
   const { personSlug } = useParams<{ personSlug: string }>()
   const navigate = useNavigate()

@@ -17,7 +17,7 @@ const WEATHER_QUERY = gql`
 const FORECAST_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function WeatherShell() {
-  const { data, loading } = useQuery(WEATHER_QUERY)
+  const { data, loading } = useQuery<{ weather: { current: { temp: number; conditionLabel: string; feelsLike: number; humidity: number } } }>(WEATHER_QUERY)
   const current = data?.weather?.current
 
   return (
