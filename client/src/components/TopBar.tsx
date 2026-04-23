@@ -44,12 +44,12 @@ export default function TopBar() {
 
   return (
     <header className="topbar">
-      <div className="topbar-brand">
+      {/* <div className="topbar-brand">
         <span className="topbar-wordmark">Home</span>
         {names.length > 0 && (
           <span className="topbar-sub">· {names.join(' · ')}</span>
         )}
-      </div>
+      </div> */}
 
       <div className="topbar-grow" />
 

@@ -537,6 +537,14 @@ body {
 
 .people-rail-clear:hover { color: var(--ink); }
 
+@media screen and (max-width: 740px) {
+  .person-chip:not([aria-pressed="true"]) { display: none;}
+}
+
+@media screen and (max-width: 540px) {
+  .people-rail-clear {display: none}
+}
+
 /* ═══════════════════════════════════════════════════════
    Theme toggle
 ══════════════════════════════════════════════════════════ */

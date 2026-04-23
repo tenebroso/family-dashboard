@@ -26,10 +26,9 @@ export const messagesResolvers = {
         data: { body: args.body, personSlug: args.personSlug },
       })
 
-      // Parse async — don't block the mutation response
-      parseAndDispatch(message.id, args.body, args.personSlug)
+      await parseAndDispatch(message.id, args.body, args.personSlug)
 
-      return message
+      return prisma.message.findUniqueOrThrow({ where: { id: message.id } })
     },
   },
 }

@@ -57,7 +57,7 @@ function relativeTime(val: string): string {
 export default function MessageWidget() {
   const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY)
   const [send] = useMutation(SEND_MESSAGE, {
-    refetchQueries: [{ query: MESSAGES_QUERY }],
+    refetchQueries: [{ query: MESSAGES_QUERY }, 'HeroTileEvents', 'HeroChores'],
   })
   const { activePerson } = useActivePerson()
   const [draft, setDraft] = useState('')
