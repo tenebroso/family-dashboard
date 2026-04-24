@@ -80,7 +80,7 @@ export default function MessageWidget() {
 
   return (
     <div className="tile message-tile">
-      <div className="tile-eyebrow">Family thread</div>
+      <div className="tile-eyebrow">What would you like to do?</div>
 
       <div className="thread" ref={threadRef}>
         {loading ? (
@@ -110,6 +110,9 @@ export default function MessageWidget() {
                 {msg.parsedDone && msg.parsedType === 'reminder' && (
                   <span className="parsed-chip parsed-chip--reminder">📅 Added to calendar</span>
                 )}
+                {msg.parsedDone && msg.parsedType === 'chore' && (
+                  <span className="parsed-chip parsed-chip--chore">✅ Added to chore list</span>
+                )}
               </div>
             </div>
           ))
@@ -120,7 +123,7 @@ export default function MessageWidget() {
         <input
           className="compose-input"
           type="text"
-          placeholder={activePerson ? 'Message the family…' : 'Pick a person to send…'}
+          placeholder={activePerson ? 'Add a chore, calendar entry, etc…' : 'Pick a person to send…'}
           value={draft}
           onChange={e => setDraft(e.target.value)}
           disabled={!activePerson}

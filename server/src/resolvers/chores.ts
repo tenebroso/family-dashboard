@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 type PersonParent = { id: string }
-type ChoreParent = { id: string; personId: string; dayOfWeek: string }
+type ChoreParent = { id: string; personId: string; dayOfWeek: string; oneTimeDate: string | null }
 
 function parseDayOfWeek(raw: string): number[] {
   try { return JSON.parse(raw) } catch { return [] }
@@ -17,12 +17,13 @@ export const choreResolvers = {
   },
 
   Person: {
-    chores: async (parent: PersonParent, { dayOfWeek }: { dayOfWeek?: number }) => {
+    chores: async (parent: PersonParent, { dayOfWeek, dateKey }: { dayOfWeek?: number; dateKey?: string }) => {
       const chores = await prisma.chore.findMany({
         where: { personId: parent.id, isActive: true },
       })
       if (dayOfWeek === undefined || dayOfWeek === null) return chores
       return chores.filter(c => {
+        if (c.oneTimeDate) return dateKey ? c.oneTimeDate === dateKey : false
         const days = parseDayOfWeek(c.dayOfWeek)
         return days.length === 0 || days.includes(dayOfWeek)
       })
@@ -33,6 +34,7 @@ export const choreResolvers = {
         where: { personId: parent.id, isActive: true },
       })
       const scheduled = chores.filter(c => {
+        if (c.oneTimeDate) return c.oneTimeDate === dateKey
         const days = parseDayOfWeek(c.dayOfWeek)
         return days.length === 0 || days.includes(dow)
       })

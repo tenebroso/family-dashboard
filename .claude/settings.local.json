@@ -91,7 +91,16 @@
       "Bash(pm2 list *)",
       "Bash(kill 65583)",
       "Bash(kill 67548)",
-      "Bash(echo \"New server PID: $!\")"
+      "Bash(echo \"New server PID: $!\")",
+      "Bash(awk '{print $2}')",
+      "Bash(log show *)",
+      "Bash(awk '{print $2, $9, $10, $11, $12}')",
+      "Bash(ps -p 67684 -o pid,ppid,lstart,command)",
+      "Bash(kill -SIGUSR2 67684)",
+      "Bash(kill 67684)",
+      "Bash(~/.npm-global/bin/pm2 list *)",
+      "Bash(~/.local/bin/pm2 list *)",
+      "Bash(/usr/local/bin/pm2 list *)"
     ]
   }
 }

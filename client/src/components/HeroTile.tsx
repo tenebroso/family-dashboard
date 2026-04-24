@@ -32,7 +32,7 @@ const HERO_CHORES_QUERY = gql`
     people {
       id
       name
-      chores(dayOfWeek: $dayOfWeek) {
+      chores(dayOfWeek: $dayOfWeek, dateKey: $dateKey) {
         id
         title
         isCompletedOn(dateKey: $dateKey)

@@ -3,7 +3,7 @@ export const personTypeDefs = `#graphql
     id: ID!
     name: String!
     color: String!
-    chores(dayOfWeek: Int): [Chore!]!
+    chores(dayOfWeek: Int, dateKey: String): [Chore!]!
     completionRate(dateKey: String!): Float!
     reminders: [Reminder!]!
   }

@@ -22,6 +22,7 @@ model Chore {
   personId    String
   person      Person            @relation(fields: [personId], references: [id])
   dayOfWeek   String            @default("[]")
+  oneTimeDate String?
   isActive    Boolean           @default(true)
   completions ChoreCompletion[]
   createdAt   DateTime          @default(now())

@@ -14,7 +14,7 @@ const CHORES_QUERY = gql`
       name
       color
       completionRate(dateKey: $dateKey)
-      chores(dayOfWeek: $dayOfWeek) {
+      chores(dayOfWeek: $dayOfWeek, dateKey: $dateKey) {
         id
         title
         isCompletedOn(dateKey: $dateKey)
