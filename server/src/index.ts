@@ -24,6 +24,7 @@ async function main() {
   const app = express()
   const port = parseInt(process.env.PORT ?? '4000', 10)
 
+  app.set('trust proxy', 1)
   app.use(express.json())
 
   app.use(
@@ -35,6 +36,7 @@ async function main() {
       cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
+        sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       },
     }) as any
@@ -50,8 +52,10 @@ async function main() {
     '/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/auth/google' }),
     (req, res) => {
-      const user = req.user as AuthUser
-      res.redirect(user.linked ? '/' : '/link-account')
+      req.session.save(() => {
+        const user = req.user as AuthUser
+        res.redirect(user.linked ? '/' : '/link-account')
+      })
     }
   )
 
