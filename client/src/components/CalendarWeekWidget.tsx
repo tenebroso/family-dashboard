@@ -137,7 +137,7 @@ export default function CalendarWeekWidget() {
     [weekStart.format('YYYY-MM-DD')]
   )
 
-  const { data, loading } = useQuery<{ calendarEvents: CalendarEvent[]; weather: { forecast: WeatherDay[] } }>(WEEK_QUERY, { variables: { start, end }, pollInterval: 60_000 })
+  const { data, loading } = useQuery<{ calendarEvents: CalendarEvent[]; weather: { forecast: WeatherDay[] } }>(WEEK_QUERY, { variables: { start, end }, pollInterval: 10_000 })
   const events: CalendarEvent[] = data?.calendarEvents ?? []
   const eventsByDate = useMemo(() => groupByDate(events), [events])
 
