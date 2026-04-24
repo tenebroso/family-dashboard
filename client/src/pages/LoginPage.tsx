@@ -1,4 +1,6 @@
 export default function LoginPage() {
+  const denied = new URLSearchParams(window.location.search).get('error') === 'access_denied'
+
   return (
     <div className="lobby">
       <div className="login-card">
@@ -7,7 +9,14 @@ export default function LoginPage() {
           <span className="login-tagline">family dashboard</span>
         </div>
 
-        <p className="login-prompt">Sign in to continue</p>
+        {denied ? (
+          <p className="login-denied">
+            That Google account isn&rsquo;t linked to anyone on this dashboard.
+            Ask Jon to add you.
+          </p>
+        ) : (
+          <p className="login-prompt">Sign in to continue</p>
+        )}
 
         <a href="/auth/google" className="google-btn">
           <GoogleIcon />

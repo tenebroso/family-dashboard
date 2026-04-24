@@ -52,8 +52,12 @@ async function main() {
     '/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/auth/google' }),
     (req, res) => {
+      const user = req.user as AuthUser
+      if (!user.linked && process.env.ALLOW_NEW_LINKS !== 'true') {
+        req.logout(() => res.redirect('/?error=access_denied'))
+        return
+      }
       req.session.save(() => {
-        const user = req.user as AuthUser
         res.redirect(user.linked ? '/' : '/link-account')
       })
     }

@@ -1010,6 +1010,18 @@ body {
   margin: 0;
 }
 
+.login-denied {
+  font-size: 0.875rem;
+  color: var(--p-krysten);
+  background: color-mix(in oklch, var(--p-krysten) 10%, var(--surface));
+  border: 1px solid color-mix(in oklch, var(--p-krysten) 25%, transparent);
+  border-radius: var(--r-sm);
+  padding: 0.625rem 0.875rem;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
 .google-btn {
   display: flex;
   align-items: center;
