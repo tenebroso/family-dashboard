@@ -6,8 +6,9 @@ const prisma = new PrismaClient()
 
 export const messagesResolvers = {
   Query: {
-    messages: async (_: unknown, args: { limit?: number }) => {
+    messages: async (_: unknown, args: { limit?: number; personSlug?: string }) => {
       const msgs = await prisma.message.findMany({
+        where: args.personSlug ? { personSlug: args.personSlug } : undefined,
         orderBy: { createdAt: 'desc' },
         take: args.limit ?? 50,
       })

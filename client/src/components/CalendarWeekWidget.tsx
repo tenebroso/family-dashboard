@@ -162,7 +162,7 @@ export default function CalendarWeekWidget() {
         className="flex items-center justify-between px-4 py-2.5 flex-shrink-0"
         style={{ borderBottom: '1px solid var(--hairline)' }}
       >
-        <div className="flex items-center gap-1.5">
+        <div className="hidden md:flex items-center gap-1.5">
           <button
             onClick={() => setCurrentDate(d => d.subtract(7, 'day'))}
             className="w-7 h-7 flex items-center justify-center rounded-full transition-colors"
@@ -183,6 +183,9 @@ export default function CalendarWeekWidget() {
             <ChevronRight size={15} />
           </button>
         </div>
+        <span className="md:hidden font-display font-bold text-sm" style={{ color: 'var(--ink)' }}>
+          Today
+        </span>
 
         <div className="flex items-center gap-3">
           {loading && (
@@ -198,8 +201,72 @@ export default function CalendarWeekWidget() {
         </div>
       </div>
 
-      {/* Week grid */}
-      <div className="grid grid-cols-7" style={{ borderBottom: '1px solid var(--hairline-soft)', minHeight: 200 }}>
+      {/* Mobile: single day view */}
+      <div className="md:hidden" style={{ borderBottom: '1px solid var(--hairline-soft)' }}>
+        {(() => {
+          const mobileDay = today
+          const dateKey = mobileDay.format('YYYY-MM-DD')
+          const dayEvents = eventsByDate.get(dateKey) ?? []
+          const weather = weatherByDate.get(dateKey)
+          return (
+            <div style={{ background: 'var(--accent-wash)' }}>
+              <div
+                className="flex items-center gap-2 px-4 py-3 flex-shrink-0"
+                style={{ borderBottom: '1px solid var(--accent-wash-2)' }}
+              >
+                <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: 'var(--ink-3)' }}>
+                  {mobileDay.format('dddd')}
+                </span>
+                <span className="week-day-num-today">{mobileDay.date()}</span>
+                {weather && (
+                  <button
+                    onClick={() => setSelectedWeatherDay(weather)}
+                    className="ml-auto flex items-center gap-1 hover:opacity-70 transition-opacity"
+                  >
+                    <WeatherIcon condition={weather.conditionLabel} size={12} className="text-ink-muted" />
+                    <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ink-3)' }}>
+                      {weather.tempHigh}°
+                    </span>
+                  </button>
+                )}
+              </div>
+              <div className="p-3 space-y-2">
+                {dayEvents.length === 0 ? (
+                  <p className="text-sm py-1" style={{ color: 'var(--ink-3)' }}>No events today</p>
+                ) : (
+                  dayEvents.map(evt => {
+                    const dimmed = activePerson !== null && evt.personSlug !== null && evt.personSlug !== activePerson
+                    return (
+                      <button
+                        key={evt.id}
+                        onClick={() => setSelectedEvent(evt)}
+                        className="w-full text-left rounded-md px-3 py-2 text-sm transition-opacity hover:opacity-80"
+                        style={{
+                          backgroundColor: personBg(evt.personSlug, evt.color + '18'),
+                          borderLeft: `3px solid ${personColor(evt.personSlug, evt.color)}`,
+                          opacity: dimmed ? 0.3 : 1,
+                        }}
+                      >
+                        <div className="font-semibold leading-tight" style={{ color: personColor(evt.personSlug, evt.color) }}>
+                          {evt.title}
+                        </div>
+                        {!evt.allDay && (
+                          <div className="mt-0.5 text-xs" style={{ color: 'var(--ink-3)' }}>
+                            {formatTime(evt.start)}
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          )
+        })()}
+      </div>
+
+      {/* Desktop: full week grid */}
+      <div className="hidden md:grid grid-cols-7" style={{ borderBottom: '1px solid var(--hairline-soft)', minHeight: 200 }}>
         {days.map(day => {
           const dateKey = day.format('YYYY-MM-DD')
           const dayEvents = eventsByDate.get(dateKey) ?? []
@@ -221,8 +288,7 @@ export default function CalendarWeekWidget() {
                 style={{ borderBottom: `1px solid ${isToday ? 'var(--accent-wash-2)' : 'var(--hairline-soft)'}` }}
               >
                 <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: 'var(--ink-3)' }}>
-                  <span className="hidden sm:inline">{day.format('ddd')}</span>
-                  <span className="sm:hidden">{day.format('dd')[0]}</span>
+                  {day.format('ddd')}
                 </span>
                 {isToday ? (
                   <span className="week-day-num-today">{day.date()}</span>
@@ -258,11 +324,10 @@ export default function CalendarWeekWidget() {
                     }}
                   >
                     <div className="font-semibold truncate leading-tight" style={{ color: personColor(evt.personSlug, evt.color) }}>
-                      <span className="hidden sm:inline">{evt.title}</span>
-                      <span className="sm:hidden">{evt.title[0]}</span>
+                      {evt.title}
                     </div>
                     {!evt.allDay && (
-                      <div className="hidden sm:block mt-0.5" style={{ color: 'var(--ink-3)', fontSize: '10px' }}>
+                      <div className="mt-0.5" style={{ color: 'var(--ink-3)', fontSize: '10px' }}>
                         {formatTime(evt.start)}
                       </div>
                     )}

@@ -100,7 +100,8 @@
       "Bash(kill 67684)",
       "Bash(~/.npm-global/bin/pm2 list *)",
       "Bash(~/.local/bin/pm2 list *)",
-      "Bash(/usr/local/bin/pm2 list *)"
+      "Bash(/usr/local/bin/pm2 list *)",
+      "Bash(kill 76783)"
     ]
   }
 }

@@ -14,7 +14,7 @@ const rootTypeDefs = `#graphql
     person(id: ID!): Person
     calendarEvents(start: String!, end: String!): [CalendarEvent!]!
     weather: WeatherData!
-    messages(limit: Int): [Message!]!
+    messages(limit: Int, personSlug: String): [Message!]!
     dailyTrack: Track!
     wordOfDay: WordOfDay!
     groceryItems: [GroceryItem!]!

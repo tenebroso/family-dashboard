@@ -1,11 +1,12 @@
 import { gql } from '@apollo/client'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { useRef, useEffect, useState, type FormEvent } from 'react'
+import { useParams } from 'react-router-dom'
 import { useActivePerson } from '../contexts/PersonContext'
 
 const MESSAGES_QUERY = gql`
-  query Messages {
-    messages(limit: 10) {
+  query Messages($personSlug: String) {
+    messages(limit: 20, personSlug: $personSlug) {
       id
       personSlug
       body
@@ -55,11 +56,18 @@ function relativeTime(val: string): string {
 }
 
 export default function MessageWidget() {
-  const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY, { pollInterval: 30_000 })
-  const [send] = useMutation(SEND_MESSAGE, {
-    refetchQueries: [{ query: MESSAGES_QUERY }, 'HeroTileEvents', 'HeroChores'],
-  })
   const { activePerson } = useActivePerson()
+  const { personSlug: urlSlug } = useParams<{ personSlug: string }>()
+  // Use URL slug directly so the query has the right variable on first render,
+  // without waiting for DashboardPage's useEffect to update the context.
+  const querySlug = urlSlug ?? activePerson ?? undefined
+  const { data, loading } = useQuery<{ messages: Message[] }>(MESSAGES_QUERY, {
+    variables: { personSlug: querySlug },
+    pollInterval: 30_000,
+  })
+  const [send] = useMutation(SEND_MESSAGE, {
+    refetchQueries: [{ query: MESSAGES_QUERY, variables: { personSlug: querySlug } }, 'HeroTileEvents', 'HeroChores'],
+  })
   const [draft, setDraft] = useState('')
   const threadRef = useRef<HTMLDivElement>(null)
   const messages: Message[] = data?.messages ?? []
