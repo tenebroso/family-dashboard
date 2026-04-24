@@ -6,7 +6,7 @@ import { useActivePerson } from '../contexts/PersonContext'
 
 const MESSAGES_QUERY = gql`
   query Messages($personSlug: String) {
-    messages(limit: 20, personSlug: $personSlug) {
+    messages(limit: 3, personSlug: $personSlug) {
       id
       personSlug
       body

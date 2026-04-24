@@ -5,7 +5,6 @@ import WeatherWidget from '../components/WeatherWidget'
 import MessageWidget from '../components/MessageWidget'
 
 import CalendarWeekWidget from '../components/CalendarWeekWidget'
-import GroceryWidget from '../components/GroceryWidget'
 import { useActivePerson } from '../contexts/PersonContext'
 import type { PersonSlug } from '../contexts/PersonContext'
 import WordWidget from '../components/WordWidget'
@@ -22,7 +21,7 @@ export default function DashboardPage() {
     <div className="dash-grid">
       <div className="dash-hero">
         <HeroTile />
-         <GroceryWidget />
+         {/* <GroceryWidget /> */}
          <WordWidget /> 
       </div>
 
