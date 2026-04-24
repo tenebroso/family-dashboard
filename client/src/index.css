@@ -966,6 +966,74 @@ body {
 .font-display { font-family: var(--serif); }
 
 /* ═══════════════════════════════════════════════════════
+   Login
+══════════════════════════════════════════════════════════ */
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.login-wordmark {
+  font-family: var(--serif);
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.login-tagline {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.login-prompt {
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6875rem 1.25rem;
+  background: var(--surface);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--r-sm);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  width: 100%;
+  justify-content: center;
+}
+
+.google-btn:hover {
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ═══════════════════════════════════════════════════════
    Lobby
 ══════════════════════════════════════════════════════════ */
 .lobby {

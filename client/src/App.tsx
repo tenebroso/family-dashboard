@@ -1,10 +1,14 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client'
 import { ApolloProvider } from '@apollo/client/react'
 import { HttpLink } from '@apollo/client/link/http'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import TopBar from './components/TopBar'
 import { AerialProvider } from './contexts/AerialContext'
-import { PersonProvider } from './contexts/PersonContext'
+import { PersonProvider, useActivePerson, type PersonSlug } from './contexts/PersonContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import LoginPage from './pages/LoginPage'
+import LinkAccountPage from './pages/LinkAccountPage'
 import LobbyPage from './pages/LobbyPage'
 import DashboardPage from './pages/DashboardPage'
 import ChoresPage from './pages/ChoresPage'
@@ -23,6 +27,25 @@ const client = new ApolloClient({
 
 function AppShell() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { status, person } = useAuth()
+  const { setActivePerson } = useActivePerson()
+
+  // Sync auth person into PersonContext and auto-redirect from lobby
+  useEffect(() => {
+    if (status === 'authenticated' && person) {
+      const slug = person.name.toLowerCase() as PersonSlug
+      setActivePerson(slug)
+      if (location.pathname === '/') {
+        navigate(`/${slug}`, { replace: true })
+      }
+    }
+  }, [status, person]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (status === 'loading') return <div className="lobby" />
+  if (status === 'unauthenticated') return <LoginPage />
+  if (status === 'unlinked') return <LinkAccountPage />
+
   const isDashboard = location.pathname.match(/^\/[a-z]+(\/.*)?$/) !== null
 
   return (
@@ -45,7 +68,6 @@ function AppShell() {
         </main>
       </div>
       {/* <MusicBar /> */}
-      
     </AerialProvider>
   )
 }
@@ -54,9 +76,11 @@ export default function App() {
   return (
     <ApolloProvider client={client}>
       <BrowserRouter>
-        <PersonProvider>
-          <AppShell />
-        </PersonProvider>
+        <AuthProvider>
+          <PersonProvider>
+            <AppShell />
+          </PersonProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ApolloProvider>
   )

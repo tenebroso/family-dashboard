@@ -10,6 +10,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:4000',
       '/music': 'http://localhost:4000',
+      '/auth': 'http://localhost:4000',
     },
   },
 })

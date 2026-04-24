@@ -101,7 +101,10 @@
       "Bash(~/.npm-global/bin/pm2 list *)",
       "Bash(~/.local/bin/pm2 list *)",
       "Bash(/usr/local/bin/pm2 list *)",
-      "Bash(kill 76783)"
+      "Bash(kill 76783)",
+      "Bash(openssl rand *)",
+      "Bash(kill %1)",
+      "Bash(wait)"
     ]
   }
 }

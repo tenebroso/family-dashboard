@@ -11,6 +11,8 @@ model Person {
   id        String     @id @default(cuid())
   name      String
   color     String
+  googleId  String?    @unique
+  email     String?    @unique
   chores    Chore[]
   reminders Reminder[]
   createdAt DateTime   @default(now())
