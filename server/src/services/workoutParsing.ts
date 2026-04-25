@@ -51,7 +51,7 @@ export async function parsePdfWorkouts(
   const pdfBase64 = fs.readFileSync(pdfPath).toString('base64')
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 4000,
     system: [
       {
@@ -59,8 +59,8 @@ export async function parsePdfWorkouts(
         text: `You are a workout programming parser. Extract structured workout data from PDF training plans.
 
 For the ${programTrack} program, extract ONLY Monday, Wednesday, and Friday workouts.
-Include these sections: Warm-up details, Strength Intensity 1, Strength Intensity 2, Strength Balance, Finisher, cooldown.
-Exclude: loading notes, and optional sections.
+Include these sections: Warmup, Strength Intensity 1, Loading Note, Strength Intensity 2, Loading Note, Strength Balance, Loading Note, Finisher, Cooldown.
+Exclude: optional sections.
 
 Rules:
 - targetReps: preserve exactly as written ("6", "6-8", "Max Unbroken reps", "Max reps", etc.)
@@ -144,6 +144,9 @@ Rules:
     throw new Error('Claude did not return structured workout data')
   }
 
-  const data = toolUse.input as { workouts: ParsedWorkout[] }
+  const data = toolUse.input as { workouts?: ParsedWorkout[] }
+  if (!data.workouts) {
+    throw new Error(`Claude tool response missing "workouts" key. Raw input: ${JSON.stringify(data)}`)
+  }
   return data.workouts
 }
