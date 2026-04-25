@@ -139,6 +139,14 @@ Rules:
     ],
   })
 
+  console.error('[DEBUG] stop_reason:', response.stop_reason)
+  console.error('[DEBUG] usage:', JSON.stringify(response.usage))
+  console.error('[DEBUG] content blocks:', response.content.map(b => b.type).join(', '))
+  for (const block of response.content) {
+    if (block.type === 'text') console.error('[DEBUG] text block:', block.text.slice(0, 500))
+    if (block.type === 'tool_use') console.error('[DEBUG] tool_use input:', JSON.stringify(block.input))
+  }
+
   const toolUse = response.content.find(b => b.type === 'tool_use')
   if (!toolUse || toolUse.type !== 'tool_use') {
     throw new Error('Claude did not return structured workout data')
