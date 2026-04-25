@@ -1,4 +1,4 @@
-import { PrismaClient, Person } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { parseMessage } from '../services/messageParser'
 import { createCalendarEvent } from '../services/calendarWriter'
 
@@ -71,7 +71,7 @@ async function parseAndDispatch(messageId: string, body: string, senderSlug: str
     if (parsed.type === 'chore' && parsed.choreTitle) {
       const targetSlug = parsed.personSlug ?? senderSlug
       const allPersons = await prisma.person.findMany()
-      const person = allPersons.find((p: Person) => p.name.toLowerCase() === targetSlug.toLowerCase())
+      const person = allPersons.find((p: typeof allPersons[number]) => p.name.toLowerCase() === targetSlug.toLowerCase())
       console.log('[chore] title=%s slug=%s choreDateText=%s person=%s', parsed.choreTitle, targetSlug, parsed.choreDateText, person?.name ?? 'NOT FOUND')
 
       if (person) {

@@ -1,4 +1,4 @@
-import { PrismaClient, GroceryItem } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { syncGroceryList } from '../services/googleDocs'
 
 const prisma = new PrismaClient()
@@ -22,7 +22,7 @@ export const groceryResolvers = {
       const items = await prisma.groceryItem.findMany({
         orderBy: [{ checked: 'asc' }, { createdAt: 'asc' }],
       })
-      return items.map((item: GroceryItem) => ({
+      return items.map((item: typeof items[number]) => ({
         ...item,
         createdAt: item.createdAt.toISOString(),
       }))
