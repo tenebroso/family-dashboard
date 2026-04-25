@@ -22,7 +22,7 @@ export const choreResolvers = {
         where: { personId: parent.id, isActive: true },
       })
       if (dayOfWeek === undefined || dayOfWeek === null) return chores
-      return chores.filter(c => {
+      return chores.filter((c: ChoreParent) => {
         if (c.oneTimeDate) return dateKey ? c.oneTimeDate === dateKey : false
         const days = parseDayOfWeek(c.dayOfWeek)
         return days.length === 0 || days.includes(dayOfWeek)
@@ -33,14 +33,14 @@ export const choreResolvers = {
       const chores = await prisma.chore.findMany({
         where: { personId: parent.id, isActive: true },
       })
-      const scheduled = chores.filter(c => {
+      const scheduled = chores.filter((c: ChoreParent) => {
         if (c.oneTimeDate) return c.oneTimeDate === dateKey
         const days = parseDayOfWeek(c.dayOfWeek)
         return days.length === 0 || days.includes(dow)
       })
       if (scheduled.length === 0) return 0.0
       const completions = await prisma.choreCompletion.count({
-        where: { choreId: { in: scheduled.map(c => c.id) }, dateKey },
+        where: { choreId: { in: scheduled.map((c: ChoreParent) => c.id) }, dateKey },
       })
       return completions / scheduled.length
     },

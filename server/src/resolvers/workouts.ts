@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, StrengthSet } from '@prisma/client'
 import { GraphQLError } from 'graphql'
 import { parsePdfWorkouts, getWorkoutDate } from '../services/workoutParsing'
 
@@ -326,7 +326,7 @@ export const workoutResolvers = {
       return {
         ...ex,
         createdAt: ex.createdAt.toISOString(),
-        sets: ex.sets.map(s => ({ ...s, completedAt: s.completedAt ? s.completedAt.toISOString() : null })),
+        sets: ex.sets.map((s: StrengthSet) => ({ ...s, completedAt: s.completedAt ? s.completedAt.toISOString() : null })),
       }
     },
 
