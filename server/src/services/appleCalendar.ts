@@ -176,6 +176,30 @@ function buildICS(uid: string, title: string, start: Date, end: Date): string {
   ].join('\r\n')
 }
 
+function buildAllDayICS(uid: string, title: string, dateStr: string, description?: string): string {
+  // dateStr is YYYY-MM-DD; DTEND is next day for all-day events per RFC 5545
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const endDate = new Date(Date.UTC(year, month - 1, day + 1))
+  const endStr = endDate.toISOString().slice(0, 10).replace(/-/g, '')
+  const startStr = dateStr.replace(/-/g, '')
+  const stamp = formatICSDate(new Date())
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Family Dashboard//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${uid}@family-dashboard`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${startStr}`,
+    `DTEND;VALUE=DATE:${endStr}`,
+    `SUMMARY:${title}`,
+  ]
+  if (description) lines.push(`DESCRIPTION:${description.replace(/\n/g, '\\n')}`)
+  lines.push('END:VEVENT', 'END:VCALENDAR')
+  return lines.join('\r\n')
+}
+
 export async function createAppleCalendarEvent(
   personSlug: string,
   eventTitle: string,
@@ -220,6 +244,54 @@ export async function createAppleCalendarEvent(
     return uid
   } catch (err) {
     console.error('[appleCalendar] Failed to create event:', err)
+    return null
+  }
+}
+
+export async function createAppleCalendarAllDayEvent(
+  personSlug: string,
+  eventTitle: string,
+  date: string,
+  description?: string,
+): Promise<string | null> {
+  if (!process.env.APPLE_ID || !process.env.APPLE_APP_PASSWORD) return null
+
+  const targetName = PERSON_CALENDAR_NAMES[personSlug]
+  if (!targetName) {
+    console.warn(`[appleCalendar] No calendar mapped for person: ${personSlug}`)
+    return null
+  }
+
+  try {
+    const client = await createDAVClient({
+      serverUrl: 'https://caldav.icloud.com',
+      credentials: {
+        username: process.env.APPLE_ID,
+        password: process.env.APPLE_APP_PASSWORD,
+      },
+      authMethod: 'Basic',
+      defaultAccountType: 'caldav',
+    })
+
+    const calendars = await client.fetchCalendars()
+    const target = calendars.find(cal => calendarName(cal.displayName) === targetName)
+
+    if (!target) {
+      console.warn(`[appleCalendar] Calendar not found: "${targetName}"`)
+      return null
+    }
+
+    const uid = randomUUID()
+    await client.createCalendarObject({
+      calendar: target,
+      filename: `${uid}.ics`,
+      iCalString: buildAllDayICS(uid, eventTitle, date, description),
+    })
+
+    console.log(`[appleCalendar] Created all-day event "${eventTitle}" on ${date} in ${targetName}`)
+    return uid
+  } catch (err) {
+    console.error('[appleCalendar] Failed to create all-day event:', err)
     return null
   }
 }

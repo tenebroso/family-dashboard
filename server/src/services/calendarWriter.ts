@@ -1,6 +1,6 @@
 import { google } from 'googleapis'
 import * as chrono from 'chrono-node'
-import { createAppleCalendarEvent } from './appleCalendar'
+import { createAppleCalendarEvent, createAppleCalendarAllDayEvent } from './appleCalendar'
 
 // krysten writes to Apple Calendar
 const APPLE_CALENDAR_PEOPLE = new Set(['krysten'])
@@ -59,6 +59,45 @@ export async function createCalendarEvent(
     return response.data.id ?? null
   } catch (err) {
     console.error('[calendarWriter] Google Calendar write failed:', err)
+    return null
+  }
+}
+
+export async function createAllDayCalendarEvent(
+  personSlug: string,
+  eventTitle: string,
+  date: string,
+  description?: string,
+): Promise<string | null> {
+  if (APPLE_CALENDAR_PEOPLE.has(personSlug)) {
+    return createAppleCalendarAllDayEvent(personSlug, eventTitle, date, description)
+  }
+
+  const calendarId = GOOGLE_CALENDAR_IDS[personSlug]
+  if (!calendarId) {
+    console.warn(`[calendarWriter] No calendar ID configured for person: ${personSlug}`)
+    return null
+  }
+
+  // Google all-day events use { date: 'YYYY-MM-DD' }; DTEND is exclusive (next day)
+  const [year, month, day] = date.split('-').map(Number)
+  const endDate = new Date(Date.UTC(year, month - 1, day + 1))
+  const endStr = endDate.toISOString().slice(0, 10)
+
+  try {
+    const calendar = createGoogleCalendarClient()
+    const response = await calendar.events.insert({
+      calendarId,
+      requestBody: {
+        summary: eventTitle,
+        description,
+        start: { date },
+        end:   { date: endStr },
+      },
+    })
+    return response.data.id ?? null
+  } catch (err) {
+    console.error('[calendarWriter] Google Calendar all-day write failed:', err)
     return null
   }
 }

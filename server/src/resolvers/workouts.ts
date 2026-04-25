@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { GraphQLError } from 'graphql'
 import { parsePdfWorkouts, getWorkoutDate } from '../services/workoutParsing'
+import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
 
@@ -169,6 +170,20 @@ export const workoutResolvers = {
         },
       })
 
+      // Fire-and-forget calendar events for each strength workout
+      const personSlug = person.name.toLowerCase()
+      for (const w of week.workouts) {
+        if (w.type !== 'strength') continue
+        const exerciseNames = w.exercises.map((e: { name: string }) => e.name)
+        const strengthDescription = [
+          ...exerciseNames,
+          `https://diverseydash.com/workout/strength/${w.id}`,
+        ].join('\n')
+        createAllDayCalendarEvent(personSlug, 'Strength Training', w.date, strengthDescription).catch(err =>
+          console.error('[workouts] Failed to create strength calendar event:', err)
+        )
+      }
+
       return {
         ...formatWeek(week),
         workouts: week.workouts.map(formatWorkout),
@@ -230,6 +245,18 @@ export const workoutResolvers = {
         },
         include: workoutInclude,
       })
+
+      const personSlug = person.name.toLowerCase()
+      const runTitle = targetMiles && targetPace
+        ? `Run – ${targetMiles} mi @ ${targetPace}/mi`
+        : targetMiles
+          ? `Run – ${targetMiles} mi`
+          : 'Run Workout'
+      const runDescription = `https://diverseydash.com/workout/run/${workout.id}`
+      createAllDayCalendarEvent(personSlug, runTitle, date, runDescription).catch(err =>
+        console.error('[workouts] Failed to create run calendar event:', err)
+      )
+
       return formatWorkout(workout)
     },
 
