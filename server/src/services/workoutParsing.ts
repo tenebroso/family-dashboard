@@ -25,7 +25,9 @@ export interface ParsedWorkout {
 
 export function getWorkoutDate(weekOf: string, dayName: string): { dayOfWeek: number; date: string } {
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  const dayIndex = dayNames.findIndex(d => d.toLowerCase() === dayName.toLowerCase())
+  // Claude sometimes returns "Monday, April 6th, 2026" — take only the weekday word
+  const normalized = dayName.split(',')[0].trim()
+  const dayIndex = dayNames.findIndex(d => d.toLowerCase() === normalized.toLowerCase())
   if (dayIndex === -1) throw new Error(`Unknown day name: ${dayName}`)
 
   const [year, month, day] = weekOf.split('-').map(Number)
