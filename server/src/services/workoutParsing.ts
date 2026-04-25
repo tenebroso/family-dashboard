@@ -59,8 +59,8 @@ export async function parsePdfWorkouts(
         text: `You are a workout programming parser. Extract structured workout data from PDF training plans.
 
 For the ${programTrack} program, extract ONLY Monday, Wednesday, and Friday workouts.
-Include these sections: Strength Intensity 1, Strength Intensity 2, Strength Balance, Finisher.
-Exclude: Warm-up details, cooldown, loading notes, and optional sections.
+Include these sections: Warm-up details, Strength Intensity 1, Strength Intensity 2, Strength Balance, Finisher, cooldown.
+Exclude: loading notes, and optional sections.
 
 Rules:
 - targetReps: preserve exactly as written ("6", "6-8", "Max Unbroken reps", "Max reps", etc.)
