@@ -14,6 +14,7 @@ export interface ParsedSet {
 export interface ParsedExercise {
   name: string
   section: string
+  loadingNote: string | null
   sets: ParsedSet[]
 }
 
@@ -59,7 +60,7 @@ export async function parsePdfWorkouts(
         text: `You are a workout programming parser. Extract structured workout data from PDF training plans.
 
 For the ${programTrack} program, extract ONLY Monday, Wednesday, and Friday workouts.
-Include these sections: Warmup, Strength Intensity 1, Loading Note, Strength Intensity 2, Loading Note, Strength Balance, Loading Note, Finisher, Cooldown.
+Include these sections: Warmup, Strength Intensity 1, Strength Intensity 2, Strength Balance, Finisher, Cooldown.
 Exclude: optional sections.
 
 Rules:
@@ -68,7 +69,8 @@ Rules:
 - tempo: "21X1" format (eccentric-pause-concentric-pause), null if absent
 - targetWeight: numeric value only in lbs, null if not specified
 - Preserve exercise names exactly as written in the PDF
-- dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday`,
+- dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday
+- Loading Notes: do NOT create a separate exercise for "Loading Note" text. Instead, attach the full loading note text to the loadingNote field of the exercise it follows. If there is no loading note for an exercise, set loadingNote to null.`,
         cache_control: { type: 'ephemeral' },
       },
     ],
@@ -93,6 +95,7 @@ Rules:
                       properties: {
                         name: { type: 'string' },
                         section: { type: 'string', description: 'e.g. "Strength Intensity 1", "Finisher"' },
+                        loadingNote: { type: 'string', description: 'Full text of the Loading Note for this exercise, or null if none' },
                         sets: {
                           type: 'array',
                           items: {

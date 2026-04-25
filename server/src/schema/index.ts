@@ -44,9 +44,13 @@ const rootTypeDefs = `#graphql
     logSet(setId: String!, actualReps: String, actualWeight: Float, actualRPE: String, notes: String): StrengthSet!
     completeSet(setId: String!): StrengthSet!
     createRunWorkout(weekOf: String!, date: String!, targetMiles: Float, targetPace: String): Workout!
-    logRunWorkout(workoutId: String!, actualMiles: Float!, actualTime: Int!, avgHeartRate: Int, maxHeartRate: Int, notes: String): RunWorkout!
+    logRunWorkout(workoutId: String!, actualMiles: Float!, actualTime: Int!, avgHeartRate: Int, maxHeartRate: Int, actualRPE: Int, notes: String): RunWorkout!
     completeWorkout(workoutId: String!): Workout!
     createRecoveryWorkout(weekOf: String!, date: String!, notes: String): Workout!
+    updateExercise(id: String!, name: String!): StrengthExercise!
+    updateSet(id: String!, targetReps: String, targetWeight: Float, targetRPE: String, tempo: String): StrengthSet!
+    addSet(exerciseId: String!): StrengthSet!
+    deleteSet(id: String!): Boolean!
   }
 `
 

@@ -19,6 +19,7 @@ export const workoutTypeDefs = `#graphql
     name: String!
     section: String!
     order: Int!
+    loadingNote: String
     sets: [StrengthSet!]!
   }
 
@@ -31,6 +32,7 @@ export const workoutTypeDefs = `#graphql
     actualTime: Int
     avgHeartRate: Int
     maxHeartRate: Int
+    actualRPE: Int
     notes: String
     completed: Boolean!
     completedAt: String

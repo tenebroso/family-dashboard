@@ -35,7 +35,7 @@ function formatWorkout(w: {
   id: string; date: string; dayOfWeek: number; type: string; notes: string | null
   completedAt: Date | null; createdAt: Date; updatedAt: Date
   exercises: Array<{
-    id: string; name: string; section: string; order: number; createdAt: Date
+    id: string; name: string; section: string; order: number; loadingNote: string | null; createdAt: Date
     sets: Array<{
       id: string; setNumber: number; targetReps: string | null; targetWeight: number | null
       targetRPE: string | null; tempo: string | null; actualReps: string | null
@@ -145,6 +145,7 @@ export const workoutResolvers = {
                     name: ex.name,
                     section: ex.section,
                     order: exIdx,
+                    loadingNote: ex.loadingNote ?? null,
                     sets: {
                       create: ex.sets.map(s => ({
                         setNumber: s.setNumber,
@@ -211,8 +212,10 @@ export const workoutResolvers = {
       const person = requirePerson(ctx)
       const athlete = await getOrCreateAthlete(person.id)
 
-      const week = await prisma.trainingWeek.findUniqueOrThrow({
+      const week = await prisma.trainingWeek.upsert({
         where: { athleteId_weekOf: { athleteId: athlete.id, weekOf } },
+        create: { athleteId: athlete.id, weekOf },
+        update: {},
       })
 
       const { dayOfWeek } = getWorkoutDate(weekOf, new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' }))
@@ -232,9 +235,9 @@ export const workoutResolvers = {
 
     logRunWorkout: async (
       _: unknown,
-      { workoutId, actualMiles, actualTime, avgHeartRate, maxHeartRate, notes }: {
+      { workoutId, actualMiles, actualTime, avgHeartRate, maxHeartRate, actualRPE, notes }: {
         workoutId: string; actualMiles: number; actualTime: number
-        avgHeartRate?: number; maxHeartRate?: number; notes?: string
+        avgHeartRate?: number; maxHeartRate?: number; actualRPE?: number; notes?: string
       },
       ctx: Context
     ) => {
@@ -246,6 +249,7 @@ export const workoutResolvers = {
           actualTime,
           avgHeartRate: avgHeartRate ?? null,
           maxHeartRate: maxHeartRate ?? null,
+          actualRPE: actualRPE ?? null,
           notes: notes ?? null,
           completed: true,
           completedAt: new Date(),
@@ -272,8 +276,10 @@ export const workoutResolvers = {
       const person = requirePerson(ctx)
       const athlete = await getOrCreateAthlete(person.id)
 
-      const week = await prisma.trainingWeek.findUniqueOrThrow({
+      const week = await prisma.trainingWeek.upsert({
         where: { athleteId_weekOf: { athleteId: athlete.id, weekOf } },
+        create: { athleteId: athlete.id, weekOf },
+        update: {},
       })
 
       const dayName = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })
@@ -290,6 +296,63 @@ export const workoutResolvers = {
         include: workoutInclude,
       })
       return formatWorkout(workout)
+    },
+
+    updateExercise: async (
+      _: unknown,
+      { id, name }: { id: string; name: string },
+      ctx: Context
+    ) => {
+      requirePerson(ctx)
+      const ex = await prisma.strengthExercise.update({
+        where: { id },
+        data: { name },
+        include: { sets: { orderBy: { setNumber: 'asc' } } },
+      })
+      return {
+        ...ex,
+        createdAt: ex.createdAt.toISOString(),
+        sets: ex.sets.map(s => ({ ...s, completedAt: s.completedAt ? s.completedAt.toISOString() : null })),
+      }
+    },
+
+    updateSet: async (
+      _: unknown,
+      { id, targetReps, targetWeight, targetRPE, tempo }: {
+        id: string; targetReps?: string; targetWeight?: number; targetRPE?: string; tempo?: string
+      },
+      ctx: Context
+    ) => {
+      requirePerson(ctx)
+      const set = await prisma.strengthSet.update({
+        where: { id },
+        data: {
+          ...(targetReps !== undefined && { targetReps }),
+          ...(targetWeight !== undefined && { targetWeight }),
+          ...(targetRPE !== undefined && { targetRPE }),
+          ...(tempo !== undefined && { tempo }),
+        },
+      })
+      return { ...set, completedAt: set.completedAt ? set.completedAt.toISOString() : null }
+    },
+
+    addSet: async (_: unknown, { exerciseId }: { exerciseId: string }, ctx: Context) => {
+      requirePerson(ctx)
+      const lastSet = await prisma.strengthSet.findFirst({
+        where: { exerciseId },
+        orderBy: { setNumber: 'desc' },
+      })
+      const setNumber = (lastSet?.setNumber ?? 0) + 1
+      const set = await prisma.strengthSet.create({
+        data: { exerciseId, setNumber },
+      })
+      return { ...set, completedAt: set.completedAt ? set.completedAt.toISOString() : null }
+    },
+
+    deleteSet: async (_: unknown, { id }: { id: string }, ctx: Context) => {
+      requirePerson(ctx)
+      await prisma.strengthSet.delete({ where: { id } })
+      return true
     },
   },
 }

@@ -18,6 +18,7 @@ import GroceryAdminPage from './pages/GroceryAdminPage'
 import RemindersPage from './pages/RemindersPage'
 import MessageAdminPage from './pages/MessageAdminPage'
 import WorkoutPage from './pages/WorkoutPage'
+import { WorkoutApp } from './workout/WorkoutApp'
 
 const graphqlUri = import.meta.env.PROD ? '/graphql' : 'http://localhost:4000/graphql'
 
@@ -47,13 +48,14 @@ function AppShell() {
   if (status === 'unauthenticated') return <LoginPage />
   if (status === 'unlinked') return <LinkAccountPage />
 
-  const isDashboard = location.pathname.match(/^\/[a-z]+(\/.*)?$/) !== null
+  const isWorkout = location.pathname.startsWith('/workout')
+  const isDashboard = !isWorkout && location.pathname.match(/^\/[a-z]+(\/.*)?$/) !== null
 
   return (
     <AerialProvider>
       <div className={isDashboard ? 'app' : undefined}>
         {isDashboard && <TopBar />}
-        <main className={isDashboard ? undefined : 'pb-14'}>
+        <main className={!isDashboard && !isWorkout ? 'pb-14' : undefined}>
           <Routes>
             <Route path="/" element={<LobbyPage />} />
             <Route path="/:personSlug" element={<DashboardPage />} />
@@ -66,6 +68,7 @@ function AppShell() {
             <Route path="/message-admin" element={<MessageAdminPage />} />
             <Route path="/:personSlug/message-admin" element={<MessageAdminPage />} />
             <Route path="/:personSlug/workouts" element={<WorkoutPage />} />
+            <Route path="/workout/*" element={<WorkoutApp />} />
           </Routes>
         </main>
       </div>

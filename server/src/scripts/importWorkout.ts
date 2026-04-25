@@ -69,6 +69,7 @@ async function main() {
                 name: ex.name,
                 section: ex.section,
                 order: exIdx,
+                loadingNote: ex.loadingNote ?? null,
                 sets: {
                   create: ex.sets.map(s => ({
                     setNumber: s.setNumber,

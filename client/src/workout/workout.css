@@ -1,0 +1,56 @@
+@keyframes wk-pulse-gold {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+@keyframes wk-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes wk-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes wk-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wk-pulse-gold {
+  animation: wk-pulse-gold 1.6s ease-in-out infinite;
+}
+
+.wk-sheet {
+  animation: wk-sheet-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.wk-scrim {
+  animation: wk-scrim-in 0.2s ease;
+}
+
+.wk-fade-in {
+  animation: wk-fade-in 0.22s ease;
+}
+
+/* Safe-area bottom padding for sticky footers */
+.wk-footer-pad {
+  padding-bottom: max(44px, env(safe-area-inset-bottom));
+}
+
+/* Hide scrollbars while keeping scroll */
+.wk-noscroll::-webkit-scrollbar {
+  display: none;
+}
+.wk-noscroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Input focus ring removal */
+.wk-input-reset {
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}

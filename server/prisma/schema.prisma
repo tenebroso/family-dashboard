@@ -123,14 +123,15 @@ model Workout {
 }
 
 model StrengthExercise {
-  id        String        @id @default(cuid())
-  workoutId String
-  workout   Workout       @relation(fields: [workoutId], references: [id], onDelete: Cascade)
-  name      String
-  section   String
-  order     Int
-  sets      StrengthSet[]
-  createdAt DateTime      @default(now())
+  id          String        @id @default(cuid())
+  workoutId   String
+  workout     Workout       @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  name        String
+  section     String
+  order       Int
+  loadingNote String?
+  sets        StrengthSet[]
+  createdAt   DateTime      @default(now())
 }
 
 model StrengthSet {
@@ -161,6 +162,7 @@ model RunWorkout {
   actualTime    Int?
   avgHeartRate  Int?
   maxHeartRate  Int?
+  actualRPE     Int?
   notes         String?
   completed     Boolean   @default(false)
   completedAt   DateTime?
