@@ -162,6 +162,20 @@ export const LOG_RUN_WORKOUT = gql`
   }
 `
 
+export const UNCOMPLETE_WORKOUT = gql`
+  mutation UncompleteWorkout($workoutId: String!) {
+    uncompleteWorkout(workoutId: $workoutId) {
+      id
+      completedAt
+      runWorkout {
+        id
+        completed
+        completedAt
+      }
+    }
+  }
+`
+
 export const CREATE_RUN_WORKOUT = gql`
   mutation CreateRunWorkout($weekOf: String!, $date: String!, $targetMiles: Float, $targetPace: String) {
     createRunWorkout(weekOf: $weekOf, date: $date, targetMiles: $targetMiles, targetPace: $targetPace) {

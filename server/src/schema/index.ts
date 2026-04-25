@@ -46,6 +46,7 @@ const rootTypeDefs = `#graphql
     createRunWorkout(weekOf: String!, date: String!, targetMiles: Float, targetPace: String): Workout!
     logRunWorkout(workoutId: String!, actualMiles: Float!, actualTime: Int!, avgHeartRate: Int, maxHeartRate: Int, actualRPE: Int, notes: String): RunWorkout!
     completeWorkout(workoutId: String!): Workout!
+    uncompleteWorkout(workoutId: String!): Workout!
     createRecoveryWorkout(weekOf: String!, date: String!, notes: String): Workout!
     updateExercise(id: String!, name: String!): StrengthExercise!
     updateSet(id: String!, targetReps: String, targetWeight: Float, targetRPE: String, tempo: String): StrengthSet!

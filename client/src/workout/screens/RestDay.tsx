@@ -1,23 +1,50 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@apollo/client/react'
+import { useQuery, useMutation } from '@apollo/client/react'
 import dayjs from 'dayjs'
 import { C, F } from '../tokens'
 import { TopBar } from '../components/TopBar'
 import { IconBtn } from '../components/IconBtn'
+import { PrimaryBtn } from '../components/PrimaryBtn'
 import { ChevronIcon } from '../icons'
-import { GET_RUN_WORKOUT } from '../graphql'
+import { GET_RUN_WORKOUT, COMPLETE_WORKOUT, UNCOMPLETE_WORKOUT } from '../graphql'
+
+function hapticLight() {
+  if ('vibrate' in navigator) navigator.vibrate(10)
+}
 
 export function RestDay() {
   const navigate = useNavigate()
   const { workoutId } = useParams<{ workoutId: string }>()
 
-  const { data } = useQuery<{ workout: { id: string; date: string } | null }>(
+  const { data } = useQuery<{ workout: { id: string; date: string; completedAt: string | null } | null }>(
     GET_RUN_WORKOUT,
-    { variables: { id: workoutId }, skip: !workoutId }
+    { variables: { id: workoutId }, fetchPolicy: 'cache-and-network', skip: !workoutId }
   )
 
+  const [completeWorkoutMutation] = useMutation(COMPLETE_WORKOUT)
+  const [uncompleteWorkoutMutation] = useMutation(UNCOMPLETE_WORKOUT)
+
   const workout = data?.workout
+  const isComplete = !!workout?.completedAt
   const dateLabel = workout ? dayjs(workout.date).format('ddd · MMM D').toUpperCase() : ''
+
+  const handleToggle = async () => {
+    if (!workout) return
+    hapticLight()
+    try {
+      if (isComplete) {
+        await uncompleteWorkoutMutation({
+          variables: { workoutId: workout.id },
+          refetchQueries: ['GetTrainingWeekCalendar'],
+        })
+      } else {
+        await completeWorkoutMutation({
+          variables: { workoutId: workout.id },
+          refetchQueries: ['GetTrainingWeekCalendar'],
+        })
+      }
+    } catch (e) { console.error(e) }
+  }
 
   return (
     <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
@@ -30,6 +57,35 @@ export function RestDay() {
           </IconBtn>
         }
       />
+
+      {isComplete && (
+        <div style={{
+          padding: '10px 20px',
+          background: 'rgba(201,168,76,0.06)',
+          borderBottom: `1px solid ${C.hair}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: '0.18em', color: C.gold }}>✓ DAY COMPLETE</span>
+          <button
+            onClick={handleToggle}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontFamily: F.mono,
+              fontSize: 9,
+              letterSpacing: '0.14em',
+              color: C.muted,
+              cursor: 'pointer',
+              padding: '4px 0',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            MARK INCOMPLETE
+          </button>
+        </div>
+      )}
 
       <div style={{
         flex: 1,
@@ -45,7 +101,7 @@ export function RestDay() {
           fontWeight: 800,
           lineHeight: 0.9,
           letterSpacing: '-0.03em',
-          color: C.gold,
+          color: isComplete ? C.gold : C.text,
         }}>
           Rest<br />Day.
         </div>
@@ -60,6 +116,21 @@ export function RestDay() {
           Optional mobility work. Sleep, eat, walk. The plan resumes tomorrow.
         </div>
       </div>
+
+      {!isComplete && (
+        <div style={{
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 30,
+          padding: '12px 20px',
+          paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))',
+          background: `linear-gradient(180deg, rgba(14,14,12,0) 0%, rgba(14,14,12,0.92) 28%, ${C.bg} 100%)`,
+        }}>
+          <PrimaryBtn onClick={handleToggle}>Mark Day Complete</PrimaryBtn>
+        </div>
+      )}
     </div>
   )
 }

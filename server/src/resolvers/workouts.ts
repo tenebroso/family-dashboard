@@ -268,6 +268,20 @@ export const workoutResolvers = {
       return formatWorkout(workout)
     },
 
+    uncompleteWorkout: async (_: unknown, { workoutId }: { workoutId: string }, ctx: Context) => {
+      requirePerson(ctx)
+      await prisma.runWorkout.updateMany({
+        where: { workoutId },
+        data: { completed: false, completedAt: null },
+      })
+      const workout = await prisma.workout.update({
+        where: { id: workoutId },
+        data: { completedAt: null },
+        include: workoutInclude,
+      })
+      return formatWorkout(workout)
+    },
+
     createRecoveryWorkout: async (
       _: unknown,
       { weekOf, date, notes }: { weekOf: string; date: string; notes?: string },

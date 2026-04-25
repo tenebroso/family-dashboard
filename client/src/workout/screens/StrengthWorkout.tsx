@@ -8,13 +8,13 @@ import { IconBtn } from '../components/IconBtn'
 import { Sheet } from '../components/Sheet'
 import { PrimaryBtn } from '../components/PrimaryBtn'
 import { PillInput } from '../components/PillInput'
-import { RPEPicker } from '../components/RPEPicker'
 import { ChevronIcon, PencilIcon, PlusIcon, TrashIcon } from '../icons'
 import {
   GET_STRENGTH_WORKOUT,
   LOG_SET,
   COMPLETE_SET,
   COMPLETE_WORKOUT,
+  UNCOMPLETE_WORKOUT,
   UPDATE_EXERCISE,
   UPDATE_SET_TARGETS,
   ADD_SET,
@@ -132,8 +132,6 @@ interface SetRowProps {
 }
 
 function SetRow({ set, local, editMode, onUpdateLocal, onComplete, onUpdateTargets, onDelete, scheduleLogSet }: SetRowProps) {
-  const [showRPE, setShowRPE] = useState(false)
-
   return (
     <div style={{
       borderRadius: 12,
@@ -249,7 +247,6 @@ function SetRow({ set, local, editMode, onUpdateLocal, onComplete, onUpdateTarge
               onUpdateLocal({ actualRPE: v })
               scheduleLogSet(set.id, next)
             }}
-            onFocus={() => setShowRPE(true)}
             placeholder="—"
             width={50}
             disabled={local.completed}
@@ -288,20 +285,6 @@ function SetRow({ set, local, editMode, onUpdateLocal, onComplete, onUpdateTarge
         <div style={{ marginTop: 8, paddingLeft: 2, fontFamily: F.dm, fontSize: 11, color: C.muted, fontStyle: 'italic' }}>
           "{local.notes}"
         </div>
-      )}
-
-      {showRPE && (
-        <RPEPicker
-          value={local.actualRPE}
-          onSelect={v => {
-            const next = { ...local, actualRPE: v }
-            onUpdateLocal({ actualRPE: v })
-            scheduleLogSet(set.id, next)
-            setShowRPE(false)
-            hapticLight()
-          }}
-          onClose={() => setShowRPE(false)}
-        />
       )}
     </div>
   )
@@ -436,6 +419,7 @@ export function StrengthWorkout() {
   const [logSet] = useMutation(LOG_SET)
   const [completeSetMutation] = useMutation(COMPLETE_SET)
   const [completeWorkoutMutation] = useMutation(COMPLETE_WORKOUT)
+  const [uncompleteWorkoutMutation] = useMutation(UNCOMPLETE_WORKOUT)
   const [updateExerciseMutation] = useMutation(UPDATE_EXERCISE)
   const [updateSetTargetsMutation] = useMutation(UPDATE_SET_TARGETS)
   const [addSetMutation] = useMutation<{ addSet: StrengthSetData }>(ADD_SET)
@@ -580,6 +564,16 @@ export function StrengthWorkout() {
     setConfirmOpen(false)
   }
 
+  const handleMarkIncomplete = async () => {
+    hapticLight()
+    try {
+      await uncompleteWorkoutMutation({
+        variables: { workoutId },
+        refetchQueries: ['GetTrainingWeekCalendar', 'GetStrengthWorkout'],
+      })
+    } catch (e) { console.error(e) }
+  }
+
   const editBg = '#1A1611'
 
   if (loading && !data) {
@@ -663,8 +657,32 @@ export function StrengthWorkout() {
       )}
 
       {isComplete && (
-        <div style={{ padding: '12px 20px', background: 'rgba(201,168,76,0.06)', borderBottom: `1px solid ${C.hair}`, flexShrink: 0 }}>
+        <div style={{
+          padding: '10px 20px',
+          background: 'rgba(201,168,76,0.06)',
+          borderBottom: `1px solid ${C.hair}`,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
           <span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: '0.18em', color: C.gold }}>✓ WORKOUT COMPLETE</span>
+          <button
+            onClick={handleMarkIncomplete}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontFamily: F.mono,
+              fontSize: 9,
+              letterSpacing: '0.14em',
+              color: C.muted,
+              cursor: 'pointer',
+              padding: '4px 0',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            MARK INCOMPLETE
+          </button>
         </div>
       )}
 

@@ -10,7 +10,7 @@ import { BigField } from '../components/BigField'
 import { TimeField, mmssToSeconds, secondsToMmss } from '../components/TimeField'
 import { RPEStrip } from '../components/RPEStrip'
 import { ChevronIcon } from '../icons'
-import { GET_RUN_WORKOUT, LOG_RUN_WORKOUT } from '../graphql'
+import { GET_RUN_WORKOUT, LOG_RUN_WORKOUT, COMPLETE_WORKOUT, UNCOMPLETE_WORKOUT } from '../graphql'
 import type { WorkoutData } from '../types'
 
 function hapticMedium() {
@@ -56,10 +56,14 @@ export function RunWorkout() {
   )
 
   const [logRun, { loading: submitting }] = useMutation(LOG_RUN_WORKOUT)
+  const [completeWorkoutMutation] = useMutation(COMPLETE_WORKOUT)
+  const [uncompleteWorkoutMutation] = useMutation(UNCOMPLETE_WORKOUT)
 
   const workout = data?.workout
   const run = workout?.runWorkout
-  const isView = run?.completed ?? false
+  const isCompleted = run?.completed ?? false
+  const [isEditing, setIsEditing] = useState(false)
+  const isView = isCompleted && !isEditing
 
   const [form, setForm] = useState<RunFormState>({
     miles: run?.actualMiles != null ? String(run.actualMiles) : '',
@@ -70,9 +74,8 @@ export function RunWorkout() {
     notes: run?.notes ?? '',
   })
 
-  // Sync form when data loads (run not loaded yet on first render)
+  // Sync form when data loads or completion status changes
   useEffect(() => {
-    if (run && !isView) return // don't overwrite if user has started typing
     if (run) {
       setForm({
         miles: run.actualMiles != null ? String(run.actualMiles) : '',
@@ -82,11 +85,22 @@ export function RunWorkout() {
         rpe: run.actualRPE != null ? String(run.actualRPE) : '',
         notes: run.notes ?? '',
       })
+      setIsEditing(false)
     }
-  }, [run?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [run?.id, run?.completed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (k: keyof RunFormState) => (v: string) => setForm(f => ({ ...f, [k]: v }))
   const valid = !!(form.miles && form.time)
+
+  const handleUncomplete = async () => {
+    if (!workout) return
+    try {
+      await uncompleteWorkoutMutation({
+        variables: { workoutId: workout.id },
+        refetchQueries: ['GetTrainingWeekCalendar', 'GetRunWorkout'],
+      })
+    } catch (e) { console.error(e) }
+  }
 
   const handleSubmit = async () => {
     if (!valid || !run || submitting) return
@@ -102,9 +116,9 @@ export function RunWorkout() {
           actualRPE: form.rpe ? parseInt(form.rpe) : undefined,
           notes: form.notes || undefined,
         },
-        refetchQueries: ['GetTrainingWeekCalendar'],
+        refetchQueries: ['GetTrainingWeekCalendar', 'GetRunWorkout'],
       })
-      navigate(-1)
+      if (!isEditing) navigate(-1)
     } catch (e) {
       console.error(e)
     }
@@ -239,22 +253,35 @@ export function RunWorkout() {
       </div>
 
       {/* Sticky footer */}
-      {!isView && (
-        <div style={{
-          position: 'sticky',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 30,
-          padding: '12px 20px',
-          paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))',
-          background: `linear-gradient(180deg, rgba(14,14,12,0) 0%, rgba(14,14,12,0.92) 28%, ${C.bg} 100%)`,
-        }}>
-          <PrimaryBtn disabled={!valid || submitting} onClick={handleSubmit}>
-            {submitting ? 'Logging…' : valid ? 'Log Run' : 'Distance & Time required'}
-          </PrimaryBtn>
-        </div>
-      )}
+      <div style={{
+        position: 'sticky',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 30,
+        padding: '12px 20px',
+        paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))',
+        background: `linear-gradient(180deg, rgba(14,14,12,0) 0%, rgba(14,14,12,0.92) 28%, ${C.bg} 100%)`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}>
+        {isView ? (
+          <>
+            <PrimaryBtn onClick={() => setIsEditing(true)}>Edit Run</PrimaryBtn>
+            <PrimaryBtn variant="outline" onClick={handleUncomplete}>Mark Incomplete</PrimaryBtn>
+          </>
+        ) : (
+          <>
+            {isEditing && (
+              <PrimaryBtn variant="outline" onClick={() => setIsEditing(false)}>Cancel</PrimaryBtn>
+            )}
+            <PrimaryBtn disabled={!valid || submitting} onClick={handleSubmit}>
+              {submitting ? 'Saving…' : isEditing ? 'Save Changes' : valid ? 'Log Run' : 'Distance & Time required'}
+            </PrimaryBtn>
+          </>
+        )}
+      </div>
     </div>
   )
 }
