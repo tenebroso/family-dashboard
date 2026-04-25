@@ -187,8 +187,8 @@ Output: dayOfWeek (0-6) and ISO date string
 
 **Parsing rules:**
 - Extract ONLY Monday, Wednesday, Friday from Pump Lift 3x
-- Include: Strength Intensity 1, Strength Intensity 2, Strength Balance, Finisher
-- Exclude: Warm-up details, cooldown, loading notes, optional sections
+- Include these sections: Warmup, Strength Intensity 1, Loading Note, Strength Intensity 2, Loading Note, Strength Balance, Loading Note, Finisher, Cooldown.
+- Exclude: loading notes, optional sections
 - targetReps can be: "6", "6-8", "Max Unbroken reps", "Max reps"
 - targetRPE can be: "7", "8", "9", "9+", "7-8", "8-9"
 - tempo format: "21X1" (2 down, 1 pause, X no pause, 1 up)
