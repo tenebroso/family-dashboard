@@ -10,7 +10,7 @@ import { BigField } from '../components/BigField'
 import { TimeField, mmssToSeconds, secondsToMmss } from '../components/TimeField'
 import { RPEStrip } from '../components/RPEStrip'
 import { ChevronIcon } from '../icons'
-import { GET_RUN_WORKOUT, LOG_RUN_WORKOUT, COMPLETE_WORKOUT, UNCOMPLETE_WORKOUT } from '../graphql'
+import { GET_RUN_WORKOUT, LOG_RUN_WORKOUT, UNCOMPLETE_WORKOUT } from '../graphql'
 import type { WorkoutData } from '../types'
 
 function hapticMedium() {
@@ -56,7 +56,6 @@ export function RunWorkout() {
   )
 
   const [logRun, { loading: submitting }] = useMutation(LOG_RUN_WORKOUT)
-  const [completeWorkoutMutation] = useMutation(COMPLETE_WORKOUT)
   const [uncompleteWorkoutMutation] = useMutation(UNCOMPLETE_WORKOUT)
 
   const workout = data?.workout
