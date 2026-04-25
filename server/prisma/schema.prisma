@@ -15,6 +15,7 @@ model Person {
   email     String?    @unique
   chores    Chore[]
   reminders Reminder[]
+  athlete   Athlete?
   createdAt DateTime   @default(now())
 }
 
@@ -83,4 +84,84 @@ model GroceryItem {
   addedBy   String
   checked   Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model Athlete {
+  id            String         @id @default(cuid())
+  personId      String         @unique
+  person        Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  trainingWeeks TrainingWeek[]
+  createdAt     DateTime       @default(now())
+}
+
+model TrainingWeek {
+  id        String    @id @default(cuid())
+  athleteId String
+  athlete   Athlete   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  weekOf    String
+  pdfUrl    String?
+  workouts  Workout[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([athleteId, weekOf])
+}
+
+model Workout {
+  id             String             @id @default(cuid())
+  trainingWeekId String
+  trainingWeek   TrainingWeek       @relation(fields: [trainingWeekId], references: [id], onDelete: Cascade)
+  date           String
+  dayOfWeek      Int
+  type           String
+  exercises      StrengthExercise[]
+  runWorkout     RunWorkout?
+  notes          String?
+  completedAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model StrengthExercise {
+  id        String        @id @default(cuid())
+  workoutId String
+  workout   Workout       @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  name      String
+  section   String
+  order     Int
+  sets      StrengthSet[]
+  createdAt DateTime      @default(now())
+}
+
+model StrengthSet {
+  id           String           @id @default(cuid())
+  exerciseId   String
+  exercise     StrengthExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  setNumber    Int
+  targetReps   String?
+  targetWeight Float?
+  targetRPE    String?
+  tempo        String?
+  actualReps   String?
+  actualWeight Float?
+  actualRPE    String?
+  notes        String?
+  completed    Boolean          @default(false)
+  completedAt  DateTime?
+}
+
+model RunWorkout {
+  id            String    @id @default(cuid())
+  workoutId     String    @unique
+  workout       Workout   @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  targetMiles   Float?
+  targetPace    String?
+  heartRateZone String?
+  actualMiles   Float?
+  actualTime    Int?
+  avgHeartRate  Int?
+  maxHeartRate  Int?
+  notes         String?
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
 }

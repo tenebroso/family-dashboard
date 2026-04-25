@@ -7,6 +7,7 @@ import { trackTypeDefs } from './types/track.graphql'
 import { wordTypeDefs } from './types/word.graphql'
 import { groceryTypeDefs } from './types/grocery.graphql'
 import { reminderTypeDefs } from './types/reminder.graphql'
+import { workoutTypeDefs } from './types/workouts.graphql'
 
 const rootTypeDefs = `#graphql
   type Query {
@@ -19,6 +20,9 @@ const rootTypeDefs = `#graphql
     wordOfDay: WordOfDay!
     groceryItems: [GroceryItem!]!
     reminders(personId: ID!): [Reminder!]!
+    trainingWeek(weekOf: String!): TrainingWeek
+    workout(id: String!): Workout
+    weekWorkouts(weekOf: String!): [Workout!]!
   }
 
   type Mutation {
@@ -36,6 +40,13 @@ const rootTypeDefs = `#graphql
     addReminder(personId: ID!, text: String!, dueDate: String): Reminder!
     toggleReminder(id: ID!): Reminder!
     deleteReminder(id: ID!): Boolean!
+    uploadTrainingPDF(pdfPath: String!, weekOf: String!): TrainingWeek!
+    logSet(setId: String!, actualReps: String, actualWeight: Float, actualRPE: String, notes: String): StrengthSet!
+    completeSet(setId: String!): StrengthSet!
+    createRunWorkout(weekOf: String!, date: String!, targetMiles: Float, targetPace: String): Workout!
+    logRunWorkout(workoutId: String!, actualMiles: Float!, actualTime: Int!, avgHeartRate: Int, maxHeartRate: Int, notes: String): RunWorkout!
+    completeWorkout(workoutId: String!): Workout!
+    createRecoveryWorkout(weekOf: String!, date: String!, notes: String): Workout!
   }
 `
 
@@ -50,4 +61,5 @@ export const typeDefs = [
   wordTypeDefs,
   groceryTypeDefs,
   reminderTypeDefs,
+  workoutTypeDefs,
 ]

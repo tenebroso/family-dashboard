@@ -104,7 +104,13 @@
       "Bash(kill 76783)",
       "Bash(openssl rand *)",
       "Bash(kill %1)",
-      "Bash(wait)"
+      "Bash(wait)",
+      "Bash(grep -E \"package\\\\.json$\")",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(python3 -c \"import sys,json; fields=json.load\\(sys.stdin\\)['data']['__schema']['queryType']['fields']; [print\\(f['name']\\) for f in fields if 'training' in f['name'].lower\\(\\) or 'workout' in f['name'].lower\\(\\)]\")",
+      "Bash(python3 -c \"import sys,json; fields=json.load\\(sys.stdin\\)['data']['__schema']['mutationType']['fields']; [print\\(f['name']\\) for f in fields if 'workout' in f['name'].lower\\(\\) or 'training' in f['name'].lower\\(\\) or 'set' in f['name'].lower\\(\\) or 'run' in f['name'].lower\\(\\)]\")",
+      "Bash(pkill -f \"ts-node src/index.ts\")",
+      "Bash(pkill -f \"nodemon\")"
     ]
   }
 }

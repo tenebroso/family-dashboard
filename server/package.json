@@ -7,7 +7,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "seed": "ts-node src/seed.ts",
-    "importTracks": "ts-node src/scripts/importTracks.ts"
+    "importTracks": "ts-node src/scripts/importTracks.ts",
+    "importWorkout": "ts-node src/scripts/importWorkout.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

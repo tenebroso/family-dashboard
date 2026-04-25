@@ -17,6 +17,7 @@ import ChoresAdminPage from './pages/ChoresAdminPage'
 import GroceryAdminPage from './pages/GroceryAdminPage'
 import RemindersPage from './pages/RemindersPage'
 import MessageAdminPage from './pages/MessageAdminPage'
+import WorkoutPage from './pages/WorkoutPage'
 
 const graphqlUri = import.meta.env.PROD ? '/graphql' : 'http://localhost:4000/graphql'
 
@@ -64,6 +65,7 @@ function AppShell() {
             <Route path="/grocery-admin" element={<GroceryAdminPage />} />
             <Route path="/message-admin" element={<MessageAdminPage />} />
             <Route path="/:personSlug/message-admin" element={<MessageAdminPage />} />
+            <Route path="/:personSlug/workouts" element={<WorkoutPage />} />
           </Routes>
         </main>
       </div>

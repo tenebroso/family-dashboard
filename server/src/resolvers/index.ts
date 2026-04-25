@@ -6,6 +6,7 @@ import { tracksResolvers } from './tracks'
 import { messagesResolvers } from './messages'
 import { groceryResolvers } from './grocery'
 import { remindersResolvers } from './reminders'
+import { workoutResolvers } from './workouts'
 
 export const resolvers = {
   Query: {
@@ -17,6 +18,7 @@ export const resolvers = {
     ...messagesResolvers.Query,
     ...groceryResolvers.Query,
     ...remindersResolvers.Query,
+    ...workoutResolvers.Query,
   },
 
   Person: {
@@ -30,5 +32,6 @@ export const resolvers = {
     ...messagesResolvers.Mutation,
     ...groceryResolvers.Mutation,
     ...remindersResolvers.Mutation,
+    ...workoutResolvers.Mutation,
   },
 }
