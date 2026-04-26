@@ -4,6 +4,7 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 
 import { PrismaClient } from '@prisma/client'
 import { parsePdfWorkouts, getWorkoutDate } from '../services/workoutParsing'
+import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
 
@@ -97,6 +98,22 @@ async function main() {
       },
     },
   })
+
+  // Create calendar events for each strength workout
+  const personSlug = person.name.toLowerCase()
+  for (const w of week.workouts) {
+    const exerciseNames = w.exercises.map((e: { name: string }) => e.name)
+    const description = [
+      ...exerciseNames,
+      `https://diverseydash.com/workout/strength/${w.id}`,
+    ].join('\n')
+    try {
+      const eventId = await createAllDayCalendarEvent(personSlug, 'Strength Training', w.date, description)
+      console.log(`  📅 Calendar event created for ${w.date}: ${eventId ?? 'no ID returned'}`)
+    } catch (err) {
+      console.error(`  ✗ Calendar event failed for ${w.date}:`, err)
+    }
+  }
 
   // Print summary
   console.log(`✓ Training week created (id: ${week.id})\n`)
