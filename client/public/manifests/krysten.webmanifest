@@ -1,0 +1,16 @@
+{
+  "name": "Krysten's Dashboard",
+  "short_name": "Krysten",
+  "start_url": "/krysten",
+  "display": "standalone",
+  "background_color": "#b95b5d",
+  "theme_color": "#b95b5d",
+  "icons": [
+    {
+      "src": "/icons/icon-krysten.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

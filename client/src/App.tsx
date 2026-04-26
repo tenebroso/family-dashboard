@@ -7,6 +7,7 @@ import TopBar from './components/TopBar'
 import { AerialProvider } from './contexts/AerialContext'
 import { PersonProvider, useActivePerson, type PersonSlug } from './contexts/PersonContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { usePageMeta } from './hooks/usePageMeta'
 import LoginPage from './pages/LoginPage'
 import LinkAccountPage from './pages/LinkAccountPage'
 import LobbyPage from './pages/LobbyPage'
@@ -22,6 +23,16 @@ import { WorkoutApp } from './workout/WorkoutApp'
 
 const graphqlUri = import.meta.env.PROD ? '/graphql' : 'http://localhost:4000/graphql'
 
+const PERSON_META: Record<string, { title: string; icon: string; manifest: string }> = {
+  jon:     { title: "Jon's Dashboard",     icon: '/icons/icon-jon.svg',     manifest: '/manifests/jon.webmanifest'     },
+  krysten: { title: "Krysten's Dashboard", icon: '/icons/icon-krysten.svg', manifest: '/manifests/krysten.webmanifest' },
+  harry:   { title: "Harry's Dashboard",   icon: '/icons/icon-harry.svg',   manifest: '/manifests/harry.webmanifest'   },
+  mylo:    { title: "Mylo's Dashboard",    icon: '/icons/icon-mylo.svg',    manifest: '/manifests/mylo.webmanifest'    },
+  ruby:    { title: "Ruby's Dashboard",    icon: '/icons/icon-ruby.svg',    manifest: '/manifests/ruby.webmanifest'    },
+}
+const WORKOUT_META = { title: 'Workout Tracker', icon: '/icons/icon-workout.svg', manifest: '/manifests/workout.webmanifest' }
+const DEFAULT_META = { title: 'Family Dashboard', icon: '/icons/icon-default.svg', manifest: '/manifest.webmanifest' }
+
 const client = new ApolloClient({
   link: new HttpLink({ uri: graphqlUri }),
   cache: new InMemoryCache(),
@@ -32,6 +43,13 @@ function AppShell() {
   const navigate = useNavigate()
   const { status, person } = useAuth()
   const { setActivePerson } = useActivePerson()
+
+  const isWorkout = location.pathname.startsWith('/workout')
+  const isDashboard = !isWorkout && location.pathname.match(/^\/[a-z]+(\/.*)?$/) !== null
+
+  const firstSegment = location.pathname.split('/').filter(Boolean)[0]
+  const pageMeta = isWorkout ? WORKOUT_META : (PERSON_META[firstSegment] ?? DEFAULT_META)
+  usePageMeta(pageMeta.title, pageMeta.icon, pageMeta.manifest)
 
   // Sync auth person into PersonContext and auto-redirect from lobby
   useEffect(() => {
@@ -47,9 +65,6 @@ function AppShell() {
   if (status === 'loading') return <div className="lobby" />
   if (status === 'unauthenticated') return <LoginPage />
   if (status === 'unlinked') return <LinkAccountPage />
-
-  const isWorkout = location.pathname.startsWith('/workout')
-  const isDashboard = !isWorkout && location.pathname.match(/^\/[a-z]+(\/.*)?$/) !== null
 
   return (
     <AerialProvider>

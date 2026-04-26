@@ -114,7 +114,9 @@
       "Read(//private/tmp/**)",
       "Bash(sqlite3 *)",
       "mcp__plugin_playwright_playwright__browser_press_key",
-      "mcp__plugin_playwright_playwright__browser_run_code"
+      "mcp__plugin_playwright_playwright__browser_run_code",
+      "Bash(grep *)",
+      "Bash(npm info *)"
     ]
   }
 }
