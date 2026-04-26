@@ -7,7 +7,6 @@ const connectSqlite3 = require('connect-sqlite3')
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import path from 'path'
-import fs from 'fs'
 import { PrismaClient } from '@prisma/client'
 dotenv.config({ path: path.join(__dirname, '..', '.env') })
 import passport from './auth'
@@ -159,28 +158,8 @@ async function main() {
   if (process.env.NODE_ENV === 'production') {
     const clientDist = path.join(__dirname, '..', '..', 'client', 'dist')
     app.use(express.static(clientDist))
-
-    const ROUTE_META: Record<string, { icon: string; manifest: string; title: string }> = {
-      jon:     { icon: '/icons/icon-jon.svg',     manifest: '/manifests/jon.webmanifest',     title: "Jon's Dashboard"     },
-      krysten: { icon: '/icons/icon-krysten.svg', manifest: '/manifests/krysten.webmanifest', title: "Krysten's Dashboard" },
-      harry:   { icon: '/icons/icon-harry.svg',   manifest: '/manifests/harry.webmanifest',   title: "Harry's Dashboard"   },
-      mylo:    { icon: '/icons/icon-mylo.svg',    manifest: '/manifests/mylo.webmanifest',    title: "Mylo's Dashboard"    },
-      ruby:    { icon: '/icons/icon-ruby.svg',    manifest: '/manifests/ruby.webmanifest',    title: "Ruby's Dashboard"    },
-      workout: { icon: '/icons/icon-workout.svg', manifest: '/manifests/workout.webmanifest', title: 'Workout Tracker'     },
-    }
-
-    const indexHtml = fs.readFileSync(path.join(clientDist, 'index.html'), 'utf-8')
-
-    app.get('*', (req, res) => {
-      const firstSegment = req.path.split('/').filter(Boolean)[0]
-      const meta = ROUTE_META[firstSegment]
-      if (!meta) return res.send(indexHtml)
-
-      const html = indexHtml
-        .replace('href="/icons/icon-default.svg"', `href="${meta.icon}"`)
-        .replace('href="/manifest.webmanifest"', `href="${meta.manifest}"`)
-        .replace('<title>Family Dashboard</title>', `<title>${meta.title}</title>`)
-      res.send(html)
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(clientDist, 'index.html'))
     })
   }
 
