@@ -11,7 +11,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,webmanifest}'],
+        // Exclude html — navigation requests must reach the server so it can
+        // inject per-route apple-touch-icon / manifest / title tags.
+        globPatterns: ['**/*.{js,css,svg,webmanifest}'],
+        navigateFallback: null,
       },
     }),
   ],
