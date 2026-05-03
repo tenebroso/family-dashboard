@@ -20,7 +20,28 @@ export const workoutTypeDefs = `#graphql
     section: String!
     order: Int!
     loadingNote: String
+    coachNotes: String
     sets: [StrengthSet!]!
+  }
+
+  type ExerciseHistorySet {
+    setNumber: Int!
+    reps: String
+    weight: Float
+    rpe: String
+  }
+
+  type ExerciseHistorySession {
+    workoutId: String!
+    date: String!
+    relative: String!
+    sets: [ExerciseHistorySet!]!
+  }
+
+  type ExerciseHistory {
+    exerciseId: String!
+    exerciseName: String!
+    sessions: [ExerciseHistorySession!]!
   }
 
   type RunSegment {

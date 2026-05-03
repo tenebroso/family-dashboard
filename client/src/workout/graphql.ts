@@ -55,6 +55,7 @@ export const GET_STRENGTH_WORKOUT = gql`
         section
         order
         loadingNote
+        coachNotes
         sets {
           id
           setNumber
@@ -68,6 +69,26 @@ export const GET_STRENGTH_WORKOUT = gql`
           notes
           completed
           completedAt
+        }
+      }
+    }
+  }
+`
+
+export const GET_WORKOUT_EXERCISE_HISTORY = gql`
+  query GetWorkoutExerciseHistory($workoutId: String!, $limit: Int) {
+    workoutExerciseHistory(workoutId: $workoutId, limit: $limit) {
+      exerciseId
+      exerciseName
+      sessions {
+        workoutId
+        date
+        relative
+        sets {
+          setNumber
+          reps
+          weight
+          rpe
         }
       }
     }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@apollo/client/react'
 import dayjs from 'dayjs'
@@ -8,9 +8,13 @@ import { IconBtn } from '../components/IconBtn'
 import { Sheet } from '../components/Sheet'
 import { PrimaryBtn } from '../components/PrimaryBtn'
 import { PillInput } from '../components/PillInput'
+import { ExerciseHistoryStrip } from '../components/ExerciseHistoryStrip'
+import { SetHistoryHint } from '../components/SetHistoryHint'
+import { HistorySheet } from '../components/HistorySheet'
 import { ChevronIcon, PencilIcon, PlusIcon, TrashIcon } from '../icons'
 import {
   GET_STRENGTH_WORKOUT,
+  GET_WORKOUT_EXERCISE_HISTORY,
   LOG_SET,
   COMPLETE_SET,
   COMPLETE_WORKOUT,
@@ -20,7 +24,15 @@ import {
   ADD_SET,
   DELETE_SET,
 } from '../graphql'
-import type { WorkoutData, ExerciseData, StrengthSetData, LocalSetState } from '../types'
+import type {
+  WorkoutData,
+  ExerciseData,
+  StrengthSetData,
+  LocalSetState,
+  ExerciseHistory,
+  ExerciseHistorySession,
+  ExerciseHistorySet,
+} from '../types'
 
 function hapticLight() {
   if ('vibrate' in navigator) navigator.vibrate(10)
@@ -124,6 +136,8 @@ interface SetRowProps {
   set: StrengthSetData
   local: LocalSetState
   editMode: boolean
+  matchedSet: ExerciseHistorySet | null
+  lastRelative: string | null
   onUpdateLocal: (patch: Partial<LocalSetState>) => void
   onComplete: () => void
   onUpdateTargets: (field: string, value: string) => void
@@ -131,7 +145,7 @@ interface SetRowProps {
   scheduleLogSet: (setId: string, local: LocalSetState) => void
 }
 
-function SetRow({ set, local, editMode, onUpdateLocal, onComplete, onUpdateTargets, onDelete, scheduleLogSet }: SetRowProps) {
+function SetRow({ set, local, editMode, matchedSet, lastRelative, onUpdateLocal, onComplete, onUpdateTargets, onDelete, scheduleLogSet }: SetRowProps) {
   return (
     <div style={{
       borderRadius: 12,
@@ -202,6 +216,9 @@ function SetRow({ set, local, editMode, onUpdateLocal, onComplete, onUpdateTarge
           </button>
         )}
       </div>
+
+      {/* Inline last-time hint */}
+      <SetHistoryHint matchedSet={matchedSet} relative={lastRelative} />
 
       {/* Bottom row: actuals */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
@@ -296,6 +313,8 @@ interface ExerciseCardProps {
   exercise: ExerciseData
   editMode: boolean
   localSets: Map<string, LocalSetState>
+  history: ExerciseHistorySession[]
+  onOpenHistory: () => void
   onUpdateLocal: (setId: string, patch: Partial<LocalSetState>) => void
   onComplete: (setId: string) => void
   onUpdateTargets: (setId: string, field: string, value: string) => void
@@ -306,13 +325,17 @@ interface ExerciseCardProps {
 }
 
 function ExerciseCard({
-  exercise, editMode, localSets, onUpdateLocal, onComplete,
+  exercise, editMode, localSets, history, onOpenHistory, onUpdateLocal, onComplete,
   onUpdateTargets, onDeleteSet, onAddSet, onTapName, scheduleLogSet,
 }: ExerciseCardProps) {
+  const todayTopWeight = exercise.sets.reduce((a, s) => Math.max(a, s.targetWeight ?? 0), 0)
+  const lastSession = history[0] ?? null
+  const lastRelative = lastSession?.relative ?? null
+
   return (
     <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${C.hair}` }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
         <div
           onClick={onTapName}
           style={{
@@ -332,8 +355,30 @@ function ExerciseCard({
         </div>
       </div>
 
+      {/* Coach notes */}
+      {exercise.coachNotes && (
+        <div style={{
+          marginTop: 10,
+          padding: '8px 10px',
+          borderRadius: 8,
+          background: 'rgba(201,168,76,0.06)',
+          border: `1px solid ${C.hair}`,
+          display: 'flex', gap: 8, alignItems: 'flex-start',
+        }}>
+          <span style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: '0.18em', color: C.gold, fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}>
+            COACH
+          </span>
+          <span style={{ fontFamily: F.dm, fontSize: 12, color: C.text, lineHeight: 1.45 }}>
+            {exercise.coachNotes}
+          </span>
+        </div>
+      )}
+
+      {/* History strip */}
+      <ExerciseHistoryStrip history={history} todayTopWeight={todayTopWeight} onOpen={onOpenHistory} />
+
       {/* Sets */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
         {exercise.sets.map(set => {
           const local = localSets.get(set.id) ?? {
             actualReps: set.actualReps ?? '',
@@ -342,12 +387,15 @@ function ExerciseCard({
             notes: set.notes ?? '',
             completed: set.completed,
           }
+          const matched = lastSession?.sets.find(s => s.setNumber === set.setNumber) ?? null
           return (
             <SetRow
               key={set.id}
               set={set}
               local={local}
               editMode={editMode}
+              matchedSet={matched}
+              lastRelative={lastRelative}
               onUpdateLocal={patch => onUpdateLocal(set.id, patch)}
               onComplete={() => onComplete(set.id)}
               onUpdateTargets={(field, value) => onUpdateTargets(set.id, field, value)}
@@ -415,6 +463,21 @@ export function StrengthWorkout() {
     GET_STRENGTH_WORKOUT,
     { variables: { id: workoutId }, fetchPolicy: 'cache-and-network', skip: !workoutId }
   )
+
+  const { data: histData } = useQuery<{ workoutExerciseHistory: ExerciseHistory[] }>(
+    GET_WORKOUT_EXERCISE_HISTORY,
+    { variables: { workoutId, limit: 6 }, skip: !workoutId, fetchPolicy: 'cache-and-network' }
+  )
+
+  const historyByName = useMemo(() => {
+    const m = new Map<string, ExerciseHistorySession[]>()
+    for (const h of histData?.workoutExerciseHistory ?? []) {
+      m.set(h.exerciseName.toLowerCase(), h.sessions)
+    }
+    return m
+  }, [histData])
+
+  const [historyFor, setHistoryFor] = useState<string | null>(null)
 
   const [logSet] = useMutation(LOG_SET)
   const [completeSetMutation] = useMutation(COMPLETE_SET)
@@ -751,6 +814,8 @@ export function StrengthWorkout() {
                 exercise={ex}
                 editMode={editMode}
                 localSets={localSets}
+                history={historyByName.get(ex.name.toLowerCase()) ?? []}
+                onOpenHistory={() => setHistoryFor(ex.name)}
                 onUpdateLocal={handleUpdateLocal}
                 onComplete={handleComplete}
                 onUpdateTargets={handleUpdateTargets}
@@ -842,6 +907,15 @@ export function StrengthWorkout() {
           </div>
         )}
       </Sheet>
+
+      {/* History sheet */}
+      {historyFor && (
+        <HistorySheet
+          exerciseName={historyFor}
+          history={historyByName.get(historyFor.toLowerCase()) ?? []}
+          onClose={() => setHistoryFor(null)}
+        />
+      )}
     </div>
   )
 }

@@ -3,6 +3,9 @@ import type { Prisma } from '@prisma/client'
 import { GraphQLError } from 'graphql'
 import { parsePdfWorkouts, getWorkoutDate, generateRunPrescriptions } from '../services/workoutParsing'
 import type { PastRunSummary } from '../services/workoutParsing'
+import { fetchExerciseHistory } from '../services/exerciseHistory'
+import type { HistorySession } from '../services/exerciseHistory'
+import { generateCoachNotes } from '../services/coachReview'
 import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
@@ -162,6 +165,34 @@ export const workoutResolvers = {
       if (!week) return []
       return week.workouts.map(formatWorkout)
     },
+
+    workoutExerciseHistory: async (
+      _: unknown,
+      { workoutId, limit }: { workoutId: string; limit?: number | null },
+      ctx: Context,
+    ) => {
+      const person = requirePerson(ctx)
+      const workout = await prisma.workout.findUnique({
+        where: { id: workoutId },
+        include: {
+          exercises: { orderBy: { order: 'asc' } },
+          trainingWeek: true,
+        },
+      })
+      if (!workout) return []
+
+      const athlete = await prisma.athlete.findUnique({ where: { personId: person.id } })
+      if (!athlete || workout.trainingWeek.athleteId !== athlete.id) {
+        throw new GraphQLError('Forbidden', { extensions: { code: 'FORBIDDEN' } })
+      }
+
+      const cap = limit ?? 6
+      return Promise.all(workout.exercises.map(async ex => ({
+        exerciseId: ex.id,
+        exerciseName: ex.name,
+        sessions: await fetchExerciseHistory(athlete.id, ex.name, workout.date, workout.date, cap),
+      })))
+    },
   },
 
   Mutation: {
@@ -182,6 +213,32 @@ export const workoutResolvers = {
         }),
       ])
 
+      // Build flat exercise list and per-name history for the coach review pass
+      const flatExercises = parsedStrengthWorkouts.flatMap(pw => pw.exercises)
+      const uniqueNames = Array.from(new Set(flatExercises.map(e => e.name)))
+      const historyByName = new Map<string, HistorySession[]>()
+      await Promise.all(uniqueNames.map(async name => {
+        const sessions = await fetchExerciseHistory(athlete.id, name, weekOf, weekOf, 6)
+        historyByName.set(name, sessions)
+      }))
+
+      const coachNotesByName = await generateCoachNotes(
+        flatExercises.map(ex => ({
+          name: ex.name,
+          section: ex.section,
+          sets: ex.sets.map(s => ({
+            targetReps: s.targetReps,
+            targetWeight: s.targetWeight,
+            targetRPE: s.targetRPE,
+            tempo: s.tempo,
+          })),
+          history: historyByName.get(ex.name) ?? [],
+        })),
+      ).catch(err => {
+        console.error('[workouts] generateCoachNotes failed:', err)
+        return new Map<string, string>()
+      })
+
       const workoutsToCreate: Prisma.WorkoutCreateWithoutTrainingWeekInput[] = []
 
       for (const pw of parsedStrengthWorkouts) {
@@ -196,6 +253,7 @@ export const workoutResolvers = {
               section: ex.section,
               order: exIdx,
               loadingNote: ex.loadingNote ?? null,
+              coachNotes: coachNotesByName.get(ex.name) || null,
               sets: {
                 create: ex.sets.map(s => ({
                   setNumber: s.setNumber,

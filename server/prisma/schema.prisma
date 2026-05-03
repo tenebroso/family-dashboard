@@ -130,6 +130,7 @@ model StrengthExercise {
   section     String
   order       Int
   loadingNote String?
+  coachNotes  String?
   sets        StrengthSet[]
   createdAt   DateTime      @default(now())
 }

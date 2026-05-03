@@ -23,6 +23,7 @@ const rootTypeDefs = `#graphql
     trainingWeek(weekOf: String!): TrainingWeek
     workout(id: String!): Workout
     weekWorkouts(weekOf: String!): [Workout!]!
+    workoutExerciseHistory(workoutId: String!, limit: Int): [ExerciseHistory!]!
   }
 
   type Mutation {

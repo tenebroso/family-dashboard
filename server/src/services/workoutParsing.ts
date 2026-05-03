@@ -11,7 +11,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
  *
  * NO database, NO UI, NO seed script for v1 — by design.
  */
-const TRAINING_GOAL = `
+export const TRAINING_GOAL = `
 ATHLETE: Jon Bukiewicz, 42M, 5'11", ~215-222 lbs, Milwaukee WI.
 
 RECENT RACE RESULT: Completed first half marathon May 2, 2026 (Door County Half Marathon) in 2:19:43 at 10:40/mi average pace. Peak training paces: 9:52/mi on a hilly 10-mile run, 10:23/mi on 11 miles with 707ft gain.

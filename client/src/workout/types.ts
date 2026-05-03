@@ -19,7 +19,28 @@ export interface ExerciseData {
   section: string
   order: number
   loadingNote: string | null
+  coachNotes: string | null
   sets: StrengthSetData[]
+}
+
+export interface ExerciseHistorySet {
+  setNumber: number
+  reps: string | null
+  weight: number | null
+  rpe: string | null
+}
+
+export interface ExerciseHistorySession {
+  workoutId: string
+  date: string
+  relative: string
+  sets: ExerciseHistorySet[]
+}
+
+export interface ExerciseHistory {
+  exerciseId: string
+  exerciseName: string
+  sessions: ExerciseHistorySession[]
 }
 
 export interface RunSegmentData {

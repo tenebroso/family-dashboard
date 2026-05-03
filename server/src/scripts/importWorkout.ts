@@ -6,6 +6,9 @@ import { PrismaClient } from '@prisma/client'
 import type { Prisma } from '@prisma/client'
 import { parsePdfWorkouts, getWorkoutDate, generateRunPrescriptions } from '../services/workoutParsing'
 import type { PastRunSummary } from '../services/workoutParsing'
+import { fetchExerciseHistory } from '../services/exerciseHistory'
+import type { HistorySession } from '../services/exerciseHistory'
+import { generateCoachNotes } from '../services/coachReview'
 import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
@@ -109,7 +112,37 @@ async function main() {
   ])
 
   console.log(`  PDF: ${parsedStrengthWorkouts.length} strength workout(s)`)
-  console.log(`  Runs: ${prescriptions ? 'prescribed (Tue + Sat)' : 'FAILED — empty stubs will be created'}\n`)
+  console.log(`  Runs: ${prescriptions ? 'prescribed (Tue + Sat)' : 'FAILED — empty stubs will be created'}`)
+
+  // Coach review pass — fetch history per exercise, then ask Claude for notes
+  const flatExercises = parsedStrengthWorkouts.flatMap(pw => pw.exercises)
+  const uniqueNames = Array.from(new Set(flatExercises.map(e => e.name)))
+  console.log(`  Fetching history for ${uniqueNames.length} unique exercise(s)…`)
+  const historyByName = new Map<string, HistorySession[]>()
+  await Promise.all(uniqueNames.map(async name => {
+    const sessions = await fetchExerciseHistory(athlete.id, name, weekOf, weekOf, 6)
+    historyByName.set(name, sessions)
+  }))
+
+  console.log(`  Sending coach review to Claude…`)
+  const coachNotesByName = await generateCoachNotes(
+    flatExercises.map(ex => ({
+      name: ex.name,
+      section: ex.section,
+      sets: ex.sets.map(s => ({
+        targetReps: s.targetReps,
+        targetWeight: s.targetWeight,
+        targetRPE: s.targetRPE,
+        tempo: s.tempo,
+      })),
+      history: historyByName.get(ex.name) ?? [],
+    })),
+  ).catch(err => {
+    console.error('  ✗ generateCoachNotes failed:', err)
+    return new Map<string, string>()
+  })
+  const nonEmptyNotes = Array.from(coachNotesByName.values()).filter(n => n.trim().length > 0).length
+  console.log(`  Coach: ${nonEmptyNotes}/${flatExercises.length} notes generated\n`)
 
   const workoutsToCreate: Prisma.WorkoutCreateWithoutTrainingWeekInput[] = []
 
@@ -125,6 +158,7 @@ async function main() {
           section: ex.section,
           order: exIdx,
           loadingNote: ex.loadingNote ?? null,
+          coachNotes: coachNotesByName.get(ex.name) || null,
           sets: {
             create: ex.sets.map(s => ({
               setNumber: s.setNumber,
