@@ -3,10 +3,63 @@ import dotenv from 'dotenv'
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 
 import { PrismaClient } from '@prisma/client'
-import { parsePdfWorkouts, getWorkoutDate } from '../services/workoutParsing'
+import type { Prisma } from '@prisma/client'
+import { parsePdfWorkouts, getWorkoutDate, generateRunPrescriptions } from '../services/workoutParsing'
+import type { PastRunSummary } from '../services/workoutParsing'
 import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
+
+const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+async function fetchPastRunSummaries(athleteId: string, weekOf: string): Promise<PastRunSummary[]> {
+  const rows = await prisma.workout.findMany({
+    where: {
+      type: 'run',
+      date: { lt: weekOf },
+      runWorkout: { completed: true },
+      trainingWeek: { athleteId },
+    },
+    include: {
+      runWorkout: {
+        include: { segments: { orderBy: { order: 'asc' } } },
+      },
+    },
+    orderBy: { date: 'desc' },
+    take: 8,
+  })
+  return rows
+    .filter(r => r.runWorkout)
+    .map(r => ({
+      date: r.date,
+      dayName: DAY_NAMES_SHORT[r.dayOfWeek] ?? '?',
+      workoutType: r.runWorkout!.workoutType,
+      prescribed: {
+        targetMiles: r.runWorkout!.targetMiles,
+        targetPace: r.runWorkout!.targetPace,
+        heartRateZone: r.runWorkout!.heartRateZone,
+        segments: r.runWorkout!.segments.map(s => ({
+          order: s.order,
+          label: s.label,
+          type: s.type,
+          repeat: s.repeat,
+          distanceMi: s.distanceMi,
+          durationSec: s.durationSec,
+          pace: s.pace,
+          heartRateZone: s.heartRateZone,
+          notes: s.notes,
+        })),
+      },
+      actual: {
+        actualMiles: r.runWorkout!.actualMiles,
+        actualTime: r.runWorkout!.actualTime,
+        avgHeartRate: r.runWorkout!.avgHeartRate,
+        maxHeartRate: r.runWorkout!.maxHeartRate,
+        actualRPE: r.runWorkout!.actualRPE,
+        notes: r.runWorkout!.notes,
+      },
+    }))
+}
 
 async function main() {
   const [pdfPath, weekOf] = process.argv.slice(2)
@@ -22,7 +75,6 @@ async function main() {
     process.exit(1)
   }
 
-  // Resolve personId for Jon
   const person = await prisma.person.findFirst({ where: { name: 'Jon' } })
   if (!person) {
     console.error('Person "Jon" not found in database. Run the seed first.')
@@ -33,58 +85,139 @@ async function main() {
   console.log(`Week of: ${weekOf}`)
   console.log(`Person: ${person.name} (${person.id})\n`)
 
-  console.log('Sending to Claude for parsing…')
-  const parsedWorkouts = await parsePdfWorkouts(pdfPath)
-  console.log(`Claude returned ${parsedWorkouts.length} workout(s)\n`)
-
-  // Upsert Athlete record
   const athlete = await prisma.athlete.upsert({
     where: { personId: person.id },
     create: { personId: person.id },
     update: {},
   })
 
-  // Delete any existing week for this weekOf (idempotent re-import)
-  const existing = await prisma.trainingWeek.findUnique({
-    where: { athleteId_weekOf: { athleteId: athlete.id, weekOf } },
+  await prisma.trainingWeek.deleteMany({
+    where: { athleteId: athlete.id, weekOf },
   })
-  if (existing) {
-    await prisma.trainingWeek.delete({ where: { id: existing.id } })
-    console.log('Deleted existing training week for this date (re-importing)\n')
+  console.log('Cleared existing week (idempotent re-import)\n')
+
+  console.log('Sending to Claude (PDF parse + run prescription in parallel)…')
+  const pastRuns = await fetchPastRunSummaries(athlete.id, weekOf)
+  console.log(`  Found ${pastRuns.length} past completed run(s) for context`)
+
+  const [parsedStrengthWorkouts, prescriptions] = await Promise.all([
+    parsePdfWorkouts(pdfPath),
+    generateRunPrescriptions({ pastRuns, weekOf }).catch(err => {
+      console.error('  ✗ generateRunPrescriptions failed:', err)
+      return null
+    }),
+  ])
+
+  console.log(`  PDF: ${parsedStrengthWorkouts.length} strength workout(s)`)
+  console.log(`  Runs: ${prescriptions ? 'prescribed (Tue + Sat)' : 'FAILED — empty stubs will be created'}\n`)
+
+  const workoutsToCreate: Prisma.WorkoutCreateWithoutTrainingWeekInput[] = []
+
+  for (const pw of parsedStrengthWorkouts) {
+    const { dayOfWeek, date } = getWorkoutDate(weekOf, pw.dayName)
+    workoutsToCreate.push({
+      date,
+      dayOfWeek,
+      type: 'strength',
+      exercises: {
+        create: pw.exercises.map((ex, exIdx) => ({
+          name: ex.name,
+          section: ex.section,
+          order: exIdx,
+          loadingNote: ex.loadingNote ?? null,
+          sets: {
+            create: ex.sets.map(s => ({
+              setNumber: s.setNumber,
+              targetReps: s.targetReps ?? null,
+              targetWeight: s.targetWeight ?? null,
+              targetRPE: s.targetRPE ?? null,
+              tempo: s.tempo ?? null,
+            })),
+          },
+        })),
+      },
+    })
   }
 
-  // Create TrainingWeek with nested Workouts → Exercises → Sets
+  // Tuesday run
+  {
+    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Tuesday')
+    const tue = prescriptions?.tuesday
+    workoutsToCreate.push({
+      date,
+      dayOfWeek,
+      type: 'run',
+      notes: tue?.summary ?? null,
+      runWorkout: {
+        create: {
+          workoutType: tue?.workoutType ?? null,
+          targetMiles: tue?.targetMiles ?? null,
+          targetPace: tue?.targetPace ?? null,
+          heartRateZone: tue?.heartRateZone ?? null,
+          notes: tue?.notes ?? null,
+        },
+      },
+    })
+  }
+
+  // Thursday yoga
+  {
+    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Thursday')
+    workoutsToCreate.push({
+      date,
+      dayOfWeek,
+      type: 'yoga',
+      notes: prescriptions?.thursdayYogaNote || null,
+    })
+  }
+
+  // Saturday run (may have segments)
+  {
+    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Saturday')
+    const sat = prescriptions?.saturday
+    workoutsToCreate.push({
+      date,
+      dayOfWeek,
+      type: 'run',
+      notes: sat?.summary ?? null,
+      runWorkout: {
+        create: {
+          workoutType: sat?.workoutType ?? null,
+          targetMiles: sat?.targetMiles ?? null,
+          targetPace: sat?.targetPace ?? null,
+          heartRateZone: sat?.heartRateZone ?? null,
+          notes: sat?.notes ?? null,
+          segments: sat?.segments?.length
+            ? {
+                create: sat.segments.map(s => ({
+                  order: s.order,
+                  label: s.label,
+                  type: s.type,
+                  repeat: s.repeat,
+                  distanceMi: s.distanceMi,
+                  durationSec: s.durationSec,
+                  pace: s.pace,
+                  heartRateZone: s.heartRateZone,
+                  notes: s.notes,
+                })),
+              }
+            : undefined,
+        },
+      },
+    })
+  }
+
+  // Sunday rest
+  {
+    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Sunday')
+    workoutsToCreate.push({ date, dayOfWeek, type: 'rest' })
+  }
+
   const week = await prisma.trainingWeek.create({
     data: {
       athleteId: athlete.id,
       weekOf,
-      workouts: {
-        create: parsedWorkouts.map(pw => {
-          const { dayOfWeek, date } = getWorkoutDate(weekOf, pw.dayName)
-          return {
-            date,
-            dayOfWeek,
-            type: 'strength',
-            exercises: {
-              create: pw.exercises.map((ex, exIdx) => ({
-                name: ex.name,
-                section: ex.section,
-                order: exIdx,
-                loadingNote: ex.loadingNote ?? null,
-                sets: {
-                  create: ex.sets.map(s => ({
-                    setNumber: s.setNumber,
-                    targetReps: s.targetReps ?? null,
-                    targetWeight: s.targetWeight ?? null,
-                    targetRPE: s.targetRPE ?? null,
-                    tempo: s.tempo ?? null,
-                  })),
-                },
-              })),
-            },
-          }
-        }),
-      },
+      workouts: { create: workoutsToCreate },
     },
     include: {
       workouts: {
@@ -94,38 +227,74 @@ async function main() {
             orderBy: { order: 'asc' },
             include: { sets: { orderBy: { setNumber: 'asc' } } },
           },
+          runWorkout: {
+            include: { segments: { orderBy: { order: 'asc' } } },
+          },
         },
       },
     },
   })
 
-  // Create calendar events for each strength workout
+  // Fire-and-forget calendar events: strength + run + yoga (NOT rest)
   const personSlug = person.name.toLowerCase()
   for (const w of week.workouts) {
-    const exerciseNames = w.exercises.map((e: { name: string }) => e.name)
-    const description = [
-      ...exerciseNames,
-      `https://diverseydash.com/workout/strength/${w.id}`,
-    ].join('\n')
+    if (w.type === 'rest') continue
     try {
-      const eventId = await createAllDayCalendarEvent(personSlug, 'Strength Training', w.date, description)
-      console.log(`  📅 Calendar event created for ${w.date}: ${eventId ?? 'no ID returned'}`)
+      if (w.type === 'strength') {
+        const exerciseNames = w.exercises.map((e: { name: string }) => e.name)
+        const desc = [...exerciseNames, `https://diverseydash.com/workout/strength/${w.id}`].join('\n')
+        const eventId = await createAllDayCalendarEvent(personSlug, 'Strength Training', w.date, desc)
+        console.log(`  📅 Strength calendar event created for ${w.date}: ${eventId ?? 'no ID'}`)
+      } else if (w.type === 'run') {
+        const r = w.runWorkout
+        let title = 'Run'
+        if (r) {
+          const typeLabel = r.workoutType
+            ? r.workoutType.charAt(0).toUpperCase() + r.workoutType.slice(1)
+            : 'Run'
+          const milesPart = r.targetMiles ? ` – ${r.targetMiles} mi` : ''
+          title = `${typeLabel}${milesPart}`
+        }
+        const eventId = await createAllDayCalendarEvent(personSlug, title, w.date, `https://diverseydash.com/workout/run/${w.id}`)
+        console.log(`  📅 Run calendar event created for ${w.date}: ${eventId ?? 'no ID'}`)
+      } else if (w.type === 'yoga') {
+        const eventId = await createAllDayCalendarEvent(personSlug, 'Yoga', w.date, `https://diverseydash.com/workout/yoga/${w.id}`)
+        console.log(`  📅 Yoga calendar event created for ${w.date}: ${eventId ?? 'no ID'}`)
+      }
     } catch (err) {
       console.error(`  ✗ Calendar event failed for ${w.date}:`, err)
     }
   }
 
   // Print summary
-  console.log(`✓ Training week created (id: ${week.id})\n`)
-  for (const workout of week.workouts) {
-    console.log(`  ${workout.date} (${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][workout.dayOfWeek]}) — ${workout.exercises.length} exercise(s)`)
-    for (const ex of workout.exercises) {
-      const setCount = ex.sets.length
-      const sample = ex.sets[0]
-      const sampleStr = sample
-        ? `${sample.targetReps ?? '?'} reps @ RPE ${sample.targetRPE ?? '?'}${sample.tempo ? ` ${sample.tempo}` : ''}`
+  console.log(`\n✓ Training week created (id: ${week.id})\n`)
+  for (const w of week.workouts) {
+    const dayName = DAY_NAMES_SHORT[w.dayOfWeek] ?? '?'
+    if (w.type === 'strength') {
+      console.log(`  ${w.date} (${dayName}) — STRENGTH — ${w.exercises.length} exercise(s)`)
+      for (const ex of w.exercises) {
+        const sample = ex.sets[0]
+        const sampleStr = sample
+          ? `${sample.targetReps ?? '?'} reps @ RPE ${sample.targetRPE ?? '?'}${sample.tempo ? ` ${sample.tempo}` : ''}`
+          : ''
+        console.log(`    • [${ex.section}] ${ex.name} — ${ex.sets.length} set(s)${sampleStr ? ` (e.g. ${sampleStr})` : ''}`)
+      }
+    } else if (w.type === 'run') {
+      const r = w.runWorkout
+      const summary = w.notes ?? r?.workoutType ?? 'Run'
+      const details = r
+        ? [r.targetMiles ? `${r.targetMiles} mi` : null, r.targetPace ? `@ ${r.targetPace}/mi` : null, r.heartRateZone].filter(Boolean).join(', ')
         : ''
-      console.log(`    • [${ex.section}] ${ex.name} — ${setCount} set(s)${sampleStr ? ` (e.g. ${sampleStr})` : ''}`)
+      console.log(`  ${w.date} (${dayName}) — RUN — ${summary}${details ? ` · ${details}` : ''}`)
+      if (r?.segments?.length) {
+        for (const s of r.segments) {
+          console.log(`    ${s.order}. ${s.label}${s.repeat ? ` ×${s.repeat}` : ''}${s.distanceMi ? ` ${s.distanceMi} mi` : ''}${s.pace ? ` @ ${s.pace}` : ''}`)
+        }
+      }
+    } else if (w.type === 'yoga') {
+      console.log(`  ${w.date} (${dayName}) — YOGA${w.notes ? ` · ${w.notes}` : ''}`)
+    } else if (w.type === 'rest') {
+      console.log(`  ${w.date} (${dayName}) — REST`)
     }
     console.log()
   }
