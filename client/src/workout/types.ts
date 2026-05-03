@@ -22,8 +22,22 @@ export interface ExerciseData {
   sets: StrengthSetData[]
 }
 
+export interface RunSegmentData {
+  id: string
+  order: number
+  label: string
+  type: string
+  repeat: number | null
+  distanceMi: number | null
+  durationSec: number | null
+  pace: string | null
+  heartRateZone: string | null
+  notes: string | null
+}
+
 export interface RunWorkoutData {
   id: string
+  workoutType: string | null
   targetMiles: number | null
   targetPace: string | null
   heartRateZone: string | null
@@ -35,13 +49,14 @@ export interface RunWorkoutData {
   notes: string | null
   completed: boolean
   completedAt: string | null
+  segments: RunSegmentData[]
 }
 
 export interface WorkoutData {
   id: string
   date: string
   dayOfWeek: number
-  type: 'strength' | 'run' | 'recovery'
+  type: 'strength' | 'run' | 'rest' | 'yoga'
   exercises: ExerciseData[]
   runWorkout: RunWorkoutData | null
   notes: string | null
@@ -63,7 +78,7 @@ export interface DayTile {
   workout: WorkoutData | null
 }
 
-export type WorkoutType = 'strength' | 'run' | 'recovery'
+export type WorkoutType = 'strength' | 'run' | 'rest' | 'yoga'
 
 export interface LocalSetState {
   actualReps: string

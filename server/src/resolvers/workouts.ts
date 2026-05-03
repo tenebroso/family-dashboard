@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import { GraphQLError } from 'graphql'
-import { parsePdfWorkouts, getWorkoutDate } from '../services/workoutParsing'
+import { parsePdfWorkouts, getWorkoutDate, generateRunPrescriptions } from '../services/workoutParsing'
+import type { PastRunSummary } from '../services/workoutParsing'
 import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
@@ -25,31 +27,20 @@ const workoutInclude = {
     orderBy: { order: 'asc' as const },
     include: { sets: { orderBy: { setNumber: 'asc' as const } } },
   },
-  runWorkout: true,
+  runWorkout: {
+    include: {
+      segments: { orderBy: { order: 'asc' as const } },
+    },
+  },
 }
+
+type WorkoutWithIncludes = Prisma.WorkoutGetPayload<{ include: typeof workoutInclude }>
 
 function formatWeek<T extends { createdAt: Date; updatedAt: Date }>(row: T) {
   return { ...row, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() }
 }
 
-function formatWorkout(w: {
-  id: string; date: string; dayOfWeek: number; type: string; notes: string | null
-  completedAt: Date | null; createdAt: Date; updatedAt: Date
-  exercises: Array<{
-    id: string; name: string; section: string; order: number; loadingNote: string | null; createdAt: Date
-    sets: Array<{
-      id: string; setNumber: number; targetReps: string | null; targetWeight: number | null
-      targetRPE: string | null; tempo: string | null; actualReps: string | null
-      actualWeight: number | null; actualRPE: string | null; notes: string | null
-      completed: boolean; completedAt: Date | null
-    }>
-  }>
-  runWorkout: {
-    id: string; targetMiles: number | null; targetPace: string | null; heartRateZone: string | null
-    actualMiles: number | null; actualTime: number | null; avgHeartRate: number | null
-    maxHeartRate: number | null; notes: string | null; completed: boolean; completedAt: Date | null
-  } | null
-}) {
+function formatWorkout(w: WorkoutWithIncludes) {
   return {
     ...w,
     createdAt: w.createdAt.toISOString(),
@@ -64,9 +55,64 @@ function formatWorkout(w: {
       })),
     })),
     runWorkout: w.runWorkout
-      ? { ...w.runWorkout, completedAt: w.runWorkout.completedAt ? w.runWorkout.completedAt.toISOString() : null }
+      ? {
+          ...w.runWorkout,
+          completedAt: w.runWorkout.completedAt ? w.runWorkout.completedAt.toISOString() : null,
+          segments: w.runWorkout.segments,
+        }
       : null,
   }
+}
+
+const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+async function fetchPastRunSummaries(athleteId: string, weekOf: string): Promise<PastRunSummary[]> {
+  const rows = await prisma.workout.findMany({
+    where: {
+      type: 'run',
+      date: { lt: weekOf },
+      runWorkout: { completed: true },
+      trainingWeek: { athleteId },
+    },
+    include: {
+      runWorkout: {
+        include: { segments: { orderBy: { order: 'asc' } } },
+      },
+    },
+    orderBy: { date: 'desc' },
+    take: 8,
+  })
+  return rows
+    .filter(r => r.runWorkout)
+    .map(r => ({
+      date: r.date,
+      dayName: DAY_NAMES_SHORT[r.dayOfWeek] ?? '?',
+      workoutType: r.runWorkout!.workoutType,
+      prescribed: {
+        targetMiles: r.runWorkout!.targetMiles,
+        targetPace: r.runWorkout!.targetPace,
+        heartRateZone: r.runWorkout!.heartRateZone,
+        segments: r.runWorkout!.segments.map(s => ({
+          order: s.order,
+          label: s.label,
+          type: s.type,
+          repeat: s.repeat,
+          distanceMi: s.distanceMi,
+          durationSec: s.durationSec,
+          pace: s.pace,
+          heartRateZone: s.heartRateZone,
+          notes: s.notes,
+        })),
+      },
+      actual: {
+        actualMiles: r.runWorkout!.actualMiles,
+        actualTime: r.runWorkout!.actualTime,
+        avgHeartRate: r.runWorkout!.avgHeartRate,
+        maxHeartRate: r.runWorkout!.maxHeartRate,
+        actualRPE: r.runWorkout!.actualRPE,
+        notes: r.runWorkout!.notes,
+      },
+    }))
 }
 
 export const workoutResolvers = {
@@ -123,65 +169,160 @@ export const workoutResolvers = {
       const person = requirePerson(ctx)
       const athlete = await getOrCreateAthlete(person.id)
 
-      // Delete existing week so re-upload is idempotent
       await prisma.trainingWeek.deleteMany({
         where: { athleteId: athlete.id, weekOf },
       })
 
-      const parsedWorkouts = await parsePdfWorkouts(pdfPath)
+      const pastRuns = await fetchPastRunSummaries(athlete.id, weekOf)
+      const [parsedStrengthWorkouts, prescriptions] = await Promise.all([
+        parsePdfWorkouts(pdfPath),
+        generateRunPrescriptions({ pastRuns, weekOf }).catch(err => {
+          console.error('[workouts] generateRunPrescriptions failed:', err)
+          return null
+        }),
+      ])
+
+      const workoutsToCreate: Prisma.WorkoutCreateWithoutTrainingWeekInput[] = []
+
+      for (const pw of parsedStrengthWorkouts) {
+        const { dayOfWeek, date } = getWorkoutDate(weekOf, pw.dayName)
+        workoutsToCreate.push({
+          date,
+          dayOfWeek,
+          type: 'strength',
+          exercises: {
+            create: pw.exercises.map((ex, exIdx) => ({
+              name: ex.name,
+              section: ex.section,
+              order: exIdx,
+              loadingNote: ex.loadingNote ?? null,
+              sets: {
+                create: ex.sets.map(s => ({
+                  setNumber: s.setNumber,
+                  targetReps: s.targetReps ?? null,
+                  targetWeight: s.targetWeight ?? null,
+                  targetRPE: s.targetRPE ?? null,
+                  tempo: s.tempo ?? null,
+                })),
+              },
+            })),
+          },
+        })
+      }
+
+      // Tuesday run
+      {
+        const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Tuesday')
+        const tue = prescriptions?.tuesday
+        workoutsToCreate.push({
+          date,
+          dayOfWeek,
+          type: 'run',
+          notes: tue?.summary ?? null,
+          runWorkout: {
+            create: {
+              workoutType: tue?.workoutType ?? null,
+              targetMiles: tue?.targetMiles ?? null,
+              targetPace: tue?.targetPace ?? null,
+              heartRateZone: tue?.heartRateZone ?? null,
+              notes: tue?.notes ?? null,
+            },
+          },
+        })
+      }
+
+      // Thursday yoga
+      {
+        const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Thursday')
+        workoutsToCreate.push({
+          date,
+          dayOfWeek,
+          type: 'yoga',
+          notes: prescriptions?.thursdayYogaNote || null,
+        })
+      }
+
+      // Saturday run (may have segments)
+      {
+        const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Saturday')
+        const sat = prescriptions?.saturday
+        workoutsToCreate.push({
+          date,
+          dayOfWeek,
+          type: 'run',
+          notes: sat?.summary ?? null,
+          runWorkout: {
+            create: {
+              workoutType: sat?.workoutType ?? null,
+              targetMiles: sat?.targetMiles ?? null,
+              targetPace: sat?.targetPace ?? null,
+              heartRateZone: sat?.heartRateZone ?? null,
+              notes: sat?.notes ?? null,
+              segments: sat?.segments?.length
+                ? {
+                    create: sat.segments.map(s => ({
+                      order: s.order,
+                      label: s.label,
+                      type: s.type,
+                      repeat: s.repeat,
+                      distanceMi: s.distanceMi,
+                      durationSec: s.durationSec,
+                      pace: s.pace,
+                      heartRateZone: s.heartRateZone,
+                      notes: s.notes,
+                    })),
+                  }
+                : undefined,
+            },
+          },
+        })
+      }
+
+      // Sunday rest
+      {
+        const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Sunday')
+        workoutsToCreate.push({ date, dayOfWeek, type: 'rest' })
+      }
 
       const week = await prisma.trainingWeek.create({
         data: {
           athleteId: athlete.id,
           weekOf,
-          workouts: {
-            create: parsedWorkouts.map(pw => {
-              const { dayOfWeek, date } = getWorkoutDate(weekOf, pw.dayName)
-              return {
-                date,
-                dayOfWeek,
-                type: 'strength',
-                exercises: {
-                  create: pw.exercises.map((ex, exIdx) => ({
-                    name: ex.name,
-                    section: ex.section,
-                    order: exIdx,
-                    loadingNote: ex.loadingNote ?? null,
-                    sets: {
-                      create: ex.sets.map(s => ({
-                        setNumber: s.setNumber,
-                        targetReps: s.targetReps ?? null,
-                        targetWeight: s.targetWeight ?? null,
-                        targetRPE: s.targetRPE ?? null,
-                        tempo: s.tempo ?? null,
-                      })),
-                    },
-                  })),
-                },
-              }
-            }),
-          },
+          workouts: { create: workoutsToCreate },
         },
         include: {
-          workouts: {
-            orderBy: { dayOfWeek: 'asc' },
-            include: workoutInclude,
-          },
+          workouts: { orderBy: { dayOfWeek: 'asc' }, include: workoutInclude },
         },
       })
 
-      // Fire-and-forget calendar events for each strength workout
       const personSlug = person.name.toLowerCase()
       for (const w of week.workouts) {
-        if (w.type !== 'strength') continue
-        const exerciseNames = w.exercises.map((e: { name: string }) => e.name)
-        const strengthDescription = [
-          ...exerciseNames,
-          `https://diverseydash.com/workout/strength/${w.id}`,
-        ].join('\n')
-        createAllDayCalendarEvent(personSlug, 'Strength Training', w.date, strengthDescription).catch(err =>
-          console.error('[workouts] Failed to create strength calendar event:', err)
-        )
+        if (w.type === 'rest') continue
+
+        if (w.type === 'strength') {
+          const exerciseNames = w.exercises.map(e => e.name)
+          const desc = [...exerciseNames, `https://diverseydash.com/workout/strength/${w.id}`].join('\n')
+          createAllDayCalendarEvent(personSlug, 'Strength Training', w.date, desc).catch(err =>
+            console.error('[workouts] strength calendar event failed:', err)
+          )
+        } else if (w.type === 'run') {
+          const r = w.runWorkout
+          let title = 'Run'
+          if (r) {
+            const typeLabel = r.workoutType
+              ? r.workoutType.charAt(0).toUpperCase() + r.workoutType.slice(1)
+              : 'Run'
+            const milesPart = r.targetMiles ? ` – ${r.targetMiles} mi` : ''
+            title = `${typeLabel}${milesPart}`
+          }
+          createAllDayCalendarEvent(personSlug, title, w.date, `https://diverseydash.com/workout/run/${w.id}`).catch(err =>
+            console.error('[workouts] run calendar event failed:', err)
+          )
+        } else if (w.type === 'yoga') {
+          createAllDayCalendarEvent(personSlug, 'Yoga', w.date, `https://diverseydash.com/workout/yoga/${w.id}`).catch(err =>
+            console.error('[workouts] yoga calendar event failed:', err)
+          )
+        }
       }
 
       return {
@@ -309,7 +450,7 @@ export const workoutResolvers = {
       return formatWorkout(workout)
     },
 
-    createRecoveryWorkout: async (
+    createRestWorkout: async (
       _: unknown,
       { weekOf, date, notes }: { weekOf: string; date: string; notes?: string },
       ctx: Context
@@ -331,7 +472,37 @@ export const workoutResolvers = {
           trainingWeekId: week.id,
           date,
           dayOfWeek,
-          type: 'recovery',
+          type: 'rest',
+          notes: notes ?? null,
+        },
+        include: workoutInclude,
+      })
+      return formatWorkout(workout)
+    },
+
+    createYogaWorkout: async (
+      _: unknown,
+      { weekOf, date, notes }: { weekOf: string; date: string; notes?: string },
+      ctx: Context
+    ) => {
+      const person = requirePerson(ctx)
+      const athlete = await getOrCreateAthlete(person.id)
+
+      const week = await prisma.trainingWeek.upsert({
+        where: { athleteId_weekOf: { athleteId: athlete.id, weekOf } },
+        create: { athleteId: athlete.id, weekOf },
+        update: {},
+      })
+
+      const dayName = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })
+      const { dayOfWeek } = getWorkoutDate(weekOf, dayName)
+
+      const workout = await prisma.workout.create({
+        data: {
+          trainingWeekId: week.id,
+          date,
+          dayOfWeek,
+          type: 'yoga',
           notes: notes ?? null,
         },
         include: workoutInclude,

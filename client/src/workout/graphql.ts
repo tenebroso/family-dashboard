@@ -24,11 +24,16 @@ export const GET_TRAINING_WEEK = gql`
         }
         runWorkout {
           id
+          workoutType
           targetMiles
           targetPace
           heartRateZone
           actualMiles
           completed
+          segments {
+            id order label type repeat
+            distanceMi durationSec pace heartRateZone notes
+          }
         }
       }
     }
@@ -80,6 +85,7 @@ export const GET_RUN_WORKOUT = gql`
       completedAt
       runWorkout {
         id
+        workoutType
         targetMiles
         targetPace
         heartRateZone
@@ -91,6 +97,10 @@ export const GET_RUN_WORKOUT = gql`
         notes
         completed
         completedAt
+        segments {
+          id order label type repeat
+          distanceMi durationSec pace heartRateZone notes
+        }
       }
     }
   }
@@ -193,9 +203,19 @@ export const CREATE_RUN_WORKOUT = gql`
   }
 `
 
-export const CREATE_RECOVERY_WORKOUT = gql`
-  mutation CreateRecoveryWorkout($weekOf: String!, $date: String!, $notes: String) {
-    createRecoveryWorkout(weekOf: $weekOf, date: $date, notes: $notes) {
+export const CREATE_REST_WORKOUT = gql`
+  mutation CreateRestWorkout($weekOf: String!, $date: String!, $notes: String) {
+    createRestWorkout(weekOf: $weekOf, date: $date, notes: $notes) {
+      id
+      date
+      type
+    }
+  }
+`
+
+export const CREATE_YOGA_WORKOUT = gql`
+  mutation CreateYogaWorkout($weekOf: String!, $date: String!, $notes: String) {
+    createYogaWorkout(weekOf: $weekOf, date: $date, notes: $notes) {
       id
       date
       type

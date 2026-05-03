@@ -152,18 +152,35 @@ model StrengthSet {
 }
 
 model RunWorkout {
-  id            String    @id @default(cuid())
-  workoutId     String    @unique
-  workout       Workout   @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  id            String       @id @default(cuid())
+  workoutId     String       @unique
+  workout       Workout      @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   targetMiles   Float?
   targetPace    String?
   heartRateZone String?
+  workoutType   String?
+  segments      RunSegment[]
   actualMiles   Float?
   actualTime    Int?
   avgHeartRate  Int?
   maxHeartRate  Int?
   actualRPE     Int?
   notes         String?
-  completed     Boolean   @default(false)
+  completed     Boolean      @default(false)
   completedAt   DateTime?
+}
+
+model RunSegment {
+  id            String     @id @default(cuid())
+  runWorkoutId  String
+  runWorkout    RunWorkout @relation(fields: [runWorkoutId], references: [id], onDelete: Cascade)
+  order         Int
+  label         String
+  type          String
+  repeat        Int?
+  distanceMi    Float?
+  durationSec   Int?
+  pace          String?
+  heartRateZone String?
+  notes         String?
 }

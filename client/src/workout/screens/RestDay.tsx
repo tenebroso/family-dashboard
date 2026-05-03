@@ -50,7 +50,7 @@ export function RestDay() {
     <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
       <TopBar
         eyebrow={dateLabel}
-        title="Recovery"
+        title="Rest Day"
         left={
           <IconBtn onClick={() => navigate(-1)}>
             <ChevronIcon dir="left" />

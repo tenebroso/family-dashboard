@@ -5,6 +5,7 @@ import { WeeklyCalendar } from './screens/WeeklyCalendar'
 import { StrengthWorkout } from './screens/StrengthWorkout'
 import { RunWorkout } from './screens/RunWorkout'
 import { RestDay } from './screens/RestDay'
+import { YogaDay } from './screens/YogaDay'
 
 export function WorkoutApp() {
   return (
@@ -19,6 +20,7 @@ export function WorkoutApp() {
         <Route path="strength/:workoutId" element={<StrengthWorkout />} />
         <Route path="run/:workoutId" element={<RunWorkout />} />
         <Route path="rest/:workoutId" element={<RestDay />} />
+        <Route path="yoga/:workoutId" element={<YogaDay />} />
         <Route path="*" element={<Navigate to="/workout" replace />} />
       </Routes>
     </div>

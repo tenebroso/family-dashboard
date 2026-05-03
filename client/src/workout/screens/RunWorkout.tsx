@@ -11,7 +11,7 @@ import { TimeField, mmssToSeconds, secondsToMmss } from '../components/TimeField
 import { RPEStrip } from '../components/RPEStrip'
 import { ChevronIcon } from '../icons'
 import { GET_RUN_WORKOUT, LOG_RUN_WORKOUT, UNCOMPLETE_WORKOUT } from '../graphql'
-import type { WorkoutData } from '../types'
+import type { WorkoutData, RunSegmentData } from '../types'
 
 function hapticMedium() {
   if ('vibrate' in navigator) navigator.vibrate(30)
@@ -24,6 +24,29 @@ interface RunFormState {
   maxHR: string
   rpe: string
   notes: string
+}
+
+function SegmentRow({ seg }: { seg: RunSegmentData }) {
+  const repeatLabel = seg.repeat ? `×${seg.repeat}` : ''
+  const distance = seg.distanceMi != null ? `${seg.distanceMi} mi` : null
+  const duration = seg.durationSec != null
+    ? seg.durationSec >= 60
+      ? `${Math.floor(seg.durationSec / 60)}:${String(seg.durationSec % 60).padStart(2, '0')}`
+      : `${seg.durationSec}s`
+    : null
+  const amount = distance ?? duration ?? ''
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontFamily: F.mono, fontSize: 11 }}>
+      <span style={{ color: C.muted2, width: 16, fontSize: 10 }}>{seg.order}</span>
+      <span style={{ color: C.text, fontWeight: 500, flex: 1 }}>
+        {seg.label}{repeatLabel && <span style={{ color: C.gold }}> {repeatLabel}</span>}
+      </span>
+      <span style={{ color: C.muted, fontSize: 10 }}>
+        {[amount, seg.pace, seg.heartRateZone].filter(Boolean).join(' · ')}
+      </span>
+    </div>
+  )
 }
 
 function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -153,16 +176,49 @@ export function RunWorkout() {
 
       <div className="wk-noscroll" style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
         {/* Prescribed targets banner */}
-        {run && (run.targetMiles || run.targetPace || run.heartRateZone) && (
+        {run && (
           <div style={{ padding: '20px 24px 24px', borderBottom: `1px solid ${C.hair}` }}>
-            <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: '0.2em', color: C.muted, marginBottom: 14 }}>
-              PRESCRIBED
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-              {run.targetMiles && <Stat label="DISTANCE" value={String(run.targetMiles)} unit="mi" />}
-              {run.targetPace && <Stat label="PACE" value={run.targetPace.replace('/mi', '')} unit="/mi" />}
-              {run.heartRateZone && <Stat label="ZONE" value={run.heartRateZone.replace('Zone ', '')} />}
-            </div>
+            {/* Empty stub — Claude prescription failed */}
+            {!run.targetMiles && !run.targetPace && !run.heartRateZone && run.segments.length === 0 && (
+              <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: '0.2em', color: C.muted2 }}>
+                PRESCRIPTION UNAVAILABLE — RE-UPLOAD PDF TO RETRY
+              </div>
+            )}
+
+            {/* Simple run — flat stat grid */}
+            {run.segments.length === 0 && (run.targetMiles || run.targetPace || run.heartRateZone) && (
+              <>
+                <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: '0.2em', color: C.muted, marginBottom: 14 }}>
+                  PRESCRIBED
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                  {run.targetMiles && <Stat label="DISTANCE" value={String(run.targetMiles)} unit="mi" />}
+                  {run.targetPace && <Stat label="PACE" value={run.targetPace.replace('/mi', '')} unit="/mi" />}
+                  {run.heartRateZone && <Stat label="ZONE" value={run.heartRateZone.replace('Zone ', '')} />}
+                </div>
+              </>
+            )}
+
+            {/* Structured run — segment list */}
+            {run.segments.length > 0 && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+                  <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: '0.2em', color: C.gold }}>
+                    {(run.workoutType ?? 'WORKOUT').toUpperCase()}
+                  </div>
+                  {run.targetMiles && (
+                    <div style={{ fontFamily: F.mono, fontSize: 10, color: C.muted }}>
+                      ~{run.targetMiles} mi total
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {run.segments.map(seg => (
+                    <SegmentRow key={seg.id} seg={seg} />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 

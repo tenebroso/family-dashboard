@@ -117,7 +117,8 @@
       "mcp__plugin_playwright_playwright__browser_run_code",
       "Bash(grep *)",
       "Bash(npm info *)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

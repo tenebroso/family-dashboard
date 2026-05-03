@@ -23,8 +23,22 @@ export const workoutTypeDefs = `#graphql
     sets: [StrengthSet!]!
   }
 
+  type RunSegment {
+    id: String!
+    order: Int!
+    label: String!
+    type: String!
+    repeat: Int
+    distanceMi: Float
+    durationSec: Int
+    pace: String
+    heartRateZone: String
+    notes: String
+  }
+
   type RunWorkout {
     id: String!
+    workoutType: String
     targetMiles: Float
     targetPace: String
     heartRateZone: String
@@ -36,6 +50,7 @@ export const workoutTypeDefs = `#graphql
     notes: String
     completed: Boolean!
     completedAt: String
+    segments: [RunSegment!]!
   }
 
   type Workout {

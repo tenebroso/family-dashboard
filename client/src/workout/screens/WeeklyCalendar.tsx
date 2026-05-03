@@ -17,7 +17,7 @@ import {
   RunIcon,
   RestIcon,
 } from '../icons'
-import { GET_TRAINING_WEEK, CREATE_RUN_WORKOUT, CREATE_RECOVERY_WORKOUT } from '../graphql'
+import { GET_TRAINING_WEEK, CREATE_RUN_WORKOUT, CREATE_REST_WORKOUT, CREATE_YOGA_WORKOUT } from '../graphql'
 import type { WorkoutData, DayTile } from '../types'
 
 function currentMonday(): string {
@@ -75,15 +75,20 @@ function workoutMeta(w: WorkoutData): string {
     if (pace) return pace
     return ''
   }
-  if (w.type === 'recovery') return 'MOBILITY · OPTIONAL'
+  if (w.type === 'yoga') return 'MOBILITY · 30–60 MIN'
+  if (w.type === 'rest') return 'RECOVER'
   return ''
 }
 
 function workoutTitle(w: WorkoutData): string {
   if (w.notes) return w.notes.split('\n')[0].slice(0, 40)
-  if (w.type === 'strength') return 'Strength'
-  if (w.type === 'run') return w.runWorkout?.targetPace ? 'Run' : 'Run'
-  if (w.type === 'recovery') return 'Recovery'
+  if (w.type === 'strength') {
+    const day = w.dayOfWeek === 0 ? 1 : w.dayOfWeek === 2 ? 2 : w.dayOfWeek === 4 ? 3 : null
+    return day ? `Lift · Day ${day}` : 'Strength'
+  }
+  if (w.type === 'run') return 'Run'
+  if (w.type === 'rest') return 'Rest'
+  if (w.type === 'yoga') return 'Yoga'
   return ''
 }
 
@@ -124,7 +129,8 @@ export function WeeklyCalendar() {
   )
 
   const [createRun, { loading: creatingRun }] = useMutation<{ createRunWorkout: { id: string; date: string; type: string } }>(CREATE_RUN_WORKOUT)
-  const [createRecovery] = useMutation(CREATE_RECOVERY_WORKOUT)
+  const [createRest] = useMutation(CREATE_REST_WORKOUT)
+  const [createYoga] = useMutation(CREATE_YOGA_WORKOUT)
 
   const workouts = data?.trainingWeek?.workouts ?? []
   const tiles = buildDayTiles(weekOf, workouts)
@@ -135,12 +141,13 @@ export function WeeklyCalendar() {
     hapticLight()
     if (!tile.workout) {
       setActionDay({ date: tile.date, dayLabel: tile.dayLabel, weekOf })
-    } else if (tile.workout.type === 'strength') {
-      navigate(`/workout/strength/${tile.workout.id}`)
-    } else if (tile.workout.type === 'run') {
-      navigate(`/workout/run/${tile.workout.id}`)
-    } else if (tile.workout.type === 'recovery') {
-      navigate(`/workout/rest/${tile.workout.id}`)
+      return
+    }
+    switch (tile.workout.type) {
+      case 'strength': navigate(`/workout/strength/${tile.workout.id}`); break
+      case 'run':      navigate(`/workout/run/${tile.workout.id}`); break
+      case 'rest':     navigate(`/workout/rest/${tile.workout.id}`); break
+      case 'yoga':     navigate(`/workout/yoga/${tile.workout.id}`); break
     }
   }
 
@@ -167,7 +174,18 @@ export function WeeklyCalendar() {
   const handleMarkRest = async () => {
     if (!actionDay) return
     try {
-      await createRecovery({ variables: { weekOf: actionDay.weekOf, date: actionDay.date } })
+      await createRest({ variables: { weekOf: actionDay.weekOf, date: actionDay.date } })
+      setActionDay(null)
+      await refetch()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleMarkYoga = async () => {
+    if (!actionDay) return
+    try {
+      await createYoga({ variables: { weekOf: actionDay.weekOf, date: actionDay.date } })
       setActionDay(null)
       await refetch()
     } catch (e) {
@@ -352,6 +370,13 @@ export function WeeklyCalendar() {
               icon: <LiftIcon color={C.muted2} size={16} />,
               disabled: true,
               onClick: () => {},
+            },
+            {
+              label: 'Mark Yoga',
+              hint: null,
+              icon: <RestIcon color={C.rust} size={16} />,
+              disabled: false,
+              onClick: handleMarkYoga,
             },
             {
               label: 'Mark Rest',
