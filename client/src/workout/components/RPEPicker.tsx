@@ -26,7 +26,7 @@ export function RPEPicker({ value, onSelect, onClose }: RPEPickerProps) {
           right: 16,
           bottom: 100,
           zIndex: 201,
-          background: '#1A1815',
+          background: '#FFFFFF',
           borderRadius: 16,
           border: `1px solid ${C.hair}`,
           padding: 16,
@@ -52,7 +52,7 @@ export function RPEPicker({ value, onSelect, onClose }: RPEPickerProps) {
                 style={{
                   height: 44,
                   borderRadius: 8,
-                  background: selected ? C.gold : `rgba(201,168,76,${intensity * 0.18})`,
+                  background: selected ? C.gold : `rgba(255,74,28,${intensity * 0.18})`,
                   color: selected ? C.bg : C.text,
                   border: 'none',
                   cursor: 'pointer',

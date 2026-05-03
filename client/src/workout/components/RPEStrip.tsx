@@ -25,7 +25,7 @@ export function RPEStrip({ value, onChange, disabled }: RPEStripProps) {
               style={{
                 height: 46,
                 borderRadius: 8,
-                background: selected ? C.gold : `rgba(201,168,76,${intensity * 0.16})`,
+                background: selected ? C.gold : `rgba(255,74,28,${intensity * 0.16})`,
                 color: selected ? C.bg : C.text,
                 border: 'none',
                 cursor: disabled ? 'default' : 'pointer',

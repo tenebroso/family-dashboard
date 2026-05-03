@@ -3,10 +3,10 @@ import { C, F } from '../tokens'
 type BadgeType = 'strength' | 'run' | 'rest' | 'yoga'
 
 const BADGE_MAP: Record<BadgeType, { label: string; color: string; bg: string }> = {
-  strength: { label: 'LIFT', color: C.gold,  bg: 'rgba(201,168,76,0.12)' },
-  run:      { label: 'RUN',  color: C.teal,  bg: 'rgba(107,168,161,0.12)' },
-  rest:     { label: 'REST', color: C.muted, bg: 'rgba(140,133,122,0.08)' },
-  yoga:     { label: 'YOGA', color: C.rust,  bg: 'rgba(184,106,75,0.12)' },
+  strength: { label: 'LIFT', color: C.gold,  bg: 'rgba(255,74,28,0.12)' },
+  run:      { label: 'RUN',  color: C.teal,  bg: 'rgba(46,217,176,0.18)' },
+  rest:     { label: 'REST', color: C.muted, bg: 'rgba(20,20,20,0.05)' },
+  yoga:     { label: 'YOGA', color: C.rust,  bg: 'rgba(255,210,63,0.22)' },
 }
 
 export function TypeBadge({ type }: { type: BadgeType }) {

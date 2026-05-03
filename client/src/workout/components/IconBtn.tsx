@@ -18,7 +18,7 @@ export function IconBtn({ children, onClick, active, disabled }: IconBtnProps) {
         height: 36,
         borderRadius: 10,
         border: 'none',
-        background: active ? 'rgba(201,168,76,0.15)' : 'transparent',
+        background: active ? 'rgba(255,74,28,0.15)' : 'transparent',
         color: active ? C.gold : C.text,
         display: 'flex',
         alignItems: 'center',

@@ -12,9 +12,9 @@ interface PrimaryBtnProps {
 }
 
 const VARIANTS: Record<Variant, { bg: string; color: string; border?: string }> = {
-  gold:    { bg: C.gold, color: '#0E0E0C' },
+  gold:    { bg: C.gold, color: '#F4F0E8' },
   outline: { bg: 'transparent', color: C.text, border: `1.5px solid ${C.hairStrong}` },
-  ghost:   { bg: 'rgba(201,168,76,0.08)', color: C.gold },
+  ghost:   { bg: 'rgba(255,74,28,0.08)', color: C.gold },
 }
 
 export function PrimaryBtn({ children, onClick, disabled, variant = 'gold', type = 'button' }: PrimaryBtnProps) {
@@ -34,7 +34,7 @@ export function PrimaryBtn({ children, onClick, disabled, variant = 'gold', type
         width: '100%',
         height: 54,
         borderRadius: 12,
-        background: disabled ? '#252320' : s.bg,
+        background: disabled ? '#E5DECB' : s.bg,
         color: disabled ? C.muted : s.color,
         border: s.border ?? 'none',
         fontFamily: F.syne,

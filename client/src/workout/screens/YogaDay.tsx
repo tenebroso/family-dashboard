@@ -49,7 +49,7 @@ export function YogaDay() {
       />
 
       {isComplete && (
-        <div style={{ padding: '10px 20px', background: 'rgba(201,168,76,0.06)', borderBottom: `1px solid ${C.hair}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '10px 20px', background: 'rgba(255,74,28,0.06)', borderBottom: `1px solid ${C.hair}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: '0.18em', color: C.gold }}>✓ DAY COMPLETE</span>
           <button onClick={handleToggle} style={{ background: 'transparent', border: 'none', fontFamily: F.mono, fontSize: 9, letterSpacing: '0.14em', color: C.muted, cursor: 'pointer', padding: '4px 0', WebkitTapHighlightColor: 'transparent' }}>
             MARK INCOMPLETE
@@ -75,7 +75,7 @@ export function YogaDay() {
       </div>
 
       {!isComplete && (
-        <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, zIndex: 30, padding: '12px 20px', paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))', background: `linear-gradient(180deg, rgba(14,14,12,0) 0%, rgba(14,14,12,0.92) 28%, ${C.bg} 100%)` }}>
+        <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, zIndex: 30, padding: '12px 20px', paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))', background: `linear-gradient(180deg, rgba(244,240,232,0) 0%, rgba(244,240,232,0.92) 28%, ${C.bg} 100%)` }}>
           <PrimaryBtn onClick={handleToggle}>Mark Day Complete</PrimaryBtn>
         </div>
       )}

@@ -316,7 +316,7 @@ export function RunWorkout() {
         zIndex: 30,
         padding: '12px 20px',
         paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))',
-        background: `linear-gradient(180deg, rgba(14,14,12,0) 0%, rgba(14,14,12,0.92) 28%, ${C.bg} 100%)`,
+        background: `linear-gradient(180deg, rgba(244,240,232,0) 0%, rgba(244,240,232,0.92) 28%, ${C.bg} 100%)`,
         display: 'flex',
         flexDirection: 'column',
         gap: 8,

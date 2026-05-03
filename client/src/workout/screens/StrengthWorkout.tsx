@@ -149,8 +149,8 @@ function SetRow({ set, local, editMode, matchedSet, lastRelative, onUpdateLocal,
   return (
     <div style={{
       borderRadius: 12,
-      background: local.completed ? 'rgba(201,168,76,0.04)' : C.surfaceSet,
-      border: `1px ${editMode ? 'dashed' : 'solid'} ${local.completed ? 'rgba(201,168,76,0.18)' : C.hair}`,
+      background: local.completed ? 'rgba(255,74,28,0.04)' : C.surfaceSet,
+      border: `1px ${editMode ? 'dashed' : 'solid'} ${local.completed ? 'rgba(255,74,28,0.18)' : C.hair}`,
       padding: '12px 12px 12px 14px',
       transition: 'background 0.2s',
       position: 'relative',
@@ -164,7 +164,7 @@ function SetRow({ set, local, editMode, matchedSet, lastRelative, onUpdateLocal,
           fontWeight: 500,
           color: C.gold,
           padding: '3px 6px',
-          background: 'rgba(201,168,76,0.1)',
+          background: 'rgba(255,74,28,0.1)',
           borderRadius: 3,
           flexShrink: 0,
         }}>
@@ -361,7 +361,7 @@ function ExerciseCard({
           marginTop: 10,
           padding: '8px 10px',
           borderRadius: 8,
-          background: 'rgba(201,168,76,0.06)',
+          background: 'rgba(255,74,28,0.06)',
           border: `1px solid ${C.hair}`,
           display: 'flex', gap: 8, alignItems: 'flex-start',
         }}>
@@ -412,8 +412,8 @@ function ExerciseCard({
           marginTop: 14,
           padding: '10px 12px',
           borderRadius: 8,
-          background: 'rgba(201,168,76,0.05)',
-          border: `1px solid rgba(201,168,76,0.12)`,
+          background: 'rgba(255,74,28,0.05)',
+          border: `1px solid rgba(255,74,28,0.12)`,
         }}>
           <div style={{ fontFamily: F.mono, fontSize: 8, letterSpacing: '0.18em', color: C.goldDim, marginBottom: 5, fontWeight: 500 }}>
             LOADING NOTE
@@ -637,7 +637,7 @@ export function StrengthWorkout() {
     } catch (e) { console.error(e) }
   }
 
-  const editBg = '#1A1611'
+  const editBg = '#FFF1ED'
 
   if (loading && !data) {
     return (
@@ -680,7 +680,7 @@ export function StrengthWorkout() {
       {editMode && (
         <div style={{
           padding: '10px 20px',
-          background: 'rgba(201,168,76,0.08)',
+          background: 'rgba(255,74,28,0.08)',
           borderBottom: `1px dashed ${C.gold}`,
           display: 'flex',
           alignItems: 'center',
@@ -712,7 +712,7 @@ export function StrengthWorkout() {
             <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: '0.18em', color: C.muted, marginBottom: 4 }}>
               SETS LOGGED
             </div>
-            <div style={{ height: 3, background: '#252320', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: 3, background: '#E5DECB', borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: C.gold, transition: 'width 0.4s ease', borderRadius: 2 }} />
             </div>
           </div>
@@ -722,7 +722,7 @@ export function StrengthWorkout() {
       {isComplete && (
         <div style={{
           padding: '10px 20px',
-          background: 'rgba(201,168,76,0.06)',
+          background: 'rgba(255,74,28,0.06)',
           borderBottom: `1px solid ${C.hair}`,
           flexShrink: 0,
           display: 'flex',
@@ -756,7 +756,7 @@ export function StrengthWorkout() {
           flex: 1,
           overflowY: 'auto',
           paddingBottom: 110,
-          background: editMode ? `linear-gradient(180deg, rgba(201,168,76,0.02) 0%, transparent 200px)` : undefined,
+          background: editMode ? `linear-gradient(180deg, rgba(255,74,28,0.02) 0%, transparent 200px)` : undefined,
         }}
       >
         {/* Workout notes */}
@@ -791,7 +791,7 @@ export function StrengthWorkout() {
               position: 'sticky',
               top: 0,
               zIndex: 5,
-              background: editMode ? '#1A1611' : C.bg,
+              background: editMode ? '#FFF1ED' : C.bg,
               padding: '14px 20px 8px',
               borderTop: `1px solid ${C.hair}`,
               borderBottom: `1px solid ${C.hair}`,
@@ -848,7 +848,7 @@ export function StrengthWorkout() {
           zIndex: 30,
           padding: '12px 20px',
           paddingBottom: 'max(44px, env(safe-area-inset-bottom, 44px))',
-          background: `linear-gradient(180deg, rgba(14,14,12,0) 0%, rgba(14,14,12,0.92) 30%, ${C.bg} 100%)`,
+          background: `linear-gradient(180deg, rgba(244,240,232,0) 0%, rgba(244,240,232,0.92) 30%, ${C.bg} 100%)`,
         }}>
           <PrimaryBtn
             variant={doneSets === totalSets ? 'gold' : 'outline'}

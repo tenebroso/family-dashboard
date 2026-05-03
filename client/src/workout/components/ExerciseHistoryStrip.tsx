@@ -28,7 +28,7 @@ export function ExerciseHistoryStrip({ history, todayTopWeight, onOpen }: Exerci
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 8,
-        background: 'rgba(201,168,76,0.04)',
+        background: 'rgba(255,74,28,0.04)',
         border: `1px dashed ${C.hair}`,
         marginTop: 10, marginBottom: 4,
       }}>
@@ -54,7 +54,7 @@ export function ExerciseHistoryStrip({ history, todayTopWeight, onOpen }: Exerci
         width: '100%', textAlign: 'left',
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '8px 10px', borderRadius: 8,
-        background: 'rgba(201,168,76,0.04)',
+        background: 'rgba(255,74,28,0.04)',
         border: `1px solid ${C.hair}`,
         cursor: 'pointer', marginTop: 10, marginBottom: 4,
         color: 'inherit',
@@ -78,7 +78,7 @@ export function ExerciseHistoryStrip({ history, todayTopWeight, onOpen }: Exerci
                 fontSize: 10, fontWeight: 500,
                 color: i === 0 ? C.text : C.muted,
                 padding: '2px 5px', borderRadius: 3,
-                background: i === 0 ? 'rgba(201,168,76,0.10)' : 'transparent',
+                background: i === 0 ? 'rgba(255,74,28,0.10)' : 'transparent',
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
               }}

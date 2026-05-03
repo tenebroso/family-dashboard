@@ -21,7 +21,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.6)',
+          background: 'rgba(0,0,0,0.55)',
           zIndex: 100,
         }}
       />
@@ -33,7 +33,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
           right: 0,
           bottom: 0,
           zIndex: 101,
-          background: '#1A1815',
+          background: '#FFFFFF',
           borderRadius: '24px 24px 0 0',
           border: `1px solid ${C.hair}`,
           borderBottom: 'none',
