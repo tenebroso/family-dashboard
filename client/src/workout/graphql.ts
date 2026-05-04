@@ -244,6 +244,15 @@ export const CREATE_YOGA_WORKOUT = gql`
   }
 `
 
+export const UPDATE_WORKOUT_NOTES = gql`
+  mutation UpdateWorkoutNotes($workoutId: String!, $notes: String!) {
+    updateWorkoutNotes(workoutId: $workoutId, notes: $notes) {
+      id
+      notes
+    }
+  }
+`
+
 export const UPDATE_EXERCISE = gql`
   mutation UpdateExercise($id: String!, $name: String!) {
     updateExercise(id: $id, name: $name) {

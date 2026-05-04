@@ -568,6 +568,20 @@ export const workoutResolvers = {
       return formatWorkout(workout)
     },
 
+    updateWorkoutNotes: async (
+      _: unknown,
+      { workoutId, notes }: { workoutId: string; notes: string },
+      ctx: Context
+    ) => {
+      requirePerson(ctx)
+      const workout = await prisma.workout.update({
+        where: { id: workoutId },
+        data: { notes },
+        include: workoutInclude,
+      })
+      return formatWorkout(workout)
+    },
+
     updateExercise: async (
       _: unknown,
       { id, name }: { id: string; name: string },

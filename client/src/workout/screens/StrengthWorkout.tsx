@@ -19,6 +19,7 @@ import {
   COMPLETE_SET,
   COMPLETE_WORKOUT,
   UNCOMPLETE_WORKOUT,
+  UPDATE_WORKOUT_NOTES,
   UPDATE_EXERCISE,
   UPDATE_SET_TARGETS,
   ADD_SET,
@@ -483,6 +484,7 @@ export function StrengthWorkout() {
   const [completeSetMutation] = useMutation(COMPLETE_SET)
   const [completeWorkoutMutation] = useMutation(COMPLETE_WORKOUT)
   const [uncompleteWorkoutMutation] = useMutation(UNCOMPLETE_WORKOUT)
+  const [updateWorkoutNotesMutation] = useMutation(UPDATE_WORKOUT_NOTES)
   const [updateExerciseMutation] = useMutation(UPDATE_EXERCISE)
   const [updateSetTargetsMutation] = useMutation(UPDATE_SET_TARGETS)
   const [addSetMutation] = useMutation<{ addSet: StrengthSetData }>(ADD_SET)
@@ -764,6 +766,7 @@ export function StrengthWorkout() {
           <textarea
             value={workoutNotes}
             onChange={e => setWorkoutNotes(e.target.value)}
+            onBlur={() => updateWorkoutNotesMutation({ variables: { workoutId, notes: workoutNotes } })}
             placeholder="Add a note for this workout…"
             rows={1}
             className="wk-input-reset"

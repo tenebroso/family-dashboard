@@ -50,6 +50,7 @@ const rootTypeDefs = `#graphql
     uncompleteWorkout(workoutId: String!): Workout!
     createRestWorkout(weekOf: String!, date: String!, notes: String): Workout!
     createYogaWorkout(weekOf: String!, date: String!, notes: String): Workout!
+    updateWorkoutNotes(workoutId: String!, notes: String!): Workout!
     updateExercise(id: String!, name: String!): StrengthExercise!
     updateSet(id: String!, targetReps: String, targetWeight: Float, targetRPE: String, tempo: String): StrengthSet!
     addSet(exerciseId: String!): StrengthSet!
