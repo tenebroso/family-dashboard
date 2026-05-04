@@ -128,7 +128,8 @@
       "Bash(mkdir -p /tmp/design-bundle)",
       "Bash(tar -xzf /Users/jonbukiewicz/.claude/projects/-Users-jonbukiewicz-projects-family-dashboard/a157af2c-630e-415b-950c-baac03034cf2/tool-results/webfetch-1777830064725-pb8l7e.bin -C /tmp/design-bundle)",
       "Bash(npx --no-install tsc --noEmit -p .)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Skill(update-config)"
     ]
   }
 }
