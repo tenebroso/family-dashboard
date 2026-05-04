@@ -45,7 +45,7 @@ export function YogaDay() {
       <TopBar
         eyebrow={dateLabel}
         title="Yoga"
-        left={<IconBtn onClick={() => navigate(-1)}><ChevronIcon dir="left" /></IconBtn>}
+        left={<IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}><ChevronIcon dir="left" /></IconBtn>}
       />
 
       {isComplete && (

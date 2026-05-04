@@ -622,7 +622,7 @@ export function StrengthWorkout() {
         variables: { workoutId },
         refetchQueries: ['GetTrainingWeekCalendar'],
       })
-      navigate(-1)
+      window.history.length > 1 ? navigate(-1) : navigate('/workout')
     } catch (e) { console.error(e) }
     setConfirmOpen(false)
   }
@@ -644,7 +644,7 @@ export function StrengthWorkout() {
       <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
         <TopBar
           title="Strength"
-          left={<IconBtn onClick={() => navigate(-1)}><ChevronIcon dir="left" /></IconBtn>}
+          left={<IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}><ChevronIcon dir="left" /></IconBtn>}
         />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: '0.18em', color: C.muted }}>LOADING…</div>
@@ -663,7 +663,7 @@ export function StrengthWorkout() {
         title={workout?.notes?.split('\n')[0] || 'Strength'}
         bg={editMode ? editBg : C.bg}
         left={
-          <IconBtn onClick={() => navigate(-1)}>
+          <IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}>
             <ChevronIcon dir="left" />
           </IconBtn>
         }

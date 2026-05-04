@@ -140,7 +140,7 @@ export function RunWorkout() {
         },
         refetchQueries: ['GetTrainingWeekCalendar', 'GetRunWorkout'],
       })
-      if (!isEditing) navigate(-1)
+      if (!isEditing) window.history.length > 1 ? navigate(-1) : navigate('/workout')
     } catch (e) {
       console.error(e)
     }
@@ -151,7 +151,7 @@ export function RunWorkout() {
       <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
         <TopBar
           title="Run"
-          left={<IconBtn onClick={() => navigate(-1)}><ChevronIcon dir="left" /></IconBtn>}
+          left={<IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}><ChevronIcon dir="left" /></IconBtn>}
         />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: '0.18em', color: C.muted }}>LOADING…</div>
@@ -168,7 +168,7 @@ export function RunWorkout() {
         eyebrow={dateLabel}
         title={workout?.notes?.split('\n')[0] || 'Run'}
         left={
-          <IconBtn onClick={() => navigate(-1)}>
+          <IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}>
             <ChevronIcon dir="left" />
           </IconBtn>
         }
