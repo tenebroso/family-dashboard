@@ -418,6 +418,15 @@ export const workoutResolvers = {
       return { ...set, completedAt: set.completedAt ? set.completedAt.toISOString() : null }
     },
 
+    uncompleteSet: async (_: unknown, { setId }: { setId: string }, ctx: Context) => {
+      requirePerson(ctx)
+      const set = await prisma.strengthSet.update({
+        where: { id: setId },
+        data: { completed: false, completedAt: null },
+      })
+      return { ...set, completedAt: null }
+    },
+
     createRunWorkout: async (
       _: unknown,
       { weekOf, date, targetMiles, targetPace }: { weekOf: string; date: string; targetMiles?: number; targetPace?: string },

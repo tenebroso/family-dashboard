@@ -44,6 +44,7 @@ const rootTypeDefs = `#graphql
     uploadTrainingPDF(pdfPath: String!, weekOf: String!): TrainingWeek!
     logSet(setId: String!, actualReps: String, actualWeight: Float, actualRPE: String, notes: String): StrengthSet!
     completeSet(setId: String!): StrengthSet!
+    uncompleteSet(setId: String!): StrengthSet!
     createRunWorkout(weekOf: String!, date: String!, targetMiles: Float, targetPace: String): Workout!
     logRunWorkout(workoutId: String!, actualMiles: Float!, actualTime: Int!, avgHeartRate: Int, maxHeartRate: Int, actualRPE: Int, notes: String): RunWorkout!
     completeWorkout(workoutId: String!): Workout!

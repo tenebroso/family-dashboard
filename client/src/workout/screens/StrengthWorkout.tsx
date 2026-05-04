@@ -17,6 +17,7 @@ import {
   GET_WORKOUT_EXERCISE_HISTORY,
   LOG_SET,
   COMPLETE_SET,
+  UNCOMPLETE_SET,
   COMPLETE_WORKOUT,
   UNCOMPLETE_WORKOUT,
   UPDATE_WORKOUT_NOTES,
@@ -482,6 +483,7 @@ export function StrengthWorkout() {
 
   const [logSet] = useMutation(LOG_SET)
   const [completeSetMutation] = useMutation(COMPLETE_SET)
+  const [uncompleteSetMutation] = useMutation(UNCOMPLETE_SET)
   const [completeWorkoutMutation] = useMutation(COMPLETE_WORKOUT)
   const [uncompleteWorkoutMutation] = useMutation(UNCOMPLETE_WORKOUT)
   const [updateWorkoutNotesMutation] = useMutation(UPDATE_WORKOUT_NOTES)
@@ -561,18 +563,25 @@ export function StrengthWorkout() {
 
   const handleComplete = async (setId: string) => {
     const local = localSets.get(setId)
-    if (!local || local.completed) return
+    if (!local) return
     hapticLight()
-    // Flush pending actuals first
-    if (local) await flushLogSet(setId, local)
-    // Optimistic update
-    setLocalSets(m => { const n = new Map(m); const p = n.get(setId); if (p) n.set(setId, { ...p, completed: true }); return n })
-    try {
-      await completeSetMutation({ variables: { setId } })
-    } catch (e) {
-      // Rollback
+    if (local.completed) {
       setLocalSets(m => { const n = new Map(m); const p = n.get(setId); if (p) n.set(setId, { ...p, completed: false }); return n })
-      console.error(e)
+      try {
+        await uncompleteSetMutation({ variables: { setId } })
+      } catch (e) {
+        setLocalSets(m => { const n = new Map(m); const p = n.get(setId); if (p) n.set(setId, { ...p, completed: true }); return n })
+        console.error(e)
+      }
+    } else {
+      await flushLogSet(setId, local)
+      setLocalSets(m => { const n = new Map(m); const p = n.get(setId); if (p) n.set(setId, { ...p, completed: true }); return n })
+      try {
+        await completeSetMutation({ variables: { setId } })
+      } catch (e) {
+        setLocalSets(m => { const n = new Map(m); const p = n.get(setId); if (p) n.set(setId, { ...p, completed: false }); return n })
+        console.error(e)
+      }
     }
   }
 

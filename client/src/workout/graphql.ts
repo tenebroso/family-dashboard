@@ -152,6 +152,16 @@ export const COMPLETE_SET = gql`
   }
 `
 
+export const UNCOMPLETE_SET = gql`
+  mutation UncompleteSet($setId: String!) {
+    uncompleteSet(setId: $setId) {
+      id
+      completed
+      completedAt
+    }
+  }
+`
+
 export const COMPLETE_WORKOUT = gql`
   mutation CompleteWorkout($workoutId: String!) {
     completeWorkout(workoutId: $workoutId) {
