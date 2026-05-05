@@ -52,7 +52,7 @@ export function RestDay() {
         eyebrow={dateLabel}
         title="Rest Day"
         left={
-          <IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}>
+          <IconBtn onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')}>
             <ChevronIcon dir="left" />
           </IconBtn>
         }

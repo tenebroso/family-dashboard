@@ -149,7 +149,7 @@ interface SetRowProps {
 
 function SetRow({ set, local, editMode, matchedSet, lastRelative, onUpdateLocal, onComplete, onUpdateTargets, onDelete, scheduleLogSet }: SetRowProps) {
   return (
-    <div style={{
+    <div data-set-number={set.setNumber} data-set-id={set.id} style={{
       borderRadius: 12,
       background: local.completed ? 'rgba(255,74,28,0.04)' : C.surfaceSet,
       border: `1px ${editMode ? 'dashed' : 'solid'} ${local.completed ? 'rgba(255,74,28,0.18)' : C.hair}`,
@@ -335,7 +335,7 @@ function ExerciseCard({
   const lastRelative = lastSession?.relative ?? null
 
   return (
-    <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${C.hair}` }}>
+    <div data-exercise-name={exercise.name} style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${C.hair}` }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
         <div
@@ -633,7 +633,7 @@ export function StrengthWorkout() {
         variables: { workoutId },
         refetchQueries: ['GetTrainingWeekCalendar'],
       })
-      window.history.length > 1 ? navigate(-1) : navigate('/workout')
+      window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')
     } catch (e) { console.error(e) }
     setConfirmOpen(false)
   }
@@ -655,7 +655,7 @@ export function StrengthWorkout() {
       <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
         <TopBar
           title="Strength"
-          left={<IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}><ChevronIcon dir="left" /></IconBtn>}
+          left={<IconBtn onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')}><ChevronIcon dir="left" /></IconBtn>}
         />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: '0.18em', color: C.muted }}>LOADING…</div>
@@ -674,7 +674,7 @@ export function StrengthWorkout() {
         title={workout?.notes?.split('\n')[0] || 'Strength'}
         bg={editMode ? editBg : C.bg}
         left={
-          <IconBtn onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/workout')}>
+          <IconBtn onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')}>
             <ChevronIcon dir="left" />
           </IconBtn>
         }
