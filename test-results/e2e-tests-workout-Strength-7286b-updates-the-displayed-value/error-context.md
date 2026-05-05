@@ -7,220 +7,220 @@
 # Test info
 
 - Name: e2e/tests/workout.spec.ts >> Strength workout: edit fields >> editing target weight updates the displayed value
-- Location: e2e/tests/workout.spec.ts:222:7
+- Location: e2e/tests/workout.spec.ts:224:7
 
 # Error details
 
 ```
 Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
 Call log:
-  - navigating to "/workout/strength/cmoqhofq20003lrmftzqlf4ym", waiting until "load"
+  - navigating to "/workout/strength/cmortljrn0003lr99ssr2t63a", waiting until "load"
 
 ```
 
 # Test source
 
 ```ts
-  123 |     await page.getByRole('button', { name: /Add Run/ }).click()
-  124 |     // The Add Run sheet is now open — wait for Create button (avoids strict-mode match on footer text)
-  125 |     await page.getByRole('button', { name: 'Create' }).click()
-  126 |     await expect(page).toHaveURL(/\/workout\/run\//)
-  127 |   })
-  128 | 
-  129 |   test('Mark Rest creates a rest tile on the calendar', async ({ page }) => {
-  130 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
-  131 |     await page.getByText('THU').click()
-  132 |     await page.getByRole('button', { name: /Mark Rest/ }).click()
-  133 |     // Sheet closes; the tile for THU should now show "Rest"
-  134 |     await expect(page.getByRole('button', { name: /Mark Rest/ })).not.toBeVisible()
-  135 |     await expect(page.getByText('Rest').first()).toBeVisible()
-  136 |   })
-  137 | 
-  138 |   test('Mark Yoga creates a yoga tile on the calendar', async ({ page }) => {
-  139 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
-  140 |     await page.getByText('FRI').click()
-  141 |     await page.getByRole('button', { name: /Mark Yoga/ }).click()
-  142 |     await expect(page.getByRole('button', { name: /Mark Yoga/ })).not.toBeVisible()
-  143 |     await expect(page.getByText('Yoga').first()).toBeVisible()
-  144 |   })
-  145 | })
-  146 | 
-  147 | // ─── Strength workout: edit fields ───────────────────────────────────────────
+  125 |     await page.getByRole('button', { name: /Add Run/ }).click()
+  126 |     // The Add Run sheet is now open — wait for Create button (avoids strict-mode match on footer text)
+  127 |     await page.getByRole('button', { name: 'Create' }).click()
+  128 |     await expect(page).toHaveURL(/\/workout\/run\//)
+  129 |   })
+  130 | 
+  131 |   test('Mark Rest creates a rest tile on the calendar', async ({ page }) => {
+  132 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  133 |     await page.getByText('THU').click()
+  134 |     await page.getByRole('button', { name: /Mark Rest/ }).click()
+  135 |     // Sheet closes; the tile for THU should now show "Rest"
+  136 |     await expect(page.getByRole('button', { name: /Mark Rest/ })).not.toBeVisible()
+  137 |     await expect(page.getByText('Rest').first()).toBeVisible()
+  138 |   })
+  139 | 
+  140 |   test('Mark Yoga creates a yoga tile on the calendar', async ({ page }) => {
+  141 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  142 |     await page.getByText('FRI').click()
+  143 |     await page.getByRole('button', { name: /Mark Yoga/ }).click()
+  144 |     await expect(page.getByRole('button', { name: /Mark Yoga/ })).not.toBeVisible()
+  145 |     await expect(page.getByText('Yoga').first()).toBeVisible()
+  146 |   })
+  147 | })
   148 | 
-  149 | test.describe('Strength workout: edit fields', () => {
-  150 |   test.beforeEach(async ({ request }) => {
-  151 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
-  152 |   })
-  153 | 
-  154 |   test('pencil icon enters edit mode and shows banner', async ({ page }) => {
-  155 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  156 |     await page.waitForLoadState('networkidle')
-  157 |     // Pencil button is the second button in the top bar (right side)
-  158 |     await page.locator('button').nth(1).click()
-  159 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  160 |   })
-  161 | 
-  162 |   test('clicking exercise name in edit mode opens Edit Exercise sheet', async ({ page }) => {
-  163 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  164 |     await page.waitForLoadState('networkidle')
-  165 |     await page.locator('button').nth(1).click() // enter edit mode
-  166 |     await page.getByText('Barbell Squat').click()
-  167 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
-  168 |     await expect(page.getByRole('button', { name: 'Save' })).toBeVisible()
-  169 |   })
-  170 | 
-  171 |   test('saving a new exercise name updates the display', async ({ page }) => {
-  172 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  173 |     await page.waitForLoadState('networkidle')
-  174 |     await page.locator('button').nth(1).click()
-  175 |     await page.getByText('Barbell Squat').click()
-  176 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
-  177 | 
-  178 |     const nameInput = page.getByRole('textbox').last()
-  179 |     await nameInput.fill('Back Squat')
-  180 |     await page.getByRole('button', { name: 'Save' }).click()
-  181 | 
-  182 |     await expect(page.getByText('Back Squat')).toBeVisible()
-  183 |     await expect(page.getByText('Barbell Squat')).not.toBeVisible()
-  184 | 
-  185 |     // Restore original name
-  186 |     await page.getByText('Back Squat').click()
-  187 |     await page.getByRole('textbox').last().fill('Barbell Squat')
-  188 |     await page.getByRole('button', { name: 'Save' }).click()
-  189 |   })
-  190 | 
-  191 |   test('clicking REPS target in edit mode opens inline input', async ({ page }) => {
-  192 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  193 |     await page.waitForLoadState('networkidle')
-  194 |     await page.locator('button').nth(1).click() // enter edit mode
-  195 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  196 | 
-  197 |     await page.getByText('REPS').first().click()
-  198 |     // Spec input appears in the top row — first in DOM order, before PillInputs
-  199 |     await expect(page.locator('input').first()).toBeVisible()
-  200 |   })
-  201 | 
-  202 |   test('editing target reps updates the displayed value', async ({ page }) => {
-  203 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  204 |     await page.waitForLoadState('networkidle')
-  205 |     await page.locator('button').nth(1).click()
-  206 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  207 | 
-  208 |     await page.getByText('REPS').first().click()
-  209 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
-  210 |     const specInput = page.locator('input').first()
-  211 |     await specInput.fill('12')
-  212 |     await page.keyboard.press('Enter')
-  213 | 
-  214 |     await expect(page.getByText('12').first()).toBeVisible()
+  149 | // ─── Strength workout: edit fields ───────────────────────────────────────────
+  150 | 
+  151 | test.describe('Strength workout: edit fields', () => {
+  152 |   test.beforeEach(async ({ request }) => {
+  153 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
+  154 |   })
+  155 | 
+  156 |   test('pencil icon enters edit mode and shows banner', async ({ page }) => {
+  157 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  158 |     await page.waitForLoadState('networkidle')
+  159 |     // Pencil button is the second button in the top bar (right side)
+  160 |     await page.locator('button').nth(1).click()
+  161 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  162 |   })
+  163 | 
+  164 |   test('clicking exercise name in edit mode opens Edit Exercise sheet', async ({ page }) => {
+  165 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  166 |     await page.waitForLoadState('networkidle')
+  167 |     await page.locator('button').nth(1).click() // enter edit mode
+  168 |     await page.getByText('Barbell Squat').click()
+  169 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
+  170 |     await expect(page.getByRole('button', { name: 'Save' })).toBeVisible()
+  171 |   })
+  172 | 
+  173 |   test('saving a new exercise name updates the display', async ({ page }) => {
+  174 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  175 |     await page.waitForLoadState('networkidle')
+  176 |     await page.locator('button').nth(1).click()
+  177 |     await page.getByText('Barbell Squat').click()
+  178 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
+  179 | 
+  180 |     const nameInput = page.getByRole('textbox').last()
+  181 |     await nameInput.fill('Back Squat')
+  182 |     await page.getByRole('button', { name: 'Save' }).click()
+  183 | 
+  184 |     await expect(page.getByText('Back Squat')).toBeVisible()
+  185 |     await expect(page.getByText('Barbell Squat')).not.toBeVisible()
+  186 | 
+  187 |     // Restore original name
+  188 |     await page.getByText('Back Squat').click()
+  189 |     await page.getByRole('textbox').last().fill('Barbell Squat')
+  190 |     await page.getByRole('button', { name: 'Save' }).click()
+  191 |   })
+  192 | 
+  193 |   test('clicking REPS target in edit mode opens inline input', async ({ page }) => {
+  194 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  195 |     await page.waitForLoadState('networkidle')
+  196 |     await page.locator('button').nth(1).click() // enter edit mode
+  197 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  198 | 
+  199 |     await page.getByText('REPS').first().click()
+  200 |     // Spec input appears in the top row — first in DOM order, before PillInputs
+  201 |     await expect(page.locator('input').first()).toBeVisible()
+  202 |   })
+  203 | 
+  204 |   test('editing target reps updates the displayed value', async ({ page }) => {
+  205 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  206 |     await page.waitForLoadState('networkidle')
+  207 |     await page.locator('button').nth(1).click()
+  208 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  209 | 
+  210 |     await page.getByText('REPS').first().click()
+  211 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
+  212 |     const specInput = page.locator('input').first()
+  213 |     await specInput.fill('12')
+  214 |     await page.keyboard.press('Enter')
   215 | 
-  216 |     // Restore to original
-  217 |     await page.getByText('REPS').first().click()
-  218 |     await page.locator('input').first().fill('8')
-  219 |     await page.keyboard.press('Enter')
-  220 |   })
-  221 | 
-  222 |   test('editing target weight updates the displayed value', async ({ page }) => {
-> 223 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  216 |     await expect(page.getByText('12').first()).toBeVisible()
+  217 | 
+  218 |     // Restore to original
+  219 |     await page.getByText('REPS').first().click()
+  220 |     await page.locator('input').first().fill('8')
+  221 |     await page.keyboard.press('Enter')
+  222 |   })
+  223 | 
+  224 |   test('editing target weight updates the displayed value', async ({ page }) => {
+> 225 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
       |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
-  224 |     await page.waitForLoadState('networkidle')
-  225 |     await page.locator('button').nth(1).click()
-  226 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  227 | 
-  228 |     await page.getByText('LBS').first().click()
-  229 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
-  230 |     const specInput = page.locator('input').first()
-  231 |     await specInput.fill('145')
-  232 |     await page.keyboard.press('Enter')
-  233 | 
-  234 |     await expect(page.getByText('145').first()).toBeVisible()
+  226 |     await page.waitForLoadState('networkidle')
+  227 |     await page.locator('button').nth(1).click()
+  228 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  229 | 
+  230 |     await page.getByText('LBS').first().click()
+  231 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
+  232 |     const specInput = page.locator('input').first()
+  233 |     await specInput.fill('145')
+  234 |     await page.keyboard.press('Enter')
   235 | 
-  236 |     // Restore
-  237 |     await page.getByText('LBS').first().click()
-  238 |     await page.locator('input').first().fill('135')
-  239 |     await page.keyboard.press('Enter')
-  240 |   })
-  241 | 
-  242 |   test('editing target RPE updates the displayed value', async ({ page }) => {
-  243 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  244 |     await page.waitForLoadState('networkidle')
-  245 |     await page.locator('button').nth(1).click()
-  246 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  247 | 
-  248 |     await page.getByText('RPE').first().click()
-  249 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
-  250 |     const specInput = page.locator('input').first()
-  251 |     await specInput.fill('8')
-  252 |     await page.keyboard.press('Enter')
-  253 | 
-  254 |     await expect(page.getByText('8').first()).toBeVisible()
+  236 |     await expect(page.getByText('145').first()).toBeVisible()
+  237 | 
+  238 |     // Restore
+  239 |     await page.getByText('LBS').first().click()
+  240 |     await page.locator('input').first().fill('135')
+  241 |     await page.keyboard.press('Enter')
+  242 |   })
+  243 | 
+  244 |   test('editing target RPE updates the displayed value', async ({ page }) => {
+  245 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  246 |     await page.waitForLoadState('networkidle')
+  247 |     await page.locator('button').nth(1).click()
+  248 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  249 | 
+  250 |     await page.getByText('RPE').first().click()
+  251 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
+  252 |     const specInput = page.locator('input').first()
+  253 |     await specInput.fill('8')
+  254 |     await page.keyboard.press('Enter')
   255 | 
-  256 |     // Restore
-  257 |     await page.getByText('RPE').first().click()
-  258 |     await page.locator('input').first().fill('7')
-  259 |     await page.keyboard.press('Enter')
-  260 |   })
-  261 | 
-  262 |   test('Add Set button appends a new set to an exercise', async ({ page }) => {
-  263 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  264 |     await page.waitForLoadState('networkidle')
-  265 |     await page.locator('button').nth(1).click()
-  266 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  267 | 
-  268 |     // Count PillInputs before (2 exercises × 3 sets × 3 pill inputs = 18)
-  269 |     const inputsBefore = await page.locator('input').count()
-  270 | 
-  271 |     await page.getByRole('button', { name: /Add Set/ }).first().click()
-  272 |     // Wait for the new row's PillInputs to appear in DOM (+3 inputs)
-  273 |     await expect(page.locator('input')).toHaveCount(inputsBefore + 3)
-  274 |   })
-  275 | 
-  276 |   test('trash icon removes a set from an exercise', async ({ page }) => {
-  277 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  278 |     await page.waitForLoadState('networkidle')
-  279 |     await page.locator('button').nth(1).click()
-  280 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  281 | 
-  282 |     const inputsBefore = await page.locator('input').count()
-  283 | 
-  284 |     // In edit mode: btn 0=back, btn 1=pencil, btn 2=trash-SET1
-  285 |     await page.locator('button').nth(2).click()
-  286 |     await page.waitForLoadState('networkidle')
-  287 | 
-  288 |     const inputsAfter = await page.locator('input').count()
-  289 |     expect(inputsAfter).toBe(inputsBefore - 3) // removed 1 set = 3 fewer pill inputs
-  290 |   })
-  291 | })
-  292 | 
-  293 | // ─── Strength workout: log actuals and complete ───────────────────────────────
+  256 |     await expect(page.getByText('8').first()).toBeVisible()
+  257 | 
+  258 |     // Restore
+  259 |     await page.getByText('RPE').first().click()
+  260 |     await page.locator('input').first().fill('7')
+  261 |     await page.keyboard.press('Enter')
+  262 |   })
+  263 | 
+  264 |   test('Add Set button appends a new set to an exercise', async ({ page }) => {
+  265 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  266 |     await page.waitForLoadState('networkidle')
+  267 |     await page.locator('button').nth(1).click()
+  268 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  269 | 
+  270 |     // Scope to just the Barbell Squat exercise card — isolates from concurrent cross-project
+  271 |     // mutations on other exercises or set counts.
+  272 |     const squatCard = page.locator('[data-exercise-name="Barbell Squat"]')
+  273 |     const inputsBefore = await squatCard.locator('input').count()
+  274 | 
+  275 |     await squatCard.getByRole('button', { name: /Add Set/ }).click()
+  276 |     await expect(squatCard.locator('input')).toHaveCount(inputsBefore + 3)
+  277 |   })
+  278 | 
+  279 |   test('trash icon removes a set from an exercise', async ({ page }) => {
+  280 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  281 |     await page.waitForLoadState('networkidle')
+  282 |     await page.locator('button').nth(1).click()
+  283 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  284 | 
+  285 |     // Scope to firstSetId's row — resilient to concurrent set mutations by other browser projects.
+  286 |     const set1Row = page.locator(`[data-set-id="${testData.firstSetId}"]`)
+  287 |     await expect(set1Row).toBeVisible()
+  288 | 
+  289 |     // The trash button lives inside the set row
+  290 |     await set1Row.locator('button').click()
+  291 |     await expect(set1Row).not.toBeVisible()
+  292 |   })
+  293 | })
   294 | 
-  295 | test.describe('Strength workout: log actuals and complete', () => {
-  296 |   test.beforeEach(async ({ request }) => {
-  297 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
-  298 |   })
-  299 | 
-  300 |   test('entering values in pill inputs saves actuals', async ({ page }) => {
-  301 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  302 |     await page.waitForLoadState('networkidle')
-  303 | 
-  304 |     // index 0 = REPS input for SET 1 of Barbell Squat
-  305 |     await page.locator('input').nth(0).fill('8')
-  306 |     // index 1 = LBS input
-  307 |     await page.locator('input').nth(1).fill('135')
-  308 | 
-  309 |     // Wait for debounce to fire (500ms)
-  310 |     await page.waitForTimeout(600)
-  311 |     // If no error thrown, the mutation succeeded
-  312 |   })
-  313 | 
-  314 |   test('clicking checkmark marks a set complete and updates progress', async ({ page }) => {
-  315 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  316 |     await page.waitForLoadState('networkidle')
-  317 | 
-  318 |     // Progress shows "0/N" initially
-  319 |     const progressText = page.getByText(/^0\//)
-  320 |     await expect(progressText).toBeVisible()
-  321 | 
-  322 |     // Complete SET 1 — the checkmark button with the unique SVG path
-  323 |     const completeButtons = page.locator('button').filter({
+  295 | // ─── Strength workout: log actuals and complete ───────────────────────────────
+  296 | 
+  297 | test.describe('Strength workout: log actuals and complete', () => {
+  298 |   test.beforeEach(async ({ request }) => {
+  299 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
+  300 |   })
+  301 | 
+  302 |   test('entering values in pill inputs saves actuals', async ({ page }) => {
+  303 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  304 |     await page.waitForLoadState('networkidle')
+  305 | 
+  306 |     // index 0 = REPS input for SET 1 of Barbell Squat
+  307 |     await page.locator('input').nth(0).fill('8')
+  308 |     // index 1 = LBS input
+  309 |     await page.locator('input').nth(1).fill('135')
+  310 | 
+  311 |     // Wait for debounce to fire (500ms)
+  312 |     await page.waitForTimeout(600)
+  313 |     // If no error thrown, the mutation succeeded
+  314 |   })
+  315 | 
+  316 |   test('clicking checkmark marks a set complete and updates progress', async ({ page }) => {
+  317 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  318 |     await page.waitForLoadState('networkidle')
+  319 | 
+  320 |     // Progress shows "0/N" initially
+  321 |     const progressText = page.getByText(/^0\//)
+  322 |     await expect(progressText).toBeVisible()
+  323 | 
+  324 |     // Complete SET 1 — the checkmark button with the unique SVG path
+  325 |     const completeButtons = page.locator('button').filter({
 ```

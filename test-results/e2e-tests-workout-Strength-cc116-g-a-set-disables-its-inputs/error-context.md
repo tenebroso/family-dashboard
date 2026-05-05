@@ -6,21 +6,102 @@
 
 # Test info
 
-- Name: e2e/tests/workout.spec.ts >> Yoga day >> clicking Mark Day Complete shows completion banner
-- Location: e2e/tests/workout.spec.ts:661:7
+- Name: e2e/tests/workout.spec.ts >> Strength workout: set completion toggle >> completing a set disables its inputs
+- Location: e2e/tests/workout.spec.ts:580:7
 
 # Error details
 
 ```
 Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
 Call log:
-  - navigating to "/workout/yoga/cmortljry000rlr9936x5i5ea", waiting until "load"
+  - navigating to "/workout/strength/cmortljrn0003lr99ssr2t63a", waiting until "load"
 
 ```
 
 # Test source
 
 ```ts
+  481 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
+  482 |     await page.waitForLoadState('networkidle')
+  483 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
+  484 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
+  485 | 
+  486 |     await page.getByText('MARK INCOMPLETE').click()
+  487 |     await expect(page.getByText('✓ DAY COMPLETE')).not.toBeVisible()
+  488 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
+  489 |   })
+  490 | })
+  491 | 
+  492 | // ─── Back navigation ─────────────────────────────────────────────────────────
+  493 | 
+  494 | test.describe('Back navigation', () => {
+  495 |   test.beforeEach(async ({ request }) => {
+  496 |     // Ensure workout notes are at their original value so the calendar tile shows "Strength A"
+  497 |     await request.post(GQL, {
+  498 |       data: { query: `mutation { updateWorkoutNotes(workoutId: "${testData.strengthWorkoutId}", notes: "Strength A") { id } }` },
+  499 |     })
+  500 |   })
+  501 | 
+  502 |   test('back chevron from calendar-navigated workout returns to that week', async ({ page }) => {
+  503 |     await page.goto(`/workout?week=${testData.testWeek}`)
+  504 |     await page.waitForLoadState('networkidle')
+  505 |     await page.getByText('Strength A').click()
+  506 |     await expect(page).toHaveURL(/\/workout\/strength\//)
+  507 |     await page.locator('button').first().click()
+  508 |     await expect(page).toHaveURL(new RegExp(`/workout\\?week=${testData.testWeek}`))
+  509 |     await expect(page.getByText('Training Week')).toBeVisible()
+  510 |   })
+  511 | 
+  512 |   test('back chevron opened directly with no prior history goes to /workout', async ({ page }) => {
+  513 |     // Simulate "open in new tab" — navigate directly to the workout URL with no prior history
+  514 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  515 |     await page.waitForLoadState('networkidle')
+  516 |     await page.locator('button').first().click()
+  517 |     await expect(page).toHaveURL(/\/workout(\?|$)/)
+  518 |     await expect(page.getByText('Training Week')).toBeVisible()
+  519 |   })
+  520 | })
+  521 | 
+  522 | // ─── Workout notes ────────────────────────────────────────────────────────────
+  523 | 
+  524 | test.describe('Workout notes', () => {
+  525 |   test.beforeEach(async ({ request }) => {
+  526 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
+  527 |     await request.post(GQL, {
+  528 |       data: { query: `mutation { updateWorkoutNotes(workoutId: "${testData.strengthWorkoutId}", notes: "Strength A") { id } }` },
+  529 |     })
+  530 |   })
+  531 | 
+  532 |   test('notes save on blur when workout is incomplete', async ({ page }) => {
+  533 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  534 |     await page.waitForLoadState('networkidle')
+  535 | 
+  536 |     const notes = page.getByPlaceholder('Add a note for this workout…')
+  537 |     await notes.fill('Feeling strong today')
+  538 |     await notes.blur()
+  539 |     await page.waitForTimeout(500)
+  540 | 
+  541 |     await page.reload()
+  542 |     await page.waitForLoadState('networkidle')
+  543 |     await expect(notes).toHaveValue('Feeling strong today')
+  544 |   })
+  545 | 
+  546 |   test('notes save on blur even when workout is already complete', async ({ page, request }) => {
+  547 |     await request.post(GQL, {
+  548 |       data: { query: `mutation { completeWorkout(workoutId: "${testData.strengthWorkoutId}") { id } }` },
+  549 |     })
+  550 | 
+  551 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  552 |     await page.waitForLoadState('networkidle')
+  553 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).toBeVisible()
+  554 | 
+  555 |     const notes = page.getByPlaceholder('Add a note for this workout…')
+  556 |     await notes.fill('PR on squats!')
+  557 |     await notes.blur()
+  558 |     await page.waitForTimeout(500)
+  559 | 
+  560 |     await page.reload()
+  561 |     await page.waitForLoadState('networkidle')
   562 |     await expect(notes).toHaveValue('PR on squats!')
   563 |   })
   564 | })
@@ -40,7 +121,8 @@ Call log:
   578 |   })
   579 | 
   580 |   test('completing a set disables its inputs', async ({ page }) => {
-  581 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+> 581 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+      |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
   582 |     await page.waitForLoadState('networkidle')
   583 | 
   584 |     // Use data-set-id (the DB primary key) — globally unique, survives other sets being deleted.
@@ -121,8 +203,7 @@ Call log:
   659 |   })
   660 | 
   661 |   test('clicking Mark Day Complete shows completion banner', async ({ page }) => {
-> 662 |     await page.goto(`/workout/yoga/${testData.yogaWorkoutId}`)
-      |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
+  662 |     await page.goto(`/workout/yoga/${testData.yogaWorkoutId}`)
   663 |     await page.waitForLoadState('networkidle')
   664 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
   665 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()

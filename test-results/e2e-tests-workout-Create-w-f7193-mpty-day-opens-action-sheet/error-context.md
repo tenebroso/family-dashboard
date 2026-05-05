@@ -7,7 +7,7 @@
 # Test info
 
 - Name: e2e/tests/workout.spec.ts >> Create workouts from empty days >> tapping empty day opens action sheet
-- Location: e2e/tests/workout.spec.ts:110:7
+- Location: e2e/tests/workout.spec.ts:112:7
 
 # Error details
 
@@ -21,206 +21,206 @@ Call log:
 # Test source
 
 ```ts
-  11  |   restWorkoutId: string
-  12  |   yogaWorkoutId: string
-  13  | }
-  14  | 
-  15  | const GQL = 'http://localhost:4000/graphql'
+  13  |   firstSetId: string
+  14  |   secondSetId: string
+  15  | }
   16  | 
-  17  | async function uncompleteWorkout(request: Parameters<Parameters<typeof test>[1]>[0]['request'], workoutId: string) {
-  18  |   await request.post(GQL, {
-  19  |     data: { query: `mutation { uncompleteWorkout(workoutId: "${workoutId}") { id } }` },
-  20  |   })
-  21  | }
-  22  | 
-  23  | // ─── Weekly Calendar ─────────────────────────────────────────────────────────
+  17  | const GQL = 'http://localhost:4000/graphql'
+  18  | 
+  19  | async function uncompleteWorkout(request: Parameters<Parameters<typeof test>[1]>[0]['request'], workoutId: string) {
+  20  |   await request.post(GQL, {
+  21  |     data: { query: `mutation { uncompleteWorkout(workoutId: "${workoutId}") { id } }` },
+  22  |   })
+  23  | }
   24  | 
-  25  | test.describe('Weekly Calendar', () => {
-  26  |   test('loads at /workout', async ({ page }) => {
-  27  |     await page.goto('/workout')
-  28  |     await expect(page.getByText('Training Week')).toBeVisible()
-  29  |   })
-  30  | 
-  31  |   test('shows the test week when navigated via query param', async ({ page }) => {
-  32  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  33  |     await expect(page.getByText('January 13')).toBeVisible()
-  34  |   })
-  35  | 
-  36  |   test('shows all seeded workout types for the test week', async ({ page }) => {
-  37  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  38  |     await expect(page.getByText('Strength').first()).toBeVisible()
-  39  |     await expect(page.getByText('Run').first()).toBeVisible()
-  40  |     await expect(page.getByText('Rest').first()).toBeVisible()
-  41  |     await expect(page.getByText('Yoga').first()).toBeVisible()
-  42  |   })
-  43  | 
-  44  |   test('chevron buttons navigate between weeks', async ({ page }) => {
-  45  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  46  |     await expect(page.getByText('January 13')).toBeVisible()
-  47  | 
-  48  |     // Navigate forward one week
-  49  |     const rightChevron = page.locator('button').nth(1)
-  50  |     await rightChevron.click()
-  51  |     await expect(page.getByText('January 20')).toBeVisible()
-  52  | 
-  53  |     // Navigate back
-  54  |     const leftChevron = page.locator('button').nth(0)
-  55  |     await leftChevron.click()
-  56  |     await expect(page.getByText('January 13')).toBeVisible()
-  57  |   })
-  58  | 
-  59  |   test('empty days show TAP TO ADD prompt', async ({ page }) => {
-  60  |     await page.goto(`/workout?week=${testData.emptyWeek}`)
-  61  |     await expect(page.getByText('TAP TO ADD').first()).toBeVisible()
-  62  |   })
-  63  | })
-  64  | 
-  65  | // ─── Navigate into workouts ───────────────────────────────────────────────────
+  25  | // ─── Weekly Calendar ─────────────────────────────────────────────────────────
+  26  | 
+  27  | test.describe('Weekly Calendar', () => {
+  28  |   test('loads at /workout', async ({ page }) => {
+  29  |     await page.goto('/workout')
+  30  |     await expect(page.getByText('Training Week')).toBeVisible()
+  31  |   })
+  32  | 
+  33  |   test('shows the test week when navigated via query param', async ({ page }) => {
+  34  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  35  |     await expect(page.getByText('January 13')).toBeVisible()
+  36  |   })
+  37  | 
+  38  |   test('shows all seeded workout types for the test week', async ({ page }) => {
+  39  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  40  |     await expect(page.getByText('Strength').first()).toBeVisible()
+  41  |     await expect(page.getByText('Run').first()).toBeVisible()
+  42  |     await expect(page.getByText('Rest').first()).toBeVisible()
+  43  |     await expect(page.getByText('Yoga').first()).toBeVisible()
+  44  |   })
+  45  | 
+  46  |   test('chevron buttons navigate between weeks', async ({ page }) => {
+  47  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  48  |     await expect(page.getByText('January 13')).toBeVisible()
+  49  | 
+  50  |     // Navigate forward one week
+  51  |     const rightChevron = page.locator('button').nth(1)
+  52  |     await rightChevron.click()
+  53  |     await expect(page.getByText('January 20')).toBeVisible()
+  54  | 
+  55  |     // Navigate back
+  56  |     const leftChevron = page.locator('button').nth(0)
+  57  |     await leftChevron.click()
+  58  |     await expect(page.getByText('January 13')).toBeVisible()
+  59  |   })
+  60  | 
+  61  |   test('empty days show TAP TO ADD prompt', async ({ page }) => {
+  62  |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  63  |     await expect(page.getByText('TAP TO ADD').first()).toBeVisible()
+  64  |   })
+  65  | })
   66  | 
-  67  | test.describe('Navigate into workouts', () => {
-  68  |   test('clicking strength tile navigates to strength screen', async ({ page }) => {
-  69  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  70  |     await page.getByText('Strength A').click()
-  71  |     await expect(page).toHaveURL(/\/workout\/strength\//)
-  72  |     await expect(page.getByText('Barbell Squat')).toBeVisible()
-  73  |   })
-  74  | 
-  75  |   test('clicking run tile navigates to run screen', async ({ page }) => {
-  76  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  77  |     await page.getByText('Easy Run').click()
-  78  |     await expect(page).toHaveURL(/\/workout\/run\//)
-  79  |     await expect(page.getByText('Log your run')).toBeVisible()
-  80  |   })
-  81  | 
-  82  |   test('clicking rest tile navigates to rest screen', async ({ page }) => {
-  83  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  84  |     // Click the WED day label — avoids partial match on "Rest" in the footer note
-  85  |     await page.getByText('WED').click()
-  86  |     await expect(page).toHaveURL(/\/workout\/rest\//)
-  87  |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
-  88  |   })
-  89  | 
-  90  |   test('clicking yoga tile navigates to yoga screen', async ({ page }) => {
-  91  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  92  |     await page.getByText('Yoga').first().click()
-  93  |     await expect(page).toHaveURL(/\/workout\/yoga\//)
-  94  |     await expect(page.getByText('Yoga.')).toBeVisible()
-  95  |   })
-  96  | 
-  97  |   test('back button on strength screen returns to calendar', async ({ page }) => {
-  98  |     // Navigate from calendar first to establish browser history for navigate(-1)
-  99  |     await page.goto(`/workout?week=${testData.testWeek}`)
-  100 |     await page.getByText('Strength A').click()
-  101 |     await expect(page).toHaveURL(/\/workout\/strength\//)
-  102 |     await page.locator('button').first().click()
-  103 |     await expect(page.getByText('Training Week')).toBeVisible()
-  104 |   })
-  105 | })
-  106 | 
-  107 | // ─── Create workouts from empty days ─────────────────────────────────────────
+  67  | // ─── Navigate into workouts ───────────────────────────────────────────────────
+  68  | 
+  69  | test.describe('Navigate into workouts', () => {
+  70  |   test('clicking strength tile navigates to strength screen', async ({ page }) => {
+  71  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  72  |     await page.getByText('Strength A').click()
+  73  |     await expect(page).toHaveURL(/\/workout\/strength\//)
+  74  |     await expect(page.getByText('Barbell Squat')).toBeVisible()
+  75  |   })
+  76  | 
+  77  |   test('clicking run tile navigates to run screen', async ({ page }) => {
+  78  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  79  |     await page.getByText('Easy Run').click()
+  80  |     await expect(page).toHaveURL(/\/workout\/run\//)
+  81  |     await expect(page.getByText('Log your run')).toBeVisible()
+  82  |   })
+  83  | 
+  84  |   test('clicking rest tile navigates to rest screen', async ({ page }) => {
+  85  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  86  |     // Click the WED day label — avoids partial match on "Rest" in the footer note
+  87  |     await page.getByText('WED').click()
+  88  |     await expect(page).toHaveURL(/\/workout\/rest\//)
+  89  |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
+  90  |   })
+  91  | 
+  92  |   test('clicking yoga tile navigates to yoga screen', async ({ page }) => {
+  93  |     await page.goto(`/workout?week=${testData.testWeek}`)
+  94  |     await page.getByText('Yoga').first().click()
+  95  |     await expect(page).toHaveURL(/\/workout\/yoga\//)
+  96  |     await expect(page.getByText('Yoga.')).toBeVisible()
+  97  |   })
+  98  | 
+  99  |   test('back button on strength screen returns to calendar', async ({ page }) => {
+  100 |     // Navigate from calendar first to establish browser history for navigate(-1)
+  101 |     await page.goto(`/workout?week=${testData.testWeek}`)
+  102 |     await page.getByText('Strength A').click()
+  103 |     await expect(page).toHaveURL(/\/workout\/strength\//)
+  104 |     await page.locator('button').first().click()
+  105 |     await expect(page.getByText('Training Week')).toBeVisible()
+  106 |   })
+  107 | })
   108 | 
-  109 | test.describe('Create workouts from empty days', () => {
-  110 |   test('tapping empty day opens action sheet', async ({ page }) => {
-> 111 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  109 | // ─── Create workouts from empty days ─────────────────────────────────────────
+  110 | 
+  111 | test.describe('Create workouts from empty days', () => {
+  112 |   test('tapping empty day opens action sheet', async ({ page }) => {
+> 113 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
       |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
-  112 |     await page.getByText('MON').click()
-  113 |     await expect(page.getByRole('button', { name: /Add Run/ })).toBeVisible()
-  114 |     await expect(page.getByRole('button', { name: /Mark Yoga/ })).toBeVisible()
-  115 |     await expect(page.getByRole('button', { name: /Mark Rest/ })).toBeVisible()
-  116 |     await page.keyboard.press('Escape')
-  117 |   })
-  118 | 
-  119 |   test('Add Run navigates to run screen', async ({ page }) => {
-  120 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
-  121 |     // Use WED so this day is independent from rest/yoga tests
-  122 |     await page.getByText('WED').click()
-  123 |     await page.getByRole('button', { name: /Add Run/ }).click()
-  124 |     // The Add Run sheet is now open — wait for Create button (avoids strict-mode match on footer text)
-  125 |     await page.getByRole('button', { name: 'Create' }).click()
-  126 |     await expect(page).toHaveURL(/\/workout\/run\//)
-  127 |   })
-  128 | 
-  129 |   test('Mark Rest creates a rest tile on the calendar', async ({ page }) => {
-  130 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
-  131 |     await page.getByText('THU').click()
-  132 |     await page.getByRole('button', { name: /Mark Rest/ }).click()
-  133 |     // Sheet closes; the tile for THU should now show "Rest"
-  134 |     await expect(page.getByRole('button', { name: /Mark Rest/ })).not.toBeVisible()
-  135 |     await expect(page.getByText('Rest').first()).toBeVisible()
-  136 |   })
-  137 | 
-  138 |   test('Mark Yoga creates a yoga tile on the calendar', async ({ page }) => {
-  139 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
-  140 |     await page.getByText('FRI').click()
-  141 |     await page.getByRole('button', { name: /Mark Yoga/ }).click()
-  142 |     await expect(page.getByRole('button', { name: /Mark Yoga/ })).not.toBeVisible()
-  143 |     await expect(page.getByText('Yoga').first()).toBeVisible()
-  144 |   })
-  145 | })
-  146 | 
-  147 | // ─── Strength workout: edit fields ───────────────────────────────────────────
+  114 |     await page.getByText('MON').click()
+  115 |     await expect(page.getByRole('button', { name: /Add Run/ })).toBeVisible()
+  116 |     await expect(page.getByRole('button', { name: /Mark Yoga/ })).toBeVisible()
+  117 |     await expect(page.getByRole('button', { name: /Mark Rest/ })).toBeVisible()
+  118 |     await page.keyboard.press('Escape')
+  119 |   })
+  120 | 
+  121 |   test('Add Run navigates to run screen', async ({ page }) => {
+  122 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  123 |     // Use WED so this day is independent from rest/yoga tests
+  124 |     await page.getByText('WED').click()
+  125 |     await page.getByRole('button', { name: /Add Run/ }).click()
+  126 |     // The Add Run sheet is now open — wait for Create button (avoids strict-mode match on footer text)
+  127 |     await page.getByRole('button', { name: 'Create' }).click()
+  128 |     await expect(page).toHaveURL(/\/workout\/run\//)
+  129 |   })
+  130 | 
+  131 |   test('Mark Rest creates a rest tile on the calendar', async ({ page }) => {
+  132 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  133 |     await page.getByText('THU').click()
+  134 |     await page.getByRole('button', { name: /Mark Rest/ }).click()
+  135 |     // Sheet closes; the tile for THU should now show "Rest"
+  136 |     await expect(page.getByRole('button', { name: /Mark Rest/ })).not.toBeVisible()
+  137 |     await expect(page.getByText('Rest').first()).toBeVisible()
+  138 |   })
+  139 | 
+  140 |   test('Mark Yoga creates a yoga tile on the calendar', async ({ page }) => {
+  141 |     await page.goto(`/workout?week=${testData.emptyWeek}`)
+  142 |     await page.getByText('FRI').click()
+  143 |     await page.getByRole('button', { name: /Mark Yoga/ }).click()
+  144 |     await expect(page.getByRole('button', { name: /Mark Yoga/ })).not.toBeVisible()
+  145 |     await expect(page.getByText('Yoga').first()).toBeVisible()
+  146 |   })
+  147 | })
   148 | 
-  149 | test.describe('Strength workout: edit fields', () => {
-  150 |   test.beforeEach(async ({ request }) => {
-  151 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
-  152 |   })
-  153 | 
-  154 |   test('pencil icon enters edit mode and shows banner', async ({ page }) => {
-  155 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  156 |     await page.waitForLoadState('networkidle')
-  157 |     // Pencil button is the second button in the top bar (right side)
-  158 |     await page.locator('button').nth(1).click()
-  159 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  160 |   })
-  161 | 
-  162 |   test('clicking exercise name in edit mode opens Edit Exercise sheet', async ({ page }) => {
-  163 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  164 |     await page.waitForLoadState('networkidle')
-  165 |     await page.locator('button').nth(1).click() // enter edit mode
-  166 |     await page.getByText('Barbell Squat').click()
-  167 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
-  168 |     await expect(page.getByRole('button', { name: 'Save' })).toBeVisible()
-  169 |   })
-  170 | 
-  171 |   test('saving a new exercise name updates the display', async ({ page }) => {
-  172 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  173 |     await page.waitForLoadState('networkidle')
-  174 |     await page.locator('button').nth(1).click()
-  175 |     await page.getByText('Barbell Squat').click()
-  176 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
-  177 | 
-  178 |     const nameInput = page.getByRole('textbox').last()
-  179 |     await nameInput.fill('Back Squat')
-  180 |     await page.getByRole('button', { name: 'Save' }).click()
-  181 | 
-  182 |     await expect(page.getByText('Back Squat')).toBeVisible()
-  183 |     await expect(page.getByText('Barbell Squat')).not.toBeVisible()
-  184 | 
-  185 |     // Restore original name
-  186 |     await page.getByText('Back Squat').click()
-  187 |     await page.getByRole('textbox').last().fill('Barbell Squat')
-  188 |     await page.getByRole('button', { name: 'Save' }).click()
-  189 |   })
-  190 | 
-  191 |   test('clicking REPS target in edit mode opens inline input', async ({ page }) => {
-  192 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  193 |     await page.waitForLoadState('networkidle')
-  194 |     await page.locator('button').nth(1).click() // enter edit mode
-  195 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  196 | 
-  197 |     await page.getByText('REPS').first().click()
-  198 |     // Spec input appears in the top row — first in DOM order, before PillInputs
-  199 |     await expect(page.locator('input').first()).toBeVisible()
-  200 |   })
-  201 | 
-  202 |   test('editing target reps updates the displayed value', async ({ page }) => {
-  203 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  204 |     await page.waitForLoadState('networkidle')
-  205 |     await page.locator('button').nth(1).click()
-  206 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
-  207 | 
-  208 |     await page.getByText('REPS').first().click()
-  209 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
-  210 |     const specInput = page.locator('input').first()
-  211 |     await specInput.fill('12')
+  149 | // ─── Strength workout: edit fields ───────────────────────────────────────────
+  150 | 
+  151 | test.describe('Strength workout: edit fields', () => {
+  152 |   test.beforeEach(async ({ request }) => {
+  153 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
+  154 |   })
+  155 | 
+  156 |   test('pencil icon enters edit mode and shows banner', async ({ page }) => {
+  157 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  158 |     await page.waitForLoadState('networkidle')
+  159 |     // Pencil button is the second button in the top bar (right side)
+  160 |     await page.locator('button').nth(1).click()
+  161 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  162 |   })
+  163 | 
+  164 |   test('clicking exercise name in edit mode opens Edit Exercise sheet', async ({ page }) => {
+  165 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  166 |     await page.waitForLoadState('networkidle')
+  167 |     await page.locator('button').nth(1).click() // enter edit mode
+  168 |     await page.getByText('Barbell Squat').click()
+  169 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
+  170 |     await expect(page.getByRole('button', { name: 'Save' })).toBeVisible()
+  171 |   })
+  172 | 
+  173 |   test('saving a new exercise name updates the display', async ({ page }) => {
+  174 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  175 |     await page.waitForLoadState('networkidle')
+  176 |     await page.locator('button').nth(1).click()
+  177 |     await page.getByText('Barbell Squat').click()
+  178 |     await expect(page.getByText('Edit Exercise')).toBeVisible()
+  179 | 
+  180 |     const nameInput = page.getByRole('textbox').last()
+  181 |     await nameInput.fill('Back Squat')
+  182 |     await page.getByRole('button', { name: 'Save' }).click()
+  183 | 
+  184 |     await expect(page.getByText('Back Squat')).toBeVisible()
+  185 |     await expect(page.getByText('Barbell Squat')).not.toBeVisible()
+  186 | 
+  187 |     // Restore original name
+  188 |     await page.getByText('Back Squat').click()
+  189 |     await page.getByRole('textbox').last().fill('Barbell Squat')
+  190 |     await page.getByRole('button', { name: 'Save' }).click()
+  191 |   })
+  192 | 
+  193 |   test('clicking REPS target in edit mode opens inline input', async ({ page }) => {
+  194 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  195 |     await page.waitForLoadState('networkidle')
+  196 |     await page.locator('button').nth(1).click() // enter edit mode
+  197 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  198 | 
+  199 |     await page.getByText('REPS').first().click()
+  200 |     // Spec input appears in the top row — first in DOM order, before PillInputs
+  201 |     await expect(page.locator('input').first()).toBeVisible()
+  202 |   })
+  203 | 
+  204 |   test('editing target reps updates the displayed value', async ({ page }) => {
+  205 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  206 |     await page.waitForLoadState('networkidle')
+  207 |     await page.locator('button').nth(1).click()
+  208 |     await expect(page.getByText('EDITING PLAN')).toBeVisible()
+  209 | 
+  210 |     await page.getByText('REPS').first().click()
+  211 |     // Spec input is first in DOM (top row before PillInputs in bottom row)
+  212 |     const specInput = page.locator('input').first()
+  213 |     await specInput.fill('12')
 ```

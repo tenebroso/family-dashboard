@@ -6,105 +6,21 @@
 
 # Test info
 
-- Name: e2e/tests/workout.spec.ts >> Rest day >> shows Mark Day Complete button when not complete
-- Location: e2e/tests/workout.spec.ts:466:7
+- Name: e2e/tests/workout.spec.ts >> Workout notes >> notes save on blur even when workout is already complete
+- Location: e2e/tests/workout.spec.ts:546:7
 
 # Error details
 
 ```
 Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
 Call log:
-  - navigating to "/workout/rest/cmortljrw000plr99tqz5bmy5", waiting until "load"
+  - navigating to "/workout/strength/cmortljrn0003lr99ssr2t63a", waiting until "load"
 
 ```
 
 # Test source
 
 ```ts
-  367 | 
-  368 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).not.toBeVisible()
-  369 |     await expect(page.getByText('SETS LOGGED')).toBeVisible()
-  370 |   })
-  371 | })
-  372 | 
-  373 | // ─── Run workout ──────────────────────────────────────────────────────────────
-  374 | 
-  375 | test.describe('Run workout', () => {
-  376 |   test.beforeEach(async ({ request }) => {
-  377 |     await uncompleteWorkout(request, testData.runWorkoutId)
-  378 |   })
-  379 | 
-  380 |   test('shows prescribed targets', async ({ page }) => {
-  381 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  382 |     await page.waitForLoadState('networkidle')
-  383 |     await expect(page.getByText('PRESCRIBED')).toBeVisible()
-  384 |     await expect(page.getByText('9:30')).toBeVisible() // target pace — unique value on this page
-  385 |   })
-  386 | 
-  387 |   test('shows Log your run heading when not complete', async ({ page }) => {
-  388 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  389 |     await page.waitForLoadState('networkidle')
-  390 |     await expect(page.getByText('Log your run')).toBeVisible()
-  391 |     await expect(page.getByRole('button', { name: /Distance & Time required|Log Run/ })).toBeVisible()
-  392 |   })
-  393 | 
-  394 |   test('Log Run button is disabled until distance and time are filled', async ({ page }) => {
-  395 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  396 |     await page.waitForLoadState('networkidle')
-  397 | 
-  398 |     const logBtn = page.getByRole('button', { name: /Distance & Time required/ })
-  399 |     await expect(logBtn).toBeDisabled()
-  400 | 
-  401 |     // Fill distance only — still disabled
-  402 |     await page.locator('input').nth(0).fill('3.5')
-  403 |     await expect(page.getByRole('button', { name: /Distance & Time required/ })).toBeDisabled()
-  404 | 
-  405 |     // Fill time — button becomes enabled
-  406 |     await page.locator('input').nth(1).click()
-  407 |     await page.locator('input').nth(1).pressSequentially('3230')
-  408 |     await expect(page.getByRole('button', { name: 'Log Run' })).toBeEnabled()
-  409 |   })
-  410 | 
-  411 |   test('logging a run switches to view mode', async ({ page, request }) => {
-  412 |     // Pre-log via API — the UI form calls navigate(-1) immediately after logging,
-  413 |     // so view mode is only reachable by navigating to an already-completed run
-  414 |     await request.post(GQL, {
-  415 |       data: {
-  416 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
-  417 |       },
-  418 |     })
-  419 | 
-  420 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  421 |     await page.waitForLoadState('networkidle')
-  422 |     await expect(page.getByText('How it went')).toBeVisible()
-  423 |     await expect(page.getByRole('button', { name: 'Edit Run' })).toBeVisible()
-  424 |     await expect(page.getByRole('button', { name: 'Mark Incomplete' })).toBeVisible()
-  425 |   })
-  426 | 
-  427 |   test('Edit Run switches back to form mode', async ({ page, request }) => {
-  428 |     // Pre-complete the run
-  429 |     await request.post(GQL, {
-  430 |       data: {
-  431 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
-  432 |       },
-  433 |     })
-  434 | 
-  435 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  436 |     await page.waitForLoadState('networkidle')
-  437 |     await expect(page.getByText('How it went')).toBeVisible()
-  438 | 
-  439 |     await page.getByRole('button', { name: 'Edit Run' }).click()
-  440 |     await expect(page.getByRole('button', { name: /Save Changes/ })).toBeVisible()
-  441 |   })
-  442 | 
-  443 |   test('Mark Incomplete on completed run returns to entry form', async ({ page, request }) => {
-  444 |     await request.post(GQL, {
-  445 |       data: {
-  446 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
-  447 |       },
-  448 |     })
-  449 | 
-  450 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
   451 |     await page.waitForLoadState('networkidle')
   452 |     await expect(page.getByText('How it went')).toBeVisible()
   453 | 
@@ -121,8 +37,7 @@ Call log:
   464 |   })
   465 | 
   466 |   test('shows Mark Day Complete button when not complete', async ({ page }) => {
-> 467 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
-      |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
+  467 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
   468 |     await page.waitForLoadState('networkidle')
   469 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
   470 |   })
@@ -206,7 +121,8 @@ Call log:
   548 |       data: { query: `mutation { completeWorkout(workoutId: "${testData.strengthWorkoutId}") { id } }` },
   549 |     })
   550 | 
-  551 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+> 551 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+      |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
   552 |     await page.waitForLoadState('networkidle')
   553 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).toBeVisible()
   554 | 
@@ -223,4 +139,88 @@ Call log:
   565 | 
   566 | // ─── Strength workout: set completion toggle ──────────────────────────────────
   567 | 
+  568 | test.describe('Strength workout: set completion toggle', () => {
+  569 |   // Serial mode prevents the three tests from racing each other within a single browser run.
+  570 |   test.describe.configure({ mode: 'serial' })
+  571 | 
+  572 |   test.beforeEach(async ({ request }) => {
+  573 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
+  574 |     // Reset secondSetId by its stable DB ID — unaffected by other tests deleting/adding sets.
+  575 |     await request.post(GQL, {
+  576 |       data: { query: `mutation { uncompleteSet(setId: "${testData.secondSetId}") { id } }` },
+  577 |     })
+  578 |   })
+  579 | 
+  580 |   test('completing a set disables its inputs', async ({ page }) => {
+  581 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  582 |     await page.waitForLoadState('networkidle')
+  583 | 
+  584 |     // Use data-set-id (the DB primary key) — globally unique, survives other sets being deleted.
+  585 |     const setRow = page.locator(`[data-set-id="${testData.secondSetId}"]`)
+  586 |     const repsInput = setRow.locator('input').nth(0)
+  587 | 
+  588 |     await expect(repsInput).toBeEnabled()
+  589 | 
+  590 |     await setRow.locator('button').filter({
+  591 |       has: page.locator('path[d="M3 8.5L6.5 12L13 4.5"]'),
+  592 |     }).click()
+  593 | 
+  594 |     await expect(repsInput).toBeDisabled()
+  595 |   })
+  596 | 
+  597 |   test('tapping a completed checkmark re-enables the set inputs', async ({ page }) => {
+  598 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  599 |     await page.waitForLoadState('networkidle')
+  600 | 
+  601 |     const setRow = page.locator(`[data-set-id="${testData.secondSetId}"]`)
+  602 |     const checkmark = setRow.locator('button').filter({
+  603 |       has: page.locator('path[d="M3 8.5L6.5 12L13 4.5"]'),
+  604 |     })
+  605 |     const repsInput = setRow.locator('input').nth(0)
+  606 |     const lbsInput = setRow.locator('input').nth(1)
+  607 |     const rpeInput = setRow.locator('input').nth(2)
+  608 | 
+  609 |     await checkmark.click()
+  610 |     await expect(repsInput).toBeDisabled()
+  611 | 
+  612 |     // Tap again to un-complete
+  613 |     await checkmark.click()
+  614 |     await expect(repsInput).toBeEnabled()
+  615 |     await expect(lbsInput).toBeEnabled()
+  616 |     await expect(rpeInput).toBeEnabled()
+  617 |   })
+  618 | 
+  619 |   test('reps, weight, and RPE can all be edited after un-completing a set', async ({ page }) => {
+  620 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  621 |     await page.waitForLoadState('networkidle')
+  622 | 
+  623 |     const setRow = page.locator(`[data-set-id="${testData.secondSetId}"]`)
+  624 |     const checkmark = setRow.locator('button').filter({
+  625 |       has: page.locator('path[d="M3 8.5L6.5 12L13 4.5"]'),
+  626 |     })
+  627 |     const repsInput = setRow.locator('input').nth(0)
+  628 | 
+  629 |     // Complete then un-complete
+  630 |     await checkmark.click()
+  631 |     await expect(repsInput).toBeDisabled()
+  632 |     await checkmark.click()
+  633 |     await expect(repsInput).toBeEnabled()
+  634 | 
+  635 |     // Edit all three actuals
+  636 |     await setRow.locator('input').nth(0).fill('10')
+  637 |     await setRow.locator('input').nth(1).fill('140')
+  638 |     await setRow.locator('input').nth(2).fill('8')
+  639 |     await page.waitForTimeout(600) // debounce
+  640 | 
+  641 |     // Re-complete and confirm it locks again
+  642 |     await checkmark.click()
+  643 |     await expect(repsInput).toBeDisabled()
+  644 |   })
+  645 | })
+  646 | 
+  647 | // ─── Yoga day ─────────────────────────────────────────────────────────────────
+  648 | 
+  649 | test.describe('Yoga day', () => {
+  650 |   test.beforeEach(async ({ request }) => {
+  651 |     await uncompleteWorkout(request, testData.yogaWorkoutId)
 ```

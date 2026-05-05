@@ -7,195 +7,220 @@
 # Test info
 
 - Name: e2e/tests/workout.spec.ts >> Run workout >> Mark Incomplete on completed run returns to entry form
-- Location: e2e/tests/workout.spec.ts:441:7
+- Location: e2e/tests/workout.spec.ts:443:7
 
 # Error details
 
 ```
 Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
 Call log:
-  - navigating to "/workout/run/cmoqhofq8000llrmferx6k756", waiting until "load"
+  - navigating to "/workout/run/cmortljrt000llr99qm0qmou0", waiting until "load"
 
 ```
 
 # Test source
 
 ```ts
-  348 | 
-  349 |     // Navigates back to weekly calendar
-  350 |     await expect(page).toHaveURL(/\/workout(\?|$)/)
-  351 |     await expect(page.getByText('✓ COMPLETE').first()).toBeVisible()
-  352 |   })
-  353 | 
-  354 |   test('marking a completed strength workout incomplete clears the banner', async ({ page, request }) => {
-  355 |     // First complete the workout via API
-  356 |     await request.post(GQL, {
-  357 |       data: { query: `mutation { completeWorkout(workoutId: "${testData.strengthWorkoutId}") { id } }` },
-  358 |     })
-  359 | 
-  360 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
-  361 |     await page.waitForLoadState('networkidle')
-  362 | 
-  363 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).toBeVisible()
-  364 |     await page.getByText('MARK INCOMPLETE').click()
-  365 | 
-  366 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).not.toBeVisible()
-  367 |     await expect(page.getByText('SETS LOGGED')).toBeVisible()
-  368 |   })
-  369 | })
-  370 | 
-  371 | // ─── Run workout ──────────────────────────────────────────────────────────────
+  350 | 
+  351 |     // Navigates back to weekly calendar
+  352 |     await expect(page).toHaveURL(/\/workout(\?|$)/)
+  353 |     await expect(page.getByText('✓ COMPLETE').first()).toBeVisible()
+  354 |   })
+  355 | 
+  356 |   test('marking a completed strength workout incomplete clears the banner', async ({ page, request }) => {
+  357 |     // First complete the workout via API
+  358 |     await request.post(GQL, {
+  359 |       data: { query: `mutation { completeWorkout(workoutId: "${testData.strengthWorkoutId}") { id } }` },
+  360 |     })
+  361 | 
+  362 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  363 |     await page.waitForLoadState('networkidle')
+  364 | 
+  365 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).toBeVisible()
+  366 |     await page.getByText('MARK INCOMPLETE').click()
+  367 | 
+  368 |     await expect(page.getByText('✓ WORKOUT COMPLETE')).not.toBeVisible()
+  369 |     await expect(page.getByText('SETS LOGGED')).toBeVisible()
+  370 |   })
+  371 | })
   372 | 
-  373 | test.describe('Run workout', () => {
-  374 |   test.beforeEach(async ({ request }) => {
-  375 |     await uncompleteWorkout(request, testData.runWorkoutId)
-  376 |   })
-  377 | 
-  378 |   test('shows prescribed targets', async ({ page }) => {
-  379 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  380 |     await page.waitForLoadState('networkidle')
-  381 |     await expect(page.getByText('PRESCRIBED')).toBeVisible()
-  382 |     await expect(page.getByText('9:30')).toBeVisible() // target pace — unique value on this page
-  383 |   })
-  384 | 
-  385 |   test('shows Log your run heading when not complete', async ({ page }) => {
-  386 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  387 |     await page.waitForLoadState('networkidle')
-  388 |     await expect(page.getByText('Log your run')).toBeVisible()
-  389 |     await expect(page.getByRole('button', { name: /Distance & Time required|Log Run/ })).toBeVisible()
-  390 |   })
-  391 | 
-  392 |   test('Log Run button is disabled until distance and time are filled', async ({ page }) => {
-  393 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  394 |     await page.waitForLoadState('networkidle')
-  395 | 
-  396 |     const logBtn = page.getByRole('button', { name: /Distance & Time required/ })
-  397 |     await expect(logBtn).toBeDisabled()
-  398 | 
-  399 |     // Fill distance only — still disabled
-  400 |     await page.locator('input').nth(0).fill('3.5')
-  401 |     await expect(page.getByRole('button', { name: /Distance & Time required/ })).toBeDisabled()
-  402 | 
-  403 |     // Fill time — button becomes enabled
-  404 |     await page.locator('input').nth(1).click()
-  405 |     await page.locator('input').nth(1).pressSequentially('3230')
-  406 |     await expect(page.getByRole('button', { name: 'Log Run' })).toBeEnabled()
-  407 |   })
-  408 | 
-  409 |   test('logging a run switches to view mode', async ({ page, request }) => {
-  410 |     // Pre-log via API — the UI form calls navigate(-1) immediately after logging,
-  411 |     // so view mode is only reachable by navigating to an already-completed run
-  412 |     await request.post(GQL, {
-  413 |       data: {
-  414 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
-  415 |       },
-  416 |     })
-  417 | 
-  418 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  419 |     await page.waitForLoadState('networkidle')
-  420 |     await expect(page.getByText('How it went')).toBeVisible()
-  421 |     await expect(page.getByRole('button', { name: 'Edit Run' })).toBeVisible()
-  422 |     await expect(page.getByRole('button', { name: 'Mark Incomplete' })).toBeVisible()
-  423 |   })
-  424 | 
-  425 |   test('Edit Run switches back to form mode', async ({ page, request }) => {
-  426 |     // Pre-complete the run
-  427 |     await request.post(GQL, {
-  428 |       data: {
-  429 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
-  430 |       },
-  431 |     })
-  432 | 
-  433 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
-  434 |     await page.waitForLoadState('networkidle')
-  435 |     await expect(page.getByText('How it went')).toBeVisible()
-  436 | 
-  437 |     await page.getByRole('button', { name: 'Edit Run' }).click()
-  438 |     await expect(page.getByRole('button', { name: /Save Changes/ })).toBeVisible()
-  439 |   })
-  440 | 
-  441 |   test('Mark Incomplete on completed run returns to entry form', async ({ page, request }) => {
-  442 |     await request.post(GQL, {
-  443 |       data: {
-  444 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
-  445 |       },
-  446 |     })
-  447 | 
-> 448 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
+  373 | // ─── Run workout ──────────────────────────────────────────────────────────────
+  374 | 
+  375 | test.describe('Run workout', () => {
+  376 |   test.beforeEach(async ({ request }) => {
+  377 |     await uncompleteWorkout(request, testData.runWorkoutId)
+  378 |   })
+  379 | 
+  380 |   test('shows prescribed targets', async ({ page }) => {
+  381 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
+  382 |     await page.waitForLoadState('networkidle')
+  383 |     await expect(page.getByText('PRESCRIBED')).toBeVisible()
+  384 |     await expect(page.getByText('9:30')).toBeVisible() // target pace — unique value on this page
+  385 |   })
+  386 | 
+  387 |   test('shows Log your run heading when not complete', async ({ page }) => {
+  388 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
+  389 |     await page.waitForLoadState('networkidle')
+  390 |     await expect(page.getByText('Log your run')).toBeVisible()
+  391 |     await expect(page.getByRole('button', { name: /Distance & Time required|Log Run/ })).toBeVisible()
+  392 |   })
+  393 | 
+  394 |   test('Log Run button is disabled until distance and time are filled', async ({ page }) => {
+  395 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
+  396 |     await page.waitForLoadState('networkidle')
+  397 | 
+  398 |     const logBtn = page.getByRole('button', { name: /Distance & Time required/ })
+  399 |     await expect(logBtn).toBeDisabled()
+  400 | 
+  401 |     // Fill distance only — still disabled
+  402 |     await page.locator('input').nth(0).fill('3.5')
+  403 |     await expect(page.getByRole('button', { name: /Distance & Time required/ })).toBeDisabled()
+  404 | 
+  405 |     // Fill time — button becomes enabled
+  406 |     await page.locator('input').nth(1).click()
+  407 |     await page.locator('input').nth(1).pressSequentially('3230')
+  408 |     await expect(page.getByRole('button', { name: 'Log Run' })).toBeEnabled()
+  409 |   })
+  410 | 
+  411 |   test('logging a run switches to view mode', async ({ page, request }) => {
+  412 |     // Pre-log via API — the UI form calls navigate(-1) immediately after logging,
+  413 |     // so view mode is only reachable by navigating to an already-completed run
+  414 |     await request.post(GQL, {
+  415 |       data: {
+  416 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
+  417 |       },
+  418 |     })
+  419 | 
+  420 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
+  421 |     await page.waitForLoadState('networkidle')
+  422 |     await expect(page.getByText('How it went')).toBeVisible()
+  423 |     await expect(page.getByRole('button', { name: 'Edit Run' })).toBeVisible()
+  424 |     await expect(page.getByRole('button', { name: 'Mark Incomplete' })).toBeVisible()
+  425 |   })
+  426 | 
+  427 |   test('Edit Run switches back to form mode', async ({ page, request }) => {
+  428 |     // Pre-complete the run
+  429 |     await request.post(GQL, {
+  430 |       data: {
+  431 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
+  432 |       },
+  433 |     })
+  434 | 
+  435 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
+  436 |     await page.waitForLoadState('networkidle')
+  437 |     await expect(page.getByText('How it went')).toBeVisible()
+  438 | 
+  439 |     await page.getByRole('button', { name: 'Edit Run' }).click()
+  440 |     await expect(page.getByRole('button', { name: /Save Changes/ })).toBeVisible()
+  441 |   })
+  442 | 
+  443 |   test('Mark Incomplete on completed run returns to entry form', async ({ page, request }) => {
+  444 |     await request.post(GQL, {
+  445 |       data: {
+  446 |         query: `mutation { logRunWorkout(workoutId: "${testData.runWorkoutId}", actualMiles: 3.5, actualTime: 1950) { id } }`,
+  447 |       },
+  448 |     })
+  449 | 
+> 450 |     await page.goto(`/workout/run/${testData.runWorkoutId}`)
       |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
-  449 |     await page.waitForLoadState('networkidle')
-  450 |     await expect(page.getByText('How it went')).toBeVisible()
-  451 | 
-  452 |     await page.getByRole('button', { name: 'Mark Incomplete' }).click()
-  453 |     await expect(page.getByText('Log your run')).toBeVisible()
-  454 |   })
-  455 | })
-  456 | 
-  457 | // ─── Rest day ─────────────────────────────────────────────────────────────────
+  451 |     await page.waitForLoadState('networkidle')
+  452 |     await expect(page.getByText('How it went')).toBeVisible()
+  453 | 
+  454 |     await page.getByRole('button', { name: 'Mark Incomplete' }).click()
+  455 |     await expect(page.getByText('Log your run')).toBeVisible()
+  456 |   })
+  457 | })
   458 | 
-  459 | test.describe('Rest day', () => {
-  460 |   test.beforeEach(async ({ request }) => {
-  461 |     await uncompleteWorkout(request, testData.restWorkoutId)
-  462 |   })
-  463 | 
-  464 |   test('shows Mark Day Complete button when not complete', async ({ page }) => {
-  465 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
-  466 |     await page.waitForLoadState('networkidle')
-  467 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
-  468 |   })
-  469 | 
-  470 |   test('clicking Mark Day Complete shows completion banner', async ({ page }) => {
-  471 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
-  472 |     await page.waitForLoadState('networkidle')
-  473 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
-  474 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
-  475 |     await expect(page.getByText('MARK INCOMPLETE')).toBeVisible()
-  476 |   })
-  477 | 
-  478 |   test('MARK INCOMPLETE on rest day reverts to complete button', async ({ page }) => {
-  479 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
-  480 |     await page.waitForLoadState('networkidle')
-  481 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
-  482 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
-  483 | 
-  484 |     await page.getByText('MARK INCOMPLETE').click()
-  485 |     await expect(page.getByText('✓ DAY COMPLETE')).not.toBeVisible()
-  486 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
-  487 |   })
-  488 | })
-  489 | 
-  490 | // ─── Yoga day ─────────────────────────────────────────────────────────────────
+  459 | // ─── Rest day ─────────────────────────────────────────────────────────────────
+  460 | 
+  461 | test.describe('Rest day', () => {
+  462 |   test.beforeEach(async ({ request }) => {
+  463 |     await uncompleteWorkout(request, testData.restWorkoutId)
+  464 |   })
+  465 | 
+  466 |   test('shows Mark Day Complete button when not complete', async ({ page }) => {
+  467 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
+  468 |     await page.waitForLoadState('networkidle')
+  469 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
+  470 |   })
+  471 | 
+  472 |   test('clicking Mark Day Complete shows completion banner', async ({ page }) => {
+  473 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
+  474 |     await page.waitForLoadState('networkidle')
+  475 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
+  476 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
+  477 |     await expect(page.getByText('MARK INCOMPLETE')).toBeVisible()
+  478 |   })
+  479 | 
+  480 |   test('MARK INCOMPLETE on rest day reverts to complete button', async ({ page }) => {
+  481 |     await page.goto(`/workout/rest/${testData.restWorkoutId}`)
+  482 |     await page.waitForLoadState('networkidle')
+  483 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
+  484 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
+  485 | 
+  486 |     await page.getByText('MARK INCOMPLETE').click()
+  487 |     await expect(page.getByText('✓ DAY COMPLETE')).not.toBeVisible()
+  488 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
+  489 |   })
+  490 | })
   491 | 
-  492 | test.describe('Yoga day', () => {
-  493 |   test.beforeEach(async ({ request }) => {
-  494 |     await uncompleteWorkout(request, testData.yogaWorkoutId)
-  495 |   })
-  496 | 
-  497 |   test('shows Mark Day Complete button when not complete', async ({ page }) => {
-  498 |     await page.goto(`/workout/yoga/${testData.yogaWorkoutId}`)
-  499 |     await page.waitForLoadState('networkidle')
-  500 |     await expect(page.getByText('Yoga.')).toBeVisible()
-  501 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
-  502 |   })
-  503 | 
-  504 |   test('clicking Mark Day Complete shows completion banner', async ({ page }) => {
-  505 |     await page.goto(`/workout/yoga/${testData.yogaWorkoutId}`)
-  506 |     await page.waitForLoadState('networkidle')
-  507 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
-  508 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
-  509 |     await expect(page.getByText('MARK INCOMPLETE')).toBeVisible()
+  492 | // ─── Back navigation ─────────────────────────────────────────────────────────
+  493 | 
+  494 | test.describe('Back navigation', () => {
+  495 |   test.beforeEach(async ({ request }) => {
+  496 |     // Ensure workout notes are at their original value so the calendar tile shows "Strength A"
+  497 |     await request.post(GQL, {
+  498 |       data: { query: `mutation { updateWorkoutNotes(workoutId: "${testData.strengthWorkoutId}", notes: "Strength A") { id } }` },
+  499 |     })
+  500 |   })
+  501 | 
+  502 |   test('back chevron from calendar-navigated workout returns to that week', async ({ page }) => {
+  503 |     await page.goto(`/workout?week=${testData.testWeek}`)
+  504 |     await page.waitForLoadState('networkidle')
+  505 |     await page.getByText('Strength A').click()
+  506 |     await expect(page).toHaveURL(/\/workout\/strength\//)
+  507 |     await page.locator('button').first().click()
+  508 |     await expect(page).toHaveURL(new RegExp(`/workout\\?week=${testData.testWeek}`))
+  509 |     await expect(page.getByText('Training Week')).toBeVisible()
   510 |   })
   511 | 
-  512 |   test('MARK INCOMPLETE on yoga day reverts to complete button', async ({ page }) => {
-  513 |     await page.goto(`/workout/yoga/${testData.yogaWorkoutId}`)
-  514 |     await page.waitForLoadState('networkidle')
-  515 |     await page.getByRole('button', { name: 'Mark Day Complete' }).click()
-  516 |     await expect(page.getByText('✓ DAY COMPLETE')).toBeVisible()
-  517 | 
-  518 |     await page.getByText('MARK INCOMPLETE').click()
-  519 |     await expect(page.getByText('✓ DAY COMPLETE')).not.toBeVisible()
-  520 |     await expect(page.getByRole('button', { name: 'Mark Day Complete' })).toBeVisible()
-  521 |   })
-  522 | })
+  512 |   test('back chevron opened directly with no prior history goes to /workout', async ({ page }) => {
+  513 |     // Simulate "open in new tab" — navigate directly to the workout URL with no prior history
+  514 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  515 |     await page.waitForLoadState('networkidle')
+  516 |     await page.locator('button').first().click()
+  517 |     await expect(page).toHaveURL(/\/workout(\?|$)/)
+  518 |     await expect(page.getByText('Training Week')).toBeVisible()
+  519 |   })
+  520 | })
+  521 | 
+  522 | // ─── Workout notes ────────────────────────────────────────────────────────────
   523 | 
+  524 | test.describe('Workout notes', () => {
+  525 |   test.beforeEach(async ({ request }) => {
+  526 |     await uncompleteWorkout(request, testData.strengthWorkoutId)
+  527 |     await request.post(GQL, {
+  528 |       data: { query: `mutation { updateWorkoutNotes(workoutId: "${testData.strengthWorkoutId}", notes: "Strength A") { id } }` },
+  529 |     })
+  530 |   })
+  531 | 
+  532 |   test('notes save on blur when workout is incomplete', async ({ page }) => {
+  533 |     await page.goto(`/workout/strength/${testData.strengthWorkoutId}`)
+  534 |     await page.waitForLoadState('networkidle')
+  535 | 
+  536 |     const notes = page.getByPlaceholder('Add a note for this workout…')
+  537 |     await notes.fill('Feeling strong today')
+  538 |     await notes.blur()
+  539 |     await page.waitForTimeout(500)
+  540 | 
+  541 |     await page.reload()
+  542 |     await page.waitForLoadState('networkidle')
+  543 |     await expect(notes).toHaveValue('Feeling strong today')
+  544 |   })
+  545 | 
+  546 |   test('notes save on blur even when workout is already complete', async ({ page, request }) => {
+  547 |     await request.post(GQL, {
+  548 |       data: { query: `mutation { completeWorkout(workoutId: "${testData.strengthWorkoutId}") { id } }` },
+  549 |     })
+  550 | 
 ```
