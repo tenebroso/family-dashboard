@@ -644,7 +644,15 @@ export const workoutResolvers = {
 
     deleteSet: async (_: unknown, { id }: { id: string }, ctx: Context) => {
       requirePerson(ctx)
-      await prisma.strengthSet.delete({ where: { id } })
+      const deleted = await prisma.strengthSet.delete({ where: { id }, select: { exerciseId: true } })
+      const remaining = await prisma.strengthSet.findMany({
+        where: { exerciseId: deleted.exerciseId },
+        orderBy: { setNumber: 'asc' },
+        select: { id: true },
+      })
+      await Promise.all(
+        remaining.map((s, i) => prisma.strengthSet.update({ where: { id: s.id }, data: { setNumber: i + 1 } }))
+      )
       return true
     },
   },
