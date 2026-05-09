@@ -62,7 +62,7 @@ jobs:
 
       - name: Wait for ports
         run: |
-          npx wait-on http://localhost:4000/graphql http://localhost:5173 --timeout 60000
+          npx wait-on http://localhost:4000/health http://localhost:5173 --timeout 60000
 
       - name: Run Playwright tests
         run: npx playwright test --project=chromium
