@@ -56,6 +56,7 @@ const rootTypeDefs = `#graphql
     updateSet(id: String!, targetReps: String, targetWeight: Float, targetRPE: String, tempo: String): StrengthSet!
     addSet(exerciseId: String!): StrengthSet!
     deleteSet(id: String!): Boolean!
+    generateWeeklySummary(weekOf: String!): String!
   }
 `
 

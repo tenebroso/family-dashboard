@@ -308,3 +308,9 @@ export const DELETE_SET = gql`
     deleteSet(id: $id)
   }
 `
+
+export const GENERATE_WEEKLY_SUMMARY = gql`
+  mutation GenerateWeeklySummary($weekOf: String!) {
+    generateWeeklySummary(weekOf: $weekOf)
+  }
+`
