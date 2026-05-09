@@ -6,6 +6,8 @@ import type { PastRunSummary } from '../services/workoutParsing'
 import { fetchExerciseHistory } from '../services/exerciseHistory'
 import type { HistorySession } from '../services/exerciseHistory'
 import { generateCoachNotes } from '../services/coachReview'
+import { generateWeeklySummary } from '../services/weeklySummary'
+import type { WeekSummaryData } from '../services/weeklySummary'
 import { createAllDayCalendarEvent } from '../services/calendarWriter'
 
 const prisma = new PrismaClient()
@@ -654,6 +656,77 @@ export const workoutResolvers = {
         remaining.map((s, i) => prisma.strengthSet.update({ where: { id: s.id }, data: { setNumber: i + 1 } }))
       )
       return true
+    },
+
+    generateWeeklySummary: async (_: unknown, { weekOf }: { weekOf: string }, ctx: Context) => {
+      const person = requirePerson(ctx)
+      const athlete = await prisma.athlete.findUnique({ where: { personId: person.id } })
+      if (!athlete) throw new GraphQLError('Athlete not found')
+
+      const summaryInclude = {
+        exercises: {
+          orderBy: { order: 'asc' as const },
+          include: { sets: { orderBy: { setNumber: 'asc' as const } } },
+        },
+        runWorkout: true,
+      }
+
+      async function fetchWeekData(wOf: string): Promise<WeekSummaryData | null> {
+        const week = await prisma.trainingWeek.findUnique({
+          where: { athleteId_weekOf: { athleteId: athlete!.id, weekOf: wOf } },
+          include: {
+            workouts: {
+              orderBy: { dayOfWeek: 'asc' },
+              include: summaryInclude,
+            },
+          },
+        })
+        if (!week) return null
+        return {
+          weekOf: wOf,
+          workouts: week.workouts.map(w => ({
+            date: w.date,
+            dayOfWeek: w.dayOfWeek,
+            type: w.type,
+            completedAt: w.completedAt ? w.completedAt.toISOString() : null,
+            exercises: w.exercises.map(e => ({
+              name: e.name,
+              sets: e.sets.map(s => ({
+                actualReps: s.actualReps,
+                actualWeight: s.actualWeight,
+                actualRPE: s.actualRPE,
+                completed: s.completed,
+              })),
+            })),
+            runWorkout: w.runWorkout ? {
+              targetMiles: w.runWorkout.targetMiles,
+              targetPace: w.runWorkout.targetPace,
+              actualMiles: w.runWorkout.actualMiles,
+              actualTime: w.runWorkout.actualTime,
+              avgHeartRate: w.runWorkout.avgHeartRate,
+              actualRPE: w.runWorkout.actualRPE,
+              completed: w.runWorkout.completed,
+            } : null,
+          })),
+        }
+      }
+
+      // Calculate previous Monday
+      const [year, month, day] = weekOf.split('-').map(Number)
+      const currentMonday = new Date(year, month - 1, day)
+      currentMonday.setDate(currentMonday.getDate() - 7)
+      const prevWeekOf = currentMonday.toISOString().slice(0, 10)
+
+      const [currentWeek, previousWeek] = await Promise.all([
+        fetchWeekData(weekOf),
+        fetchWeekData(prevWeekOf),
+      ])
+
+      if (!currentWeek) {
+        return "No workouts found for this week yet. Start logging your sessions and come back for feedback!"
+      }
+
+      return generateWeeklySummary(currentWeek, previousWeek)
     },
   },
 }

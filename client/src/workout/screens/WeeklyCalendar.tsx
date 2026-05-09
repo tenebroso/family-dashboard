@@ -17,7 +17,7 @@ import {
   RunIcon,
   RestIcon,
 } from '../icons'
-import { GET_TRAINING_WEEK, CREATE_RUN_WORKOUT, CREATE_REST_WORKOUT, CREATE_YOGA_WORKOUT } from '../graphql'
+import { GET_TRAINING_WEEK, CREATE_RUN_WORKOUT, CREATE_REST_WORKOUT, CREATE_YOGA_WORKOUT, GENERATE_WEEKLY_SUMMARY } from '../graphql'
 import type { WorkoutData, DayTile } from '../types'
 
 function currentMonday(): string {
@@ -122,6 +122,8 @@ export function WeeklyCalendar() {
   const [addRunOpen, setAddRunOpen] = useState(false)
   const [targetMiles, setTargetMiles] = useState('')
   const [targetPace, setTargetPace] = useState('')
+  const [summaryOpen, setSummaryOpen] = useState(false)
+  const [summaryText, setSummaryText] = useState<string | null>(null)
 
   const { data, refetch } = useQuery<{ trainingWeek: { id: string; weekOf: string; workouts: WorkoutData[] } | null }>(
     GET_TRAINING_WEEK,
@@ -131,6 +133,7 @@ export function WeeklyCalendar() {
   const [createRun, { loading: creatingRun }] = useMutation<{ createRunWorkout: { id: string; date: string; type: string } }>(CREATE_RUN_WORKOUT)
   const [createRest] = useMutation(CREATE_REST_WORKOUT)
   const [createYoga] = useMutation(CREATE_YOGA_WORKOUT)
+  const [generateSummary, { loading: generatingSummary }] = useMutation<{ generateWeeklySummary: string }>(GENERATE_WEEKLY_SUMMARY)
 
   const workouts = data?.trainingWeek?.workouts ?? []
   const tiles = buildDayTiles(weekOf, workouts)
@@ -190,6 +193,19 @@ export function WeeklyCalendar() {
       await refetch()
     } catch (e) {
       console.error(e)
+    }
+  }
+
+  const handleGenerateSummary = async () => {
+    hapticLight()
+    setSummaryText(null)
+    setSummaryOpen(true)
+    try {
+      const res = await generateSummary({ variables: { weekOf } })
+      setSummaryText(res.data?.generateWeeklySummary ?? null)
+    } catch (e) {
+      console.error(e)
+      setSummaryText('Something went wrong generating your summary. Please try again.')
     }
   }
 
@@ -347,6 +363,13 @@ export function WeeklyCalendar() {
             Lift days are imported from your training plan. You can add Run or Rest days manually.
           </div>
         </div>
+
+        {/* Generate Summary button */}
+        <div style={{ marginTop: 16 }}>
+          <PrimaryBtn onClick={handleGenerateSummary} disabled={generatingSummary}>
+            {generatingSummary ? 'Generating…' : 'Generate Summary'}
+          </PrimaryBtn>
+        </div>
       </div>
 
       {/* Empty-day action sheet */}
@@ -430,6 +453,34 @@ export function WeeklyCalendar() {
               {!item.disabled && <ChevronIcon color={C.muted} />}
             </button>
           ))}
+        </div>
+      </Sheet>
+
+      {/* Weekly Summary sheet */}
+      <Sheet
+        open={summaryOpen}
+        onClose={() => setSummaryOpen(false)}
+        title={`Week of ${weekDisplay}`}
+      >
+        <div style={{ padding: '8px 24px 32px' }}>
+          {summaryText == null ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '32px 0' }}>
+              <div className="wk-pulse-gold" style={{ width: 12, height: 12, borderRadius: '50%', background: C.gold }} />
+              <div style={{ fontFamily: F.dm, fontSize: 13, color: C.muted }}>
+                Reviewing your week with Claude…
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              fontFamily: F.dm,
+              fontSize: 14,
+              color: C.text,
+              lineHeight: 1.7,
+              whiteSpace: 'pre-wrap',
+            }}>
+              {summaryText}
+            </div>
+          )}
         </div>
       </Sheet>
 
