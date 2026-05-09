@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Calendar', () => {
   test('calendar page loads in month view', async ({ page }) => {
-    await page.goto('/calendar')
+    await page.goto('/jon/calendar')
 
     await expect(page.getByRole('button', { name: 'Month' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Week' })).toBeVisible()
@@ -12,7 +12,7 @@ test.describe('Calendar', () => {
   })
 
   test('switching to week view', async ({ page }) => {
-    await page.goto('/calendar')
+    await page.goto('/jon/calendar')
 
     await page.getByRole('button', { name: 'Week' }).click()
 
@@ -20,7 +20,7 @@ test.describe('Calendar', () => {
   })
 
   test('switching to day view', async ({ page }) => {
-    await page.goto('/calendar')
+    await page.goto('/jon/calendar')
 
     await page.getByRole('button', { name: 'Day' }).click()
 
@@ -28,7 +28,7 @@ test.describe('Calendar', () => {
   })
 
   test('tapping a day with events opens detail panel', async ({ page }) => {
-    await page.goto('/calendar')
+    await page.goto('/jon/calendar')
 
     // Wait for events to load and find first event chip in a day cell
     const chip = page.getByTestId('event-chip').first()

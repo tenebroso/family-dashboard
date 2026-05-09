@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test('chores page loads with all four people', async ({ page }) => {
-  await page.goto('/chores')
+  await page.goto('/jon/chores')
   // Use first() to avoid strict mode when a name appears in both summary row and card header
   await expect(page.getByText('Harry').first()).toBeVisible()
   await expect(page.getByText('Ruby').first()).toBeVisible()
@@ -10,7 +10,7 @@ test('chores page loads with all four people', async ({ page }) => {
 })
 
 test('completing a chore updates the UI', async ({ page }) => {
-  await page.goto('/chores')
+  await page.goto('/jon/chores')
   // Wait for chore buttons specifically (not the nav hamburger)
   await page.waitForSelector('button[aria-label*="not completed"]', { timeout: 10000 })
 
@@ -23,7 +23,7 @@ test('completing a chore updates the UI', async ({ page }) => {
 })
 
 test('unchecking a completed chore reverts it', async ({ page }) => {
-  await page.goto('/chores')
+  await page.goto('/jon/chores')
   await page.waitForSelector('button[aria-label*="not completed"]', { timeout: 10000 })
 
   const firstUnchecked = page.locator('button[aria-label*="not completed"]').first()
@@ -39,7 +39,7 @@ test('unchecking a completed chore reverts it', async ({ page }) => {
 })
 
 test('chores admin - add a chore', async ({ page }) => {
-  await page.goto('/chores-admin')
+  await page.goto('/jon/chores-admin')
   await page.getByRole('button', { name: 'Add Chore' }).click()
 
   await page.getByPlaceholder('Chore title').fill('Test Chore Playwright')
@@ -51,7 +51,7 @@ test('chores admin - add a chore', async ({ page }) => {
 })
 
 test('chores admin - delete a chore', async ({ page }) => {
-  await page.goto('/chores-admin')
+  await page.goto('/jon/chores-admin')
   await page.waitForSelector('text=Test Chore Playwright', { timeout: 5000 }).catch(() => null)
 
   const choreText = page.getByText('Test Chore Playwright')

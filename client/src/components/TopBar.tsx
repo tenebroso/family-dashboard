@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useMatch, Link } from 'react-router-dom'
 import PersonRail from './PersonRail'
 
 type Theme = 'light' | 'warm' | 'dark'
@@ -31,9 +31,16 @@ function ThemeToggle() {
 
 export default function TopBar() {
   const navigate = useNavigate()
+  const match = useMatch('/:personSlug/*')
+  const slug = match?.params.personSlug ?? 'jon'
 
   return (
     <header className="topbar">
+      <nav className="topbar-nav">
+        <Link to={`/${slug}`}>Dashboard</Link>
+        <Link to={`/${slug}/chores`}>Chores</Link>
+        <Link to={`/${slug}/calendar`}>Calendar</Link>
+      </nav>
       <div className="topbar-grow" />
 
       <div className="topbar-actions">

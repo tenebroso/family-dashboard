@@ -10,6 +10,7 @@ import { workoutResolvers } from './workouts'
 
 export const resolvers = {
   Query: {
+    ping: () => 'pong',
     ...choreResolvers.Query,
     ...calendarResolvers.Query,
     ...weatherResolvers.Query,
