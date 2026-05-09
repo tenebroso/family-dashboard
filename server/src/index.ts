@@ -30,7 +30,7 @@ async function main() {
   app.use(
     session({
       store: new SQLiteStore({ db: 'sessions.db', dir: path.join(__dirname, '..') }),
-      secret: process.env.SESSION_SECRET!,
+      secret: process.env.SESSION_SECRET ?? 'dev-secret-not-for-production',
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -119,6 +119,8 @@ async function main() {
       res.status(500).json({ error: 'Failed to link account' })
     }
   })
+
+  app.get('/health', (_req, res) => res.json({ ok: true }))
 
   app.use('/music', express.static(path.join(__dirname, '..', 'assets', 'music')))
 
