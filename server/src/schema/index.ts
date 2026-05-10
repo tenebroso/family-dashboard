@@ -11,6 +11,7 @@ import { workoutTypeDefs } from './types/workouts.graphql'
 
 const rootTypeDefs = `#graphql
   type Query {
+    ping: String!
     people: [Person!]!
     person(id: ID!): Person
     calendarEvents(start: String!, end: String!): [CalendarEvent!]!
