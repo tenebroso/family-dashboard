@@ -39,6 +39,12 @@ TERRAIN: Milwaukee — routes average 70ft elevation gain per mile. Strong hill 
 PRIORITIES (in order): 1) Build 5K speed for October PR. 2) Support fat loss through appropriate training load. 3) Maintain aerobic base. 4) Avoid injury — especially overreaching on easy days.
 
 PRESCRIPTION FORMAT: For each run include specific pace range OR HR cap (not both unless structured), total distance, session purpose, and fueling note if relevant.
+
+TRAVEL WEEK — MAY 11–17, 2026:
+- Tuesday May 12: Run BEFORE morning flight (Milwaukee → Houston). Treat as a pre-travel shakeout — keep it brief and completable before airport departure.
+- Tuesday evening through Thursday morning: Driving Houston, TX → Kenosha, WI. Overnight at Hampton Inn & Suites Bloomington-Normal, IL. Hotel gym is very basic — dumbbells, cables, and cardio machines only; no barbell, no rack.
+- Wednesday May 14 (strength): Hotel gym session. For any barbell or rack-dependent movements in the prescribed plan, suggest a dumbbell or cable substitute in the coaching note.
+- Thursday May 15 and Friday May 16: Back home, normal equipment. Resume standard programming.
 `.trim()
 
 export interface ParsedSet {
