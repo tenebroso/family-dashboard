@@ -35,8 +35,8 @@ export const calendarResolvers = {
           ...(appleResult.status === 'fulfilled' ? appleResult.value : []),
         ].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 
-        if (events.length === 0 && googleResult.status === 'rejected') {
-          throw new Error('Google calendar failed and no events available')
+        if (events.length === 0) {
+          throw new Error('No calendar events available from any source')
         }
 
         return events
