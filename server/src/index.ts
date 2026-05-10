@@ -159,8 +159,15 @@ async function main() {
 
   if (process.env.NODE_ENV === 'production') {
     const clientDist = path.join(__dirname, '..', '..', 'client', 'dist')
-    app.use(express.static(clientDist))
+    // Hashed assets (JS/CSS bundles) are immutable — cache aggressively
+    app.use('/assets', express.static(path.join(clientDist, 'assets'), {
+      maxAge: '1y',
+      immutable: true,
+    }))
+    // Everything else: no caching so index.html always reflects latest hashed assets
+    app.use(express.static(clientDist, { maxAge: 0, etag: false }))
     app.get('*', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-store')
       res.sendFile(path.join(clientDist, 'index.html'))
     })
   }
