@@ -298,19 +298,12 @@ export async function generateRunPrescriptions(args: {
     system: [
       {
         type: 'text',
-        text: `You are a running coach prescribing two runs per week (Tuesday and Saturday) for an athlete who also lifts on Mon/Wed/Fri and does yoga Thursday.
+        text: `You are a running coach prescribing two runs per week for an athlete that is following a 4 day training schedule focusing on weightlifting movements with dumbbells and barbells. Fill in running prescriptions based on the athlete's training history and goals.
 
 ATHLETE'S TRAINING GOAL:
 """
 ${TRAINING_GOAL}
 """
-
-WEEKLY SCHEDULE:
-- Mon/Wed/Fri: Strength (heavy lifts; expect mild leg fatigue)
-- Tuesday: Easy run, target 4–5 miles
-- Thursday: Yoga
-- Saturday: Longer effort, target 5–7 miles. May be a structured workout (fartlek, intervals, progression, tempo) or a steady long run depending on context.
-- Sunday: Rest
 
 REASONING RULES:
 For each past run you see, you have BOTH the prescribed targets AND the athlete's actual results. Base your prescriptions on the actuals:
@@ -318,9 +311,6 @@ For each past run you see, you have BOTH the prescribed targets AND the athlete'
 - If actual pace is consistently faster than prescribed at low RPE/HR, the athlete is ready for harder efforts.
 - If RPE was high or notes describe struggle, scale volume/intensity down.
 - If HR was elevated for the same prescribed pace, watch for accumulated fatigue.
-- If past runs were missed or short of target, do NOT pile on additional volume.
-- If the athlete just did a structured workout (fartlek/intervals) the previous Saturday, prefer a steady long run this Saturday.
-- Tuesday is ALWAYS an easy aerobic run. Never prescribe intervals on Tuesday.
 
 Output via the prescribe_runs tool.`,
         cache_control: { type: 'ephemeral' },
@@ -329,7 +319,7 @@ Output via the prescribe_runs tool.`,
     tools: [
       {
         name: 'prescribe_runs',
-        description: 'Prescribe Tuesday and Saturday runs based on past actuals + goal',
+        description: 'Prescribe two runs based on past actuals + goal',
         input_schema: {
           type: 'object' as const,
           properties: {
@@ -384,7 +374,6 @@ Output via the prescribe_runs tool.`,
               description: 'Optional one-line yoga suggestion, e.g. "Vinyasa flow — focus on hips". May be empty string.',
             },
           },
-          required: ['tuesday', 'saturday'],
         },
       },
     ],
@@ -396,9 +385,7 @@ Output via the prescribe_runs tool.`,
 
 Past 8 completed runs (most recent first):
 
-${historyBlock}
-
-Prescribe Tuesday and Saturday runs.`,
+  ${historyBlock}.`,
       },
     ],
   })
