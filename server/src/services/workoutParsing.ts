@@ -147,7 +147,7 @@ Rules:
           } as any,
           {
             type: 'text',
-            text: `Extract the ${programTrack} workouts (Monday, Wednesday, Friday only) from this training plan PDF.`,
+            text: `Extract the ${programTrack} workouts (all days) from this training plan PDF.`,
           },
         ],
       },
