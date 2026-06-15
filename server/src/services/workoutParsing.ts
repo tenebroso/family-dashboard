@@ -12,31 +12,9 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
  * NO database, NO UI, NO seed script for v1 — by design.
  */
 export const TRAINING_GOAL = `
-ATHLETE: Jon Bukiewicz, 42M, 5'11", ~215-222 lbs, Milwaukee WI.
+ATHLETE: Jon Bukiewicz, 42M, 5'11", ~228 lbs, Milwaukee WI.
 
-RECENT RACE RESULT: Completed first half marathon May 2, 2026 (Door County Half Marathon) in 2:19:43 at 10:40/mi average pace. Peak training paces: 9:52/mi on a hilly 10-mile run, 10:23/mi on 11 miles with 707ft gain.
-
-GOAL RACE: Shorewood Hot Cider Hustle 5K — approximately October 25, 2026. Current 5K PR: 26:39 (8:35/mi). Target: sub-26:00 (sub-8:25/mi race pace).
-
-CURRENT PHASE (May–June 2026): Base Building — aerobic foundation, easy effort, reintroducing consistent running after the half marathon. Shift to Speed Development (July–August: tempo, 800m repeats, building toward 5K pace) then Race Sharpening (September–October: race-specific workouts, taper).
-
-KEY PACES:
-- Easy / true Zone 2: 11:30–12:00/mi (enforce this — athlete chronically runs easy days too fast)
-- Tempo: ~9:45–10:00/mi
-- Interval capability: 9:15–9:30/mi sustained for multiple miles
-- Goal 5K race pace: sub-8:25/mi
-
-HEART RATE: Max HR ~193 bpm. Runs at higher HR than population averages. Functional Zone 2 ceiling: ~157 bpm. Functional Zone 3 (aerobic threshold): 157–172 bpm. Cap easy runs at 155 bpm.
-
-BODY COMPOSITION & FUELING: On semaglutide (GLP-1) — hunger is suppressed and not a reliable fueling signal. Include fueling reminders for workouts over 45 minutes. Higher-than-average electrolyte needs; prone to cramping without sodium. Does not carry water — keep runs under 60 min or note water fountain access.
-
-TRAINING LOAD CONTEXT: 3 strength sessions (Mon/Wed/Fri) plus yoga (Thu) mean legs carry cumulative fatigue. Tuesday run follows Monday strength; Saturday run follows Friday strength. Prescribe accordingly — don't stack high intensity on Tuesday after a hard Monday lift.
-
-WEEKLY MILEAGE TARGET: 8–12 miles total running during base phase, building modestly through summer.
-
-TERRAIN: Milwaukee — routes average 70ft elevation gain per mile. Strong hill runner.
-
-PRIORITIES (in order): 1) Build 5K speed for October PR. 2) Support fat loss through appropriate training load. 3) Maintain aerobic base. 4) Avoid injury — especially overreaching on easy days.
+PRIORITIES (in order): 1) Support fat loss through appropriate training load. 2) Maintain aerobic base. 3) Avoid injury — especially overreaching on easy days.
 
 PRESCRIPTION FORMAT: For each run include specific pace range OR HR cap (not both unless structured), total distance, session purpose, and fueling note if relevant.
 `.trim()
@@ -85,7 +63,7 @@ export function getWorkoutDate(weekOf: string, dayName: string): { dayOfWeek: nu
 
 export async function parsePdfWorkouts(
   pdfPath: string,
-  programTrack: string = 'Pump Lift 3x'
+  programTrack: string = 'Minimalist',
 ): Promise<ParsedWorkout[]> {
   const pdfBase64 = fs.readFileSync(pdfPath).toString('base64')
 
@@ -96,10 +74,6 @@ export async function parsePdfWorkouts(
       {
         type: 'text',
         text: `You are a workout programming parser. Extract structured workout data from PDF training plans.
-
-For the ${programTrack} program, extract ONLY Monday, Wednesday, and Friday workouts.
-Include these sections: Warmup, Strength Intensity 1, Strength Intensity 2, Strength Balance, Finisher, Cooldown.
-Exclude: optional sections.
 
 Rules:
 - targetReps: preserve exactly as written ("6", "6-8", "Max Unbroken reps", "Max reps", etc.)
