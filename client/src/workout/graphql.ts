@@ -254,6 +254,16 @@ export const CREATE_YOGA_WORKOUT = gql`
   }
 `
 
+export const CREATE_MOBILITY_WORKOUT = gql`
+  mutation CreateMobilityWorkout($weekOf: String!, $date: String!, $notes: String) {
+    createMobilityWorkout(weekOf: $weekOf, date: $date, notes: $notes) {
+      id
+      date
+      type
+    }
+  }
+`
+
 export const UPDATE_WORKOUT_NOTES = gql`
   mutation UpdateWorkoutNotes($workoutId: String!, $notes: String!) {
     updateWorkoutNotes(workoutId: $workoutId, notes: $notes) {

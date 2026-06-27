@@ -21,6 +21,7 @@ export function WorkoutApp() {
         <Route path="run/:workoutId" element={<RunWorkout />} />
         <Route path="rest/:workoutId" element={<RestDay />} />
         <Route path="yoga/:workoutId" element={<YogaDay />} />
+        <Route path="mobility/:workoutId" element={<YogaDay />} />
         <Route path="*" element={<Navigate to="/workout" replace />} />
       </Routes>
     </div>

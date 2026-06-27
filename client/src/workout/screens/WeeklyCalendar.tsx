@@ -17,7 +17,7 @@ import {
   RunIcon,
   RestIcon,
 } from '../icons'
-import { GET_TRAINING_WEEK, CREATE_RUN_WORKOUT, CREATE_REST_WORKOUT, CREATE_YOGA_WORKOUT } from '../graphql'
+import { GET_TRAINING_WEEK, CREATE_RUN_WORKOUT, CREATE_REST_WORKOUT, CREATE_YOGA_WORKOUT, CREATE_MOBILITY_WORKOUT } from '../graphql'
 import type { WorkoutData, DayTile } from '../types'
 
 function currentMonday(): string {
@@ -75,20 +75,28 @@ function workoutMeta(w: WorkoutData): string {
     if (pace) return pace
     return ''
   }
-  if (w.type === 'yoga') return 'MOBILITY · 30–60 MIN'
+  if (w.type === 'yoga') return 'FLEXIBILITY · 30–60 MIN'
+  if (w.type === 'mobility') return 'MOBILITY · ACCESSORY WORK'
   if (w.type === 'rest') return 'RECOVER'
   return ''
 }
 
-function workoutTitle(w: WorkoutData): string {
+function strengthDayNumber(w: WorkoutData, tiles: DayTile[]): number | null {
+  const strengthTiles = tiles.filter(t => t.workout?.type === 'strength')
+  const idx = strengthTiles.findIndex(t => t.workout?.id === w.id)
+  return idx === -1 ? null : idx + 1
+}
+
+function workoutTitle(w: WorkoutData, tiles: DayTile[]): string {
   if (w.notes) return w.notes.split('\n')[0].slice(0, 40)
   if (w.type === 'strength') {
-    const day = w.dayOfWeek === 0 ? 1 : w.dayOfWeek === 2 ? 2 : w.dayOfWeek === 4 ? 3 : null
-    return day ? `Lift · Day ${day}` : 'Strength'
+    const n = strengthDayNumber(w, tiles)
+    return n ? `Lift · Day ${n}` : 'Strength'
   }
   if (w.type === 'run') return 'Run'
   if (w.type === 'rest') return 'Rest'
   if (w.type === 'yoga') return 'Yoga'
+  if (w.type === 'mobility') return 'Mobility'
   return ''
 }
 
@@ -131,6 +139,7 @@ export function WeeklyCalendar() {
   const [createRun, { loading: creatingRun }] = useMutation<{ createRunWorkout: { id: string; date: string; type: string } }>(CREATE_RUN_WORKOUT)
   const [createRest] = useMutation(CREATE_REST_WORKOUT)
   const [createYoga] = useMutation(CREATE_YOGA_WORKOUT)
+  const [createMobility] = useMutation(CREATE_MOBILITY_WORKOUT)
 
   const workouts = data?.trainingWeek?.workouts ?? []
   const tiles = buildDayTiles(weekOf, workouts)
@@ -148,6 +157,7 @@ export function WeeklyCalendar() {
       case 'run':      navigate(`/workout/run/${tile.workout.id}`); break
       case 'rest':     navigate(`/workout/rest/${tile.workout.id}`); break
       case 'yoga':     navigate(`/workout/yoga/${tile.workout.id}`); break
+      case 'mobility': navigate(`/workout/mobility/${tile.workout.id}`); break
     }
   }
 
@@ -186,6 +196,17 @@ export function WeeklyCalendar() {
     if (!actionDay) return
     try {
       await createYoga({ variables: { weekOf: actionDay.weekOf, date: actionDay.date } })
+      setActionDay(null)
+      await refetch()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleMarkMobility = async () => {
+    if (!actionDay) return
+    try {
+      await createMobility({ variables: { weekOf: actionDay.weekOf, date: actionDay.date } })
       setActionDay(null)
       await refetch()
     } catch (e) {
@@ -315,7 +336,7 @@ export function WeeklyCalendar() {
                       )}
                     </div>
                     <div style={{ fontFamily: F.syne, fontSize: 18, fontWeight: 700, color: C.text, lineHeight: 1.15 }}>
-                      {workoutTitle(w)}
+                      {workoutTitle(w, tiles)}
                     </div>
                     {workoutMeta(w) && (
                       <div style={{ fontFamily: F.mono, fontSize: 10, color: C.muted, marginTop: 4, letterSpacing: '0.04em' }}>
@@ -344,7 +365,7 @@ export function WeeklyCalendar() {
             NOTE
           </div>
           <div style={{ fontFamily: F.dm, fontSize: 12, color: C.muted, lineHeight: 1.5 }}>
-            Lift days are imported from your training plan. You can add Run or Rest days manually.
+            All days are imported from your Pump Lift 4x training plan PDF. Tap an empty day to manually add workouts.
           </div>
         </div>
       </div>
@@ -377,6 +398,13 @@ export function WeeklyCalendar() {
               icon: <RestIcon color={C.rust} size={16} />,
               disabled: false,
               onClick: handleMarkYoga,
+            },
+            {
+              label: 'Mark Mobility',
+              hint: null,
+              icon: <RestIcon color={'#8B9FD4'} size={16} />,
+              disabled: false,
+              onClick: handleMarkMobility,
             },
             {
               label: 'Mark Rest',

@@ -4,8 +4,7 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 
 import { PrismaClient } from '@prisma/client'
 import type { Prisma } from '@prisma/client'
-import { parsePdfWorkouts, getWorkoutDate, generateRunPrescriptions } from '../services/workoutParsing'
-import type { PastRunSummary } from '../services/workoutParsing'
+import { parsePdfWorkouts, getWorkoutDate } from '../services/workoutParsing'
 import { fetchExerciseHistory } from '../services/exerciseHistory'
 import type { HistorySession } from '../services/exerciseHistory'
 import { generateCoachNotes } from '../services/coachReview'
@@ -15,54 +14,8 @@ const prisma = new PrismaClient()
 
 const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-async function fetchPastRunSummaries(athleteId: string, weekOf: string): Promise<PastRunSummary[]> {
-  const rows = await prisma.workout.findMany({
-    where: {
-      type: 'run',
-      date: { lt: weekOf },
-      runWorkout: { completed: true },
-      trainingWeek: { athleteId },
-    },
-    include: {
-      runWorkout: {
-        include: { segments: { orderBy: { order: 'asc' } } },
-      },
-    },
-    orderBy: { date: 'desc' },
-    take: 8,
-  })
-  return rows
-    .filter(r => r.runWorkout)
-    .map(r => ({
-      date: r.date,
-      dayName: DAY_NAMES_SHORT[r.dayOfWeek] ?? '?',
-      workoutType: r.runWorkout!.workoutType,
-      prescribed: {
-        targetMiles: r.runWorkout!.targetMiles,
-        targetPace: r.runWorkout!.targetPace,
-        heartRateZone: r.runWorkout!.heartRateZone,
-        segments: r.runWorkout!.segments.map(s => ({
-          order: s.order,
-          label: s.label,
-          type: s.type,
-          repeat: s.repeat,
-          distanceMi: s.distanceMi,
-          durationSec: s.durationSec,
-          pace: s.pace,
-          heartRateZone: s.heartRateZone,
-          notes: s.notes,
-        })),
-      },
-      actual: {
-        actualMiles: r.runWorkout!.actualMiles,
-        actualTime: r.runWorkout!.actualTime,
-        avgHeartRate: r.runWorkout!.avgHeartRate,
-        maxHeartRate: r.runWorkout!.maxHeartRate,
-        actualRPE: r.runWorkout!.actualRPE,
-        notes: r.runWorkout!.notes,
-      },
-    }))
-}
+const ACTIVE_RECOVERY_CUE = `\n\nEFFORT CHECK: This should be fully conversational the entire time — full sentences without breaking. If you can't hold a sentence, you're going too hard. Slow down.`
+const INTERVALS_CUE = `\n\nEFFORT CHECK: 75% effort = moderate-hard. You can gasp 2-3 words but not a full sentence. Controlled — not all-out. If you're unable to say anything, back off.`
 
 async function main() {
   const [pdfPath, weekOf] = process.argv.slice(2)
@@ -99,23 +52,16 @@ async function main() {
   })
   console.log('Cleared existing week (idempotent re-import)\n')
 
-  console.log('Sending to Claude (PDF parse + run prescription in parallel)…')
-  const pastRuns = await fetchPastRunSummaries(athlete.id, weekOf)
-  console.log(`  Found ${pastRuns.length} past completed run(s) for context`)
-
-  const [parsedStrengthWorkouts, prescriptions] = await Promise.all([
-    parsePdfWorkouts(pdfPath),
-    generateRunPrescriptions({ pastRuns, weekOf }).catch(err => {
-      console.error('  ✗ generateRunPrescriptions failed:', err)
-      return null
-    }),
-  ])
-
-  console.log(`  PDF: ${parsedStrengthWorkouts.length} strength workout(s)`)
-  console.log(`  Runs: ${prescriptions ? 'prescribed (Tue + Sat)' : 'FAILED — empty stubs will be created'}`)
+  console.log('Sending PDF to Claude for parsing…')
+  const parsedWorkouts = await parsePdfWorkouts(pdfPath)
+  const strengthCount = parsedWorkouts.filter(pw => pw.type === 'strength').length
+  const intervalsCount = parsedWorkouts.filter(pw => pw.type === 'intervals').length
+  const recoveryCount = parsedWorkouts.filter(pw => pw.type === 'active_recovery').length
+  console.log(`  PDF: ${parsedWorkouts.length} day(s) — ${strengthCount} strength, ${intervalsCount} intervals, ${recoveryCount} active recovery`)
 
   // Coach review pass — fetch history per exercise, then ask Claude for notes
-  const flatExercises = parsedStrengthWorkouts.flatMap(pw => pw.exercises)
+  const strengthWorkouts = parsedWorkouts.filter(pw => pw.type === 'strength')
+  const flatExercises = strengthWorkouts.flatMap(pw => pw.exercises)
   const uniqueNames = Array.from(new Set(flatExercises.map(e => e.name)))
   console.log(`  Fetching history for ${uniqueNames.length} unique exercise(s)…`)
   const historyByName = new Map<string, HistorySession[]>()
@@ -146,105 +92,65 @@ async function main() {
 
   const workoutsToCreate: Prisma.WorkoutCreateWithoutTrainingWeekInput[] = []
 
-  for (const pw of parsedStrengthWorkouts) {
+  for (const pw of parsedWorkouts) {
     const { dayOfWeek, date } = getWorkoutDate(weekOf, pw.dayName)
-    workoutsToCreate.push({
-      date,
-      dayOfWeek,
-      type: 'strength',
-      exercises: {
-        create: pw.exercises.map((ex, exIdx) => ({
-          name: ex.name,
-          section: ex.section,
-          order: exIdx,
-          loadingNote: ex.loadingNote ?? null,
-          coachNotes: coachNotesByName.get(ex.name) || null,
-          sets: {
-            create: ex.sets.map(s => ({
-              setNumber: s.setNumber,
-              targetReps: s.targetReps ?? null,
-              targetWeight: s.targetWeight ?? null,
-              targetRPE: s.targetRPE ?? null,
-              tempo: s.tempo ?? null,
-            })),
+
+    if (pw.type === 'strength') {
+      workoutsToCreate.push({
+        date,
+        dayOfWeek,
+        type: 'strength',
+        exercises: {
+          create: pw.exercises.map((ex, exIdx) => ({
+            name: ex.name,
+            section: ex.section,
+            order: exIdx,
+            loadingNote: ex.loadingNote ?? null,
+            coachNotes: coachNotesByName.get(ex.name) || null,
+            sets: {
+              create: ex.sets.map(s => ({
+                setNumber: s.setNumber,
+                targetReps: s.targetReps ?? null,
+                targetWeight: s.targetWeight ?? null,
+                targetRPE: s.targetRPE ?? null,
+                tempo: s.tempo ?? null,
+              })),
+            },
+          })),
+        },
+      })
+    } else if (pw.type === 'intervals') {
+      const intervalsNotes = (pw.notes ?? '') + INTERVALS_CUE
+      workoutsToCreate.push({
+        date,
+        dayOfWeek,
+        type: 'run',
+        notes: intervalsNotes,
+        runWorkout: {
+          create: {
+            workoutType: 'intervals',
+            notes: intervalsNotes,
           },
-        })),
-      },
-    })
-  }
-
-  // Tuesday run
-  {
-    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Tuesday')
-    const tue = prescriptions?.tuesday
-    workoutsToCreate.push({
-      date,
-      dayOfWeek,
-      type: 'run',
-      notes: tue?.summary ?? null,
-      runWorkout: {
-        create: {
-          workoutType: tue?.workoutType ?? null,
-          targetMiles: tue?.targetMiles ?? null,
-          targetPace: tue?.targetPace ?? null,
-          heartRateZone: tue?.heartRateZone ?? null,
-          notes: tue?.notes ?? null,
         },
-      },
-    })
+      })
+    } else if (pw.type === 'active_recovery') {
+      workoutsToCreate.push({
+        date,
+        dayOfWeek,
+        type: 'mobility',
+        notes: (pw.notes ?? '') + ACTIVE_RECOVERY_CUE,
+      })
+    }
   }
 
-  // Thursday yoga
-  {
-    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Thursday')
-    workoutsToCreate.push({
-      date,
-      dayOfWeek,
-      type: 'yoga',
-      notes: prescriptions?.thursdayYogaNote || null,
-    })
-  }
-
-  // Saturday run (may have segments)
-  {
-    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Saturday')
-    const sat = prescriptions?.saturday
-    workoutsToCreate.push({
-      date,
-      dayOfWeek,
-      type: 'run',
-      notes: sat?.summary ?? null,
-      runWorkout: {
-        create: {
-          workoutType: sat?.workoutType ?? null,
-          targetMiles: sat?.targetMiles ?? null,
-          targetPace: sat?.targetPace ?? null,
-          heartRateZone: sat?.heartRateZone ?? null,
-          notes: sat?.notes ?? null,
-          segments: sat?.segments?.length
-            ? {
-                create: sat.segments.map(s => ({
-                  order: s.order,
-                  label: s.label,
-                  type: s.type,
-                  repeat: s.repeat,
-                  distanceMi: s.distanceMi,
-                  durationSec: s.durationSec,
-                  pace: s.pace,
-                  heartRateZone: s.heartRateZone,
-                  notes: s.notes,
-                })),
-              }
-            : undefined,
-        },
-      },
-    })
-  }
-
-  // Sunday rest
-  {
-    const { dayOfWeek, date } = getWorkoutDate(weekOf, 'Sunday')
-    workoutsToCreate.push({ date, dayOfWeek, type: 'rest' })
+  // Fill any unprogrammed days with rest
+  const programmedDayIndices = new Set(workoutsToCreate.map(w => w.dayOfWeek))
+  for (let i = 0; i < 7; i++) {
+    if (!programmedDayIndices.has(i)) {
+      const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+      const { dayOfWeek, date } = getWorkoutDate(weekOf, dayNames[i])
+      workoutsToCreate.push({ date, dayOfWeek, type: 'rest' })
+    }
   }
 
   const week = await prisma.trainingWeek.create({
@@ -294,6 +200,9 @@ async function main() {
       } else if (w.type === 'yoga') {
         const eventId = await createAllDayCalendarEvent(personSlug, 'Yoga', w.date, `https://diverseydash.com/workout/yoga/${w.id}`)
         console.log(`  📅 Yoga calendar event created for ${w.date}: ${eventId ?? 'no ID'}`)
+      } else if (w.type === 'mobility') {
+        const eventId = await createAllDayCalendarEvent(personSlug, 'Mobility', w.date, `https://diverseydash.com/workout/mobility/${w.id}`)
+        console.log(`  📅 Mobility calendar event created for ${w.date}: ${eventId ?? 'no ID'}`)
       }
     } catch (err) {
       console.error(`  ✗ Calendar event failed for ${w.date}:`, err)
@@ -327,6 +236,8 @@ async function main() {
       }
     } else if (w.type === 'yoga') {
       console.log(`  ${w.date} (${dayName}) — YOGA${w.notes ? ` · ${w.notes}` : ''}`)
+    } else if (w.type === 'mobility') {
+      console.log(`  ${w.date} (${dayName}) — MOBILITY${w.notes ? ` · ${w.notes}` : ''}`)
     } else if (w.type === 'rest') {
       console.log(`  ${w.date} (${dayName}) — REST`)
     }

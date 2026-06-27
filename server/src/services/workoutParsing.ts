@@ -12,11 +12,22 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
  * NO database, NO UI, NO seed script for v1 — by design.
  */
 export const TRAINING_GOAL = `
-ATHLETE: Jon Bukiewicz, 42M, 5'11", ~228 lbs, Milwaukee WI.
+ATHLETE: Jon, 42M, 5'11", 224 lb (June 2026). Software engineering manager — sedentary desk job baseline, ~8-11k steps/day.
 
-PRIORITIES (in order): 1) Support fat loss through appropriate training load. 2) Maintain aerobic base. 3) Avoid injury — especially overreaching on easy days.
+DEXA CONTEXT (June 2026 vs. one year prior): +26 lb fat, -5 lb muscle. He is in a structured calorie deficit (~2,160 cal/day, 175g+ protein). No alcohol since Oct 2025. Recently restarted bupropion HCL XL 300mg. Stopped GLP-1 in May 2026.
 
-PRESCRIPTION FORMAT: For each run include specific pace range OR HR cap (not both unless structured), total distance, session purpose, and fueling note if relevant.
+PRIMARY GOAL — RECOMP: Lose fat and simultaneously regain the lost 5 lb of muscle via muscle memory + progressive overload + high protein. Cut first; no bulk until reaching ~187-190 lb target. He is a recomp candidate: previously trained + fat surplus means fat can fund muscle regrowth.
+
+LIFTING PRIORITIES (in order):
+1. Progressive overload is the primary success signal. Rising weights and/or reps week-over-week = proof muscle is returning even as the scale drops. This is what matters most.
+2. Protein 175g+ on lifting days is non-negotiable for muscle retention in a deficit.
+3. Avoid overreaching — he's eating in a deficit, so recovery capacity is limited. One hard week followed by a performance dip is usually fueling or sleep, not a true regression.
+
+COACH NOTE CALIBRATION:
+- A single session at the same weight is NOT a plateau. Flag plateaus only when ≥3 sessions show the same top weight with RPE not dropping.
+- A single session below prior weight is NOT regression. Flag regression only when 2-3 consecutive sessions trend down.
+- Scale stalls are noise — strength trend and rising reps are the real scoreboard.
+- Silence (empty string) beats a generic note. Only write when something specific is actionable.
 `.trim()
 
 export interface ParsedSet {
@@ -37,7 +48,9 @@ export interface ParsedExercise {
 export interface ParsedWorkout {
   dayOfWeek: number
   dayName: string
+  type: 'strength' | 'intervals' | 'active_recovery'
   exercises: ParsedExercise[]
+  notes: string | null
 }
 
 export function getWorkoutDate(weekOf: string, dayName: string): { dayOfWeek: number; date: string } {
@@ -61,10 +74,7 @@ export function getWorkoutDate(weekOf: string, dayName: string): { dayOfWeek: nu
   return { dayOfWeek: dayIndex, date }
 }
 
-export async function parsePdfWorkouts(
-  pdfPath: string,
-  programTrack: string = 'Minimalist',
-): Promise<ParsedWorkout[]> {
+export async function parsePdfWorkouts(pdfPath: string): Promise<ParsedWorkout[]> {
   const pdfBase64 = fs.readFileSync(pdfPath).toString('base64')
 
   const response = await client.messages.create({
@@ -73,23 +83,41 @@ export async function parsePdfWorkouts(
     system: [
       {
         type: 'text',
-        text: `You are a workout programming parser. Extract structured workout data from PDF training plans.
+        text: `You are a workout programming parser. Extract ALL programmed days from a Pump Lift 4x training plan PDF.
 
-Rules:
+This program has exactly 6 programmed days per week:
+- 4 strength training days (lifting with exercises, sets, reps, RPE, tempo)
+- 2 non-strength days (labeled "Active Recovery Day" in the PDF — but one contains structured work/rest intervals and one is low-intensity movement + mobility)
+
+Rules for ALL days:
+- dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
+- dayName: use the FULL day name as labeled in the PDF (e.g. "Monday, June 22nd, 2026")
+- type: classify based on CONTENT, not the PDF header label
+  - "strength" → the day contains lifting exercises with sets, reps, and RPE/tempo
+  - "intervals" → the day contains structured work/rest conditioning intervals (e.g. "30 sec on / 30 sec off × 10 rounds", HIIT, sprints) even if the PDF header says "Active Recovery"
+  - "active_recovery" → the day contains only low-intensity steady-state movement (walk/hike/bike/swim) and/or mobility work with NO structured work/rest intervals
+- Extract every single programmed day — do not skip any
+
+Rules for STRENGTH days (type="strength"):
 - targetReps: preserve exactly as written ("6", "6-8", "Max Unbroken reps", "Max reps", etc.)
 - targetRPE: preserve exactly ("7", "8", "9", "9+", "7-8", "8-9", etc.), null if absent
 - tempo: "21X1" format (eccentric-pause-concentric-pause), null if absent
 - targetWeight: numeric value only in lbs, null if not specified
 - Preserve exercise names exactly as written in the PDF
-- dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday
-- Loading Notes: do NOT create a separate exercise for "Loading Note" text. Instead, attach the full loading note text to the loadingNote field of the exercise it follows. If there is no loading note for an exercise, set loadingNote to null.`,
+- Loading Notes: attach the full loading note text to the loadingNote field of the exercise it follows, not as a separate exercise
+- exercises: populate with all exercises from the day
+- notes: null
+
+Rules for INTERVALS and ACTIVE_RECOVERY days:
+- exercises: empty array []
+- notes: capture the FULL workout description exactly as written in the PDF, including all details, rounds, durations, intensities, movements, and mobility work`,
         cache_control: { type: 'ephemeral' },
       },
     ],
     tools: [
       {
         name: 'extract_workouts',
-        description: 'Extract structured workout data from the training plan PDF',
+        description: 'Extract all programmed workout days from the Pump Lift 4x training plan PDF',
         input_schema: {
           type: 'object' as const,
           properties: {
@@ -98,10 +126,12 @@ Rules:
               items: {
                 type: 'object',
                 properties: {
-                  dayOfWeek: { type: 'number', description: '0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday' },
+                  dayOfWeek: { type: 'number', description: '0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday' },
                   dayName: { type: 'string' },
+                  type: { type: 'string', enum: ['strength', 'intervals', 'active_recovery'], description: 'strength for lifting days, intervals for cardio day, active_recovery for recovery day' },
                   exercises: {
                     type: 'array',
+                    description: 'Populated for strength days. Empty array for intervals/active_recovery days.',
                     items: {
                       type: 'object',
                       properties: {
@@ -126,8 +156,9 @@ Rules:
                       required: ['name', 'section', 'sets'],
                     },
                   },
+                  notes: { type: 'string', description: 'Full workout description for intervals/active_recovery days. Null for strength days.' },
                 },
-                required: ['dayOfWeek', 'dayName', 'exercises'],
+                required: ['dayOfWeek', 'dayName', 'type', 'exercises'],
               },
             },
           },
@@ -147,7 +178,7 @@ Rules:
           } as any,
           {
             type: 'text',
-            text: `Extract the ${programTrack} workouts (all days) from this training plan PDF.`,
+            text: 'Extract ALL programmed days from this Pump Lift 4x training plan PDF — all 4 strength days, the intervals day, and the active recovery day. Do not skip any day.',
           },
         ],
       },
@@ -226,10 +257,11 @@ export interface PrescribedRun {
   segments: PrescribedSegment[]
 }
 
-export interface RunPrescriptions {
-  tuesday: PrescribedRun
-  saturday: PrescribedRun
-  thursdayYogaNote: string | null
+export interface DayPrescription {
+  day: string
+  type: 'run' | 'yoga' | 'mobility' | 'rest'
+  runWorkout?: PrescribedRun | null
+  note?: string | null
 }
 
 function serializePastRun(r: PastRunSummary): string {
@@ -282,14 +314,19 @@ function serializePastRun(r: PastRunSummary): string {
   return lines.join('\n')
 }
 
-export async function generateRunPrescriptions(args: {
+export async function generateWeekPrescriptions(args: {
   pastRuns: PastRunSummary[]
   weekOf: string
-}): Promise<RunPrescriptions> {
-  const { pastRuns, weekOf } = args
+  strengthDays: string[]
+}): Promise<DayPrescription[]> {
+  const { pastRuns, weekOf, strengthDays } = args
+
+  const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const normalizedStrength = strengthDays.map(d => d.split(',')[0].trim().toLowerCase())
+  const availableDays = allDays.filter(d => !normalizedStrength.includes(d.toLowerCase()))
 
   const historyBlock = pastRuns.length === 0
-    ? '(No past runs logged. This is the athlete\'s first prescribed week — start conservatively at 4 mi easy / 5 mi long.)'
+    ? "(No past runs logged. Start conservatively at 4 mi easy / 5 mi long.)"
     : pastRuns.map(serializePastRun).join('\n\n')
 
   const response = await client.messages.create({
@@ -298,101 +335,107 @@ export async function generateRunPrescriptions(args: {
     system: [
       {
         type: 'text',
-        text: `You are a running coach prescribing two runs per week for an athlete that is following a 4 day training schedule focusing on weightlifting movements with dumbbells and barbells. Fill in running prescriptions based on the athlete's training history and goals.
+        text: `You are a running coach and recovery planner. The athlete follows a 4-day weightlifting program and needs complementary training for the remaining days.
 
 ATHLETE'S TRAINING GOAL:
 """
 ${TRAINING_GOAL}
 """
 
-REASONING RULES:
-For each past run you see, you have BOTH the prescribed targets AND the athlete's actual results. Base your prescriptions on the actuals:
+SCHEDULING RULES:
+- Prescribe 1-2 runs, exactly 1 yoga session, optionally 1 mobility/accessory day, rest for remaining days.
+- Avoid placing hard runs immediately before or after a lifting day when possible. Easy runs and yoga/mobility are fine adjacent to lifting.
+- If only 2 days are available: 1 run + 1 yoga (no mobility, no second run).
+- If 3 days are available: 1 run + 1 yoga + 1 rest (skip mobility).
+- If 4+ days are available: 2 runs + 1 yoga + optionally 1 mobility + rest for the remainder.
 
-- If actual pace is consistently faster than prescribed at low RPE/HR, the athlete is ready for harder efforts.
-- If RPE was high or notes describe struggle, scale volume/intensity down.
-- If HR was elevated for the same prescribed pace, watch for accumulated fatigue.
+RUN REASONING:
+For each past run, you have BOTH prescribed targets AND actual results. Base prescriptions on actuals:
+- Actual pace consistently faster than prescribed at low RPE/HR → athlete ready for harder efforts.
+- High RPE or notes describe struggle → scale back volume/intensity.
+- Elevated HR for the same pace → possible accumulated fatigue.
 
-Output via the prescribe_runs tool.`,
+Output via the prescribe_week tool. You MUST include every available day.`,
         cache_control: { type: 'ephemeral' },
       },
     ],
     tools: [
       {
-        name: 'prescribe_runs',
-        description: 'Prescribe two runs based on past actuals + goal',
+        name: 'prescribe_week',
+        description: 'Prescribe complementary workouts for all non-lifting days',
         input_schema: {
           type: 'object' as const,
           properties: {
-            tuesday: {
-              type: 'object',
-              description: 'Easy aerobic run. workoutType must be "easy". segments must be [].',
-              properties: {
-                workoutType: { type: 'string', enum: ['easy'] },
-                summary: { type: 'string', description: 'Short title, e.g. "Easy Run — 4.5 mi"' },
-                targetMiles: { type: 'number' },
-                targetPace: { type: 'string', description: 'e.g. "9:30"' },
-                heartRateZone: { type: 'string', description: 'e.g. "Zone 2"' },
-                notes: { type: 'string', description: 'Coaching cue' },
-                segments: { type: 'array', items: { type: 'object' }, maxItems: 0 },
-              },
-              required: ['workoutType', 'summary', 'targetMiles', 'segments'],
-            },
-            saturday: {
-              type: 'object',
-              description: 'Long or structured run. May include segments.',
-              properties: {
-                workoutType: { type: 'string', enum: ['long', 'tempo', 'fartlek', 'intervals', 'progression'] },
-                summary: { type: 'string', description: 'Short title, e.g. "Fartlek — 6 mi with 8×60s surges"' },
-                targetMiles: { type: 'number' },
-                targetPace: { type: 'string' },
-                heartRateZone: { type: 'string' },
-                notes: { type: 'string' },
-                segments: {
-                  type: 'array',
-                  description: 'Empty for simple long runs. Populated for fartlek/intervals/progression.',
-                  items: {
+            days: {
+              type: 'array',
+              description: 'One entry per available day. Must cover ALL available days.',
+              items: {
+                type: 'object',
+                properties: {
+                  day: { type: 'string', description: 'Day name, e.g. "Friday"' },
+                  type: { type: 'string', enum: ['run', 'yoga', 'mobility', 'rest'] },
+                  runWorkout: {
                     type: 'object',
+                    description: 'Required when type is "run". Omit otherwise.',
                     properties: {
-                      order: { type: 'number' },
-                      label: { type: 'string' },
-                      type: { type: 'string', enum: ['warmup', 'easy', 'tempo', 'interval', 'recovery', 'cooldown'] },
-                      repeat: { type: 'number' },
-                      distanceMi: { type: 'number' },
-                      durationSec: { type: 'number' },
-                      pace: { type: 'string' },
-                      heartRateZone: { type: 'string' },
-                      notes: { type: 'string' },
+                      workoutType: { type: 'string', enum: ['easy', 'long', 'tempo', 'fartlek', 'intervals', 'progression'] },
+                      summary: { type: 'string', description: 'Short title, e.g. "Easy Run — 4.5 mi"' },
+                      targetMiles: { type: 'number' },
+                      targetPace: { type: 'string', description: 'e.g. "9:30"' },
+                      heartRateZone: { type: 'string', description: 'e.g. "Zone 2"' },
+                      notes: { type: 'string', description: 'Coaching cue' },
+                      segments: {
+                        type: 'array',
+                        description: 'Empty for simple runs. Populated for fartlek/intervals/progression.',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            order: { type: 'number' },
+                            label: { type: 'string' },
+                            type: { type: 'string', enum: ['warmup', 'easy', 'tempo', 'interval', 'recovery', 'cooldown'] },
+                            repeat: { type: 'number' },
+                            distanceMi: { type: 'number' },
+                            durationSec: { type: 'number' },
+                            pace: { type: 'string' },
+                            heartRateZone: { type: 'string' },
+                            notes: { type: 'string' },
+                          },
+                          required: ['order', 'label', 'type'],
+                        },
+                      },
                     },
-                    required: ['order', 'label', 'type'],
+                    required: ['workoutType', 'summary', 'targetMiles', 'segments'],
                   },
+                  note: { type: 'string', description: 'Optional one-line coaching note for yoga/mobility days' },
                 },
+                required: ['day', 'type'],
               },
-              required: ['workoutType', 'summary', 'targetMiles', 'segments'],
-            },
-            thursdayYogaNote: {
-              type: 'string',
-              description: 'Optional one-line yoga suggestion, e.g. "Vinyasa flow — focus on hips". May be empty string.',
             },
           },
+          required: ['days'],
         },
       },
     ],
-    tool_choice: { type: 'tool', name: 'prescribe_runs' },
+    tool_choice: { type: 'tool', name: 'prescribe_week' },
     messages: [
       {
         role: 'user',
         content: `Week of ${weekOf}.
 
+Lifting days this week: ${strengthDays.join(', ')}.
+Available days for complementary training: ${availableDays.join(', ')}.
+
 Past 8 completed runs (most recent first):
 
-  ${historyBlock}.`,
+${historyBlock}`,
       },
     ],
   })
 
   const toolUse = response.content.find(b => b.type === 'tool_use')
   if (!toolUse || toolUse.type !== 'tool_use') {
-    throw new Error('Claude did not return run prescriptions')
+    throw new Error('Claude did not return week prescriptions')
   }
-  return toolUse.input as RunPrescriptions
+  const data = toolUse.input as { days?: DayPrescription[] }
+  return data.days ?? []
 }

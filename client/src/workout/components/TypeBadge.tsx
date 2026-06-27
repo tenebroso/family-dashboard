@@ -1,12 +1,13 @@
 import { C, F } from '../tokens'
 
-type BadgeType = 'strength' | 'run' | 'rest' | 'yoga'
+type BadgeType = 'strength' | 'run' | 'rest' | 'yoga' | 'mobility'
 
 const BADGE_MAP: Record<BadgeType, { label: string; color: string; bg: string }> = {
-  strength: { label: 'LIFT', color: C.gold,  bg: 'rgba(255,74,28,0.12)' },
-  run:      { label: 'RUN',  color: C.teal,  bg: 'rgba(46,217,176,0.18)' },
-  rest:     { label: 'REST', color: C.muted, bg: 'rgba(20,20,20,0.05)' },
-  yoga:     { label: 'YOGA', color: C.rust,  bg: 'rgba(255,210,63,0.22)' },
+  strength: { label: 'LIFT',     color: C.gold,    bg: 'rgba(255,74,28,0.12)' },
+  run:      { label: 'RUN',      color: C.teal,    bg: 'rgba(46,217,176,0.18)' },
+  rest:     { label: 'REST',     color: C.muted,   bg: 'rgba(20,20,20,0.05)' },
+  yoga:     { label: 'YOGA',     color: C.rust,    bg: 'rgba(255,210,63,0.22)' },
+  mobility: { label: 'MOBILITY', color: '#8B9FD4', bg: 'rgba(139,159,212,0.18)' },
 }
 
 export function TypeBadge({ type }: { type: BadgeType }) {

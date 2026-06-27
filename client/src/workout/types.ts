@@ -77,7 +77,7 @@ export interface WorkoutData {
   id: string
   date: string
   dayOfWeek: number
-  type: 'strength' | 'run' | 'rest' | 'yoga'
+  type: 'strength' | 'run' | 'rest' | 'yoga' | 'mobility'
   exercises: ExerciseData[]
   runWorkout: RunWorkoutData | null
   notes: string | null
@@ -99,7 +99,7 @@ export interface DayTile {
   workout: WorkoutData | null
 }
 
-export type WorkoutType = 'strength' | 'run' | 'rest' | 'yoga'
+export type WorkoutType = 'strength' | 'run' | 'rest' | 'yoga' | 'mobility'
 
 export interface LocalSetState {
   actualReps: string
