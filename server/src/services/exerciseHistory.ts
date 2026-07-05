@@ -39,6 +39,8 @@ export async function fetchExerciseHistory(
   anchorDate: string,
   limit: number = 6,
 ): Promise<HistorySession[]> {
+  // Fetch a larger window than requested since sessions with no logged sets
+  // get dropped below — over-fetch so we can still fill up to `limit` real sessions.
   const rows = await prisma.strengthExercise.findMany({
     where: {
       name: { equals: exerciseName },
@@ -52,32 +54,28 @@ export async function fetchExerciseHistory(
       workout: true,
     },
     orderBy: { workout: { date: 'desc' } },
-    take: limit,
+    take: Math.max(limit * 4, 20),
   })
 
-  return rows.map(ex => {
-    const exerciseCompleted = ex.workout.completedAt != null
-    return {
+  const sessions: HistorySession[] = []
+  for (const ex of rows) {
+    const loggedSets = ex.sets
+      .filter(s => s.actualReps != null)
+      .map(s => ({
+        setNumber: s.setNumber,
+        reps: s.actualReps,
+        weight: s.actualWeight ?? null,
+        rpe: s.actualRPE ?? null,
+      }))
+    if (loggedSets.length === 0) continue // movement was skipped entirely this session
+
+    sessions.push({
       workoutId: ex.workoutId,
       date: ex.workout.date,
       relative: formatRelative(diffWeeks(anchorDate, ex.workout.date)),
-      sets: ex.sets.map(s => {
-        const hasAnyActual = s.actualReps != null || s.actualWeight != null || s.actualRPE != null
-        if (hasAnyActual || exerciseCompleted) {
-          return {
-            setNumber: s.setNumber,
-            reps: s.actualReps ?? null,
-            weight: s.actualWeight ?? null,
-            rpe: s.actualRPE ?? null,
-          }
-        }
-        return {
-          setNumber: s.setNumber,
-          reps: s.targetReps ?? null,
-          weight: s.targetWeight ?? null,
-          rpe: s.targetRPE ?? null,
-        }
-      }),
-    }
-  })
+      sets: loggedSets,
+    })
+    if (sessions.length >= limit) break
+  }
+  return sessions
 }

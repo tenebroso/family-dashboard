@@ -16,7 +16,7 @@ export function YogaDay() {
   const navigate = useNavigate()
   const { workoutId } = useParams<{ workoutId: string }>()
 
-  const { data } = useQuery<{ workout: { id: string; date: string; notes: string | null; completedAt: string | null } | null }>(
+  const { data } = useQuery<{ workout: { id: string; date: string; type: string; notes: string | null; completedAt: string | null } | null }>(
     GET_RUN_WORKOUT,
     { variables: { id: workoutId }, fetchPolicy: 'cache-and-network', skip: !workoutId }
   )
@@ -27,6 +27,8 @@ export function YogaDay() {
   const workout = data?.workout
   const isComplete = !!workout?.completedAt
   const dateLabel = workout ? dayjs(workout.date).format('ddd · MMM D').toUpperCase() : ''
+  const isMobility = workout?.type === 'mobility'
+  const title = isMobility ? 'Mobility' : 'Yoga'
 
   const handleToggle = async () => {
     if (!workout) return
@@ -44,7 +46,7 @@ export function YogaDay() {
     <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
       <TopBar
         eyebrow={dateLabel}
-        title="Yoga"
+        title={title}
         left={<IconBtn onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')}><ChevronIcon dir="left" /></IconBtn>}
       />
 
@@ -59,10 +61,10 @@ export function YogaDay() {
 
       <div style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
         <div style={{ fontFamily: F.syne, fontSize: 64, fontWeight: 800, lineHeight: 0.9, letterSpacing: '-0.03em', color: isComplete ? C.gold : C.text }}>
-          Yoga.
+          {title}.
         </div>
         <div style={{ fontFamily: F.dm, fontSize: 15, color: C.muted, marginTop: 28, lineHeight: 1.6, maxWidth: 320 }}>
-          Find a local class or use Down Dog. 30–60 min.
+          {isMobility ? 'Low intensity. Walk, move, stretch. Keep it easy.' : 'Find a local class or use Down Dog. 30–60 min.'}
         </div>
         {workout?.notes && (
           <div style={{ marginTop: 24 }}>

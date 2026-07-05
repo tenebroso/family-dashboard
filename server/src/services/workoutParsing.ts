@@ -48,7 +48,7 @@ export interface ParsedExercise {
 export interface ParsedWorkout {
   dayOfWeek: number
   dayName: string
-  type: 'strength' | 'intervals' | 'active_recovery'
+  type: 'strength' | 'active_recovery'
   exercises: ParsedExercise[]
   notes: string | null
 }
@@ -86,16 +86,13 @@ export async function parsePdfWorkouts(pdfPath: string): Promise<ParsedWorkout[]
         text: `You are a workout programming parser. Extract ALL programmed days from a Pump Lift 4x training plan PDF.
 
 This program has exactly 6 programmed days per week:
-- 4 strength training days (lifting with exercises, sets, reps, RPE, tempo)
-- 2 non-strength days (labeled "Active Recovery Day" in the PDF — but one contains structured work/rest intervals and one is low-intensity movement + mobility)
+- 4 strength training days (Monday, Tuesday, Thursday, Friday) — lifting with exercises, sets, reps, RPE, tempo
+- 2 active recovery days (Wednesday, Saturday) — low-intensity movement, mobility, or conditioning work
 
 Rules for ALL days:
 - dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
 - dayName: use the FULL day name as labeled in the PDF (e.g. "Monday, June 22nd, 2026")
-- type: classify based on CONTENT, not the PDF header label
-  - "strength" → the day contains lifting exercises with sets, reps, and RPE/tempo
-  - "intervals" → the day contains structured work/rest conditioning intervals (e.g. "30 sec on / 30 sec off × 10 rounds", HIIT, sprints) even if the PDF header says "Active Recovery"
-  - "active_recovery" → the day contains only low-intensity steady-state movement (walk/hike/bike/swim) and/or mobility work with NO structured work/rest intervals
+- type: "strength" for the 4 lifting days, "active_recovery" for the 2 non-lifting days (Wednesday and Saturday), regardless of the content
 - Extract every single programmed day — do not skip any
 
 Rules for STRENGTH days (type="strength"):
@@ -103,12 +100,14 @@ Rules for STRENGTH days (type="strength"):
 - targetRPE: preserve exactly ("7", "8", "9", "9+", "7-8", "8-9", etc.), null if absent
 - tempo: "21X1" format (eccentric-pause-concentric-pause), null if absent
 - targetWeight: numeric value only in lbs, null if not specified
-- Preserve exercise names exactly as written in the PDF
+- Preserve exercise names exactly as written in the PDF, EXCEPT apply these substitutions:
+  - "Supinated Strict Pull Up" → "Supinated Lat Pull Down"
+  - "Pronated Strict Pull Up" → "Pronated Lat Pull Down"
 - Loading Notes: attach the full loading note text to the loadingNote field of the exercise it follows, not as a separate exercise
 - exercises: populate with all exercises from the day
 - notes: null
 
-Rules for INTERVALS and ACTIVE_RECOVERY days:
+Rules for ACTIVE_RECOVERY days:
 - exercises: empty array []
 - notes: capture the FULL workout description exactly as written in the PDF, including all details, rounds, durations, intensities, movements, and mobility work`,
         cache_control: { type: 'ephemeral' },
@@ -128,7 +127,7 @@ Rules for INTERVALS and ACTIVE_RECOVERY days:
                 properties: {
                   dayOfWeek: { type: 'number', description: '0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday' },
                   dayName: { type: 'string' },
-                  type: { type: 'string', enum: ['strength', 'intervals', 'active_recovery'], description: 'strength for lifting days, intervals for cardio day, active_recovery for recovery day' },
+                  type: { type: 'string', enum: ['strength', 'active_recovery'], description: 'strength for the 4 lifting days (Mon/Tue/Thu/Fri), active_recovery for the 2 non-lifting days (Wed/Sat)' },
                   exercises: {
                     type: 'array',
                     description: 'Populated for strength days. Empty array for intervals/active_recovery days.',
@@ -178,7 +177,7 @@ Rules for INTERVALS and ACTIVE_RECOVERY days:
           } as any,
           {
             type: 'text',
-            text: 'Extract ALL programmed days from this Pump Lift 4x training plan PDF — all 4 strength days, the intervals day, and the active recovery day. Do not skip any day.',
+            text: 'Extract ALL programmed days from this Pump Lift 4x training plan PDF — all 4 strength days (Mon/Tue/Thu/Fri) and both active recovery days (Wed/Sat). Do not skip any day.',
           },
         ],
       },

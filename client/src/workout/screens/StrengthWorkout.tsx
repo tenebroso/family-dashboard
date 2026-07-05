@@ -671,7 +671,7 @@ export function StrengthWorkout() {
     <div style={{ minHeight: '100dvh', background: editMode ? editBg : C.bg, display: 'flex', flexDirection: 'column', transition: 'background 0.2s' }}>
       <TopBar
         eyebrow={dateLabel}
-        title={workout?.notes?.split('\n')[0] || 'Strength'}
+        title="Strength"
         bg={editMode ? editBg : C.bg}
         left={
           <IconBtn onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')}>

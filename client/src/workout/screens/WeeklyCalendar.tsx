@@ -81,19 +81,12 @@ function workoutMeta(w: WorkoutData): string {
   return ''
 }
 
-function strengthDayNumber(w: WorkoutData, tiles: DayTile[]): number | null {
-  const strengthTiles = tiles.filter(t => t.workout?.type === 'strength')
-  const idx = strengthTiles.findIndex(t => t.workout?.id === w.id)
-  return idx === -1 ? null : idx + 1
-}
 
-function workoutTitle(w: WorkoutData, tiles: DayTile[]): string {
-  if (w.notes) return w.notes.split('\n')[0].slice(0, 40)
-  if (w.type === 'strength') {
-    const n = strengthDayNumber(w, tiles)
-    return n ? `Lift · Day ${n}` : 'Strength'
+function workoutTitle(w: WorkoutData): string {
+  if (w.type === 'strength') return 'Strength'
+  if (w.type === 'run') {
+    return w.runWorkout?.workoutType === 'intervals' ? 'Intervals' : 'Run'
   }
-  if (w.type === 'run') return 'Run'
   if (w.type === 'rest') return 'Rest'
   if (w.type === 'yoga') return 'Yoga'
   if (w.type === 'mobility') return 'Mobility'
@@ -336,7 +329,7 @@ export function WeeklyCalendar() {
                       )}
                     </div>
                     <div style={{ fontFamily: F.syne, fontSize: 18, fontWeight: 700, color: C.text, lineHeight: 1.15 }}>
-                      {workoutTitle(w, tiles)}
+                      {workoutTitle(w)}
                     </div>
                     {workoutMeta(w) && (
                       <div style={{ fontFamily: F.mono, fontSize: 10, color: C.muted, marginTop: 4, letterSpacing: '0.04em' }}>

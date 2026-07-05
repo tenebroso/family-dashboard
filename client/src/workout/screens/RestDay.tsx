@@ -50,7 +50,7 @@ export function RestDay() {
     <div style={{ minHeight: '100dvh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
       <TopBar
         eyebrow={dateLabel}
-        title="Rest Day"
+        title="Rest"
         left={
           <IconBtn onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/workout')}>
             <ChevronIcon dir="left" />
@@ -103,7 +103,7 @@ export function RestDay() {
           letterSpacing: '-0.03em',
           color: isComplete ? C.gold : C.text,
         }}>
-          Rest<br />Day.
+          Rest.
         </div>
         <div style={{
           fontFamily: F.dm,

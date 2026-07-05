@@ -15,7 +15,6 @@ const prisma = new PrismaClient()
 const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const ACTIVE_RECOVERY_CUE = `\n\nEFFORT CHECK: This should be fully conversational the entire time — full sentences without breaking. If you can't hold a sentence, you're going too hard. Slow down.`
-const INTERVALS_CUE = `\n\nEFFORT CHECK: 75% effort = moderate-hard. You can gasp 2-3 words but not a full sentence. Controlled — not all-out. If you're unable to say anything, back off.`
 
 async function main() {
   const [pdfPath, weekOf] = process.argv.slice(2)
@@ -55,9 +54,8 @@ async function main() {
   console.log('Sending PDF to Claude for parsing…')
   const parsedWorkouts = await parsePdfWorkouts(pdfPath)
   const strengthCount = parsedWorkouts.filter(pw => pw.type === 'strength').length
-  const intervalsCount = parsedWorkouts.filter(pw => pw.type === 'intervals').length
   const recoveryCount = parsedWorkouts.filter(pw => pw.type === 'active_recovery').length
-  console.log(`  PDF: ${parsedWorkouts.length} day(s) — ${strengthCount} strength, ${intervalsCount} intervals, ${recoveryCount} active recovery`)
+  console.log(`  PDF: ${parsedWorkouts.length} day(s) — ${strengthCount} strength, ${recoveryCount} active recovery`)
 
   // Coach review pass — fetch history per exercise, then ask Claude for notes
   const strengthWorkouts = parsedWorkouts.filter(pw => pw.type === 'strength')
@@ -117,20 +115,6 @@ async function main() {
               })),
             },
           })),
-        },
-      })
-    } else if (pw.type === 'intervals') {
-      const intervalsNotes = (pw.notes ?? '') + INTERVALS_CUE
-      workoutsToCreate.push({
-        date,
-        dayOfWeek,
-        type: 'run',
-        notes: intervalsNotes,
-        runWorkout: {
-          create: {
-            workoutType: 'intervals',
-            notes: intervalsNotes,
-          },
         },
       })
     } else if (pw.type === 'active_recovery') {

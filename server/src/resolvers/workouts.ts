@@ -10,7 +10,6 @@ import { createAllDayCalendarEvent } from '../services/calendarWriter'
 const prisma = new PrismaClient()
 
 const ACTIVE_RECOVERY_CUE = `\n\nEFFORT CHECK: This should be fully conversational the entire time — full sentences without breaking. If you can't hold a sentence, you're going too hard. Slow down.`
-const INTERVALS_CUE = `\n\nEFFORT CHECK: 75% effort = moderate-hard. You can gasp 2-3 words but not a full sentence. Controlled — not all-out. If you're unable to say anything, back off.`
 
 type Context = { person: { id: string; name: string; color: string } | null }
 
@@ -213,20 +212,6 @@ export const workoutResolvers = {
                   })),
                 },
               })),
-            },
-          })
-        } else if (pw.type === 'intervals') {
-          const intervalsNotes = (pw.notes ?? '') + INTERVALS_CUE
-          workoutsToCreate.push({
-            date,
-            dayOfWeek,
-            type: 'run',
-            notes: intervalsNotes,
-            runWorkout: {
-              create: {
-                workoutType: 'intervals',
-                notes: intervalsNotes,
-              },
             },
           })
         } else if (pw.type === 'active_recovery') {
